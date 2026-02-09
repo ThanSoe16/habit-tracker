@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { Plus } from "lucide-react";
 
 import { HabitList } from "@/components/pages/home/_components/HabitList";
 import {
@@ -9,12 +10,13 @@ import {
   format,
   isSameDay,
 } from "date-fns";
-import { AddHabitDialog } from "@/components/pages/home/_components/AddHabitDialog";
 import { HomeHeader } from "./_components/HomeHeader";
+import { useRouter } from "next/navigation";
 import { CalendarStrip } from "./_components/CalendarStrip";
 import { PromoCard } from "./_components/PromoCard";
 
 export default function Home() {
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -112,7 +114,12 @@ export default function Home() {
 
       {/* Floating Layout for Add Button */}
       <div className="fixed bottom-28 right-6 z-50">
-        <AddHabitDialog />
+        <button
+          onClick={() => router.push("/habits/create")}
+          className="rounded-full w-14 h-14 shadow-2xl bg-blue-600 hover:bg-blue-600/90 text-white p-0 flex items-center justify-center shrink-0 border-[3px] border-white/20 hover:scale-105 active:scale-95 transition-all"
+        >
+          <Plus className="w-7 h-7" />
+        </button>
       </div>
     </div>
   );

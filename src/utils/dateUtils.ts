@@ -7,19 +7,33 @@ export function getLocalDateString(date: Date = new Date()): string {
 }
 
 /**
- * Checks if a habit should be done on a given date based on its repeat days.
+ * Checks if a habit should be done on a given date.
  */
 export function isHabitRequiredOnDate(
-  repeatDays: number[] | undefined,
+  habit: {
+    frequency?: string;
+    repeatDays?: number[];
+    specificDates?: string[];
+  },
   date: Date,
 ): boolean {
-  // If repeatDays is undefined (legacy), assume daily
-  if (repeatDays === undefined) return true;
-  // If repeatDays is empty, it's a one-off habit. This logic might need refinement
-  // depending on how one-off habits are handled, but for streak purposes,
-  // one-offs usually don't have "streaks" in the traditional sense.
-  if (repeatDays.length === 0) return false;
+  const dateStr = getLocalDateString(date);
+
+  // Specific dates mode
+  if (habit.frequency === "specific") {
+    return habit.specificDates?.includes(dateStr) || false;
+  }
+
+  // Monthly mode (usually repeatDays contains day of month numbers)
+  if (habit.frequency === "monthly" && habit.repeatDays) {
+    const dayOfMonth = date.getDate();
+    return habit.repeatDays.includes(dayOfMonth);
+  }
+
+  // Legacy/Default/Weekly frequency (repeatDays contains day of week numbers)
+  if (habit.repeatDays === undefined) return true;
+  if (habit.repeatDays.length === 0) return false;
 
   const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
-  return repeatDays.includes(dayOfWeek);
+  return habit.repeatDays.includes(dayOfWeek);
 }

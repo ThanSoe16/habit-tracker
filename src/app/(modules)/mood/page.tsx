@@ -1,5 +1,5 @@
-import Home from "@/components/pages/home";
+import MoodPage from "@/components/pages/mood";
 
-export default function HomePage() {
-  return <Home />;
+export default function MoodStatPage() {
+  return <MoodPage />;
 }

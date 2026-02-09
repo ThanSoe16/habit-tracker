@@ -4,17 +4,23 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getLocalDateString, isHabitRequiredOnDate } from "@/utils/dateUtils";
 
-export type HabitFrequency = "daily" | "weekly" | "monthly";
+export type HabitFrequency = "daily" | "weekly" | "monthly" | "specific";
 
 export interface Habit {
   id: string;
   name: string;
+  type?: "habit" | "task"; // Default to "habit"
   frequency: HabitFrequency;
   repeatDays: number[]; // JS day: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
   color: string;
   emoji?: string;
   startDate?: string; // ISO date string
   endDate?: string; // ISO date string
+  timeOfDay?: "morning" | "afternoon" | "evening";
+  reminderTime?: string;
+  endHabitDate?: string;
+  endHabitDays?: number;
+  specificDates?: string[]; // YYYY-MM-DD
   history: Record<
     string,
     { completed: boolean; timeTaken?: string; notes?: string } | boolean
@@ -34,6 +40,12 @@ interface HabitStore {
     emoji?: string,
     startDate?: string,
     endDate?: string,
+    type?: "habit" | "task",
+    timeOfDay?: "morning" | "afternoon" | "evening",
+    reminderTime?: string,
+    endHabitDate?: string,
+    endHabitDays?: number,
+    specificDates?: string[],
   ) => void;
   removeHabit: (id: string) => void;
   updateHabit: (
@@ -47,8 +59,15 @@ interface HabitStore {
       createdAt?: string;
       startDate?: string;
       endDate?: string;
+      type?: "habit" | "task";
+      timeOfDay?: "morning" | "afternoon" | "evening";
+      reminderTime?: string;
+      endHabitDate?: string;
+      endHabitDays?: number;
+      specificDates?: string[];
     },
   ) => void;
+  reorderHabits: (habits: Habit[]) => void;
   toggleHabit: (
     id: string,
     date: string,
@@ -68,7 +87,7 @@ const calculateStreak = (habit: Habit, history: Habit["history"]): number => {
     const entry = history[dateStr];
     const isDone = typeof entry === "boolean" ? entry : entry?.completed;
 
-    const isRequired = isHabitRequiredOnDate(habit.repeatDays, currentDate);
+    const isRequired = isHabitRequiredOnDate(habit, currentDate);
 
     if (isRequired) {
       if (isDone) {
@@ -115,6 +134,12 @@ export const useHabitStore = create<HabitStore>()(
         emoji,
         startDate,
         endDate,
+        type = "habit",
+        timeOfDay,
+        reminderTime,
+        endHabitDate,
+        endHabitDays,
+        specificDates,
       ) => {
         const newHabit: Habit = {
           id: crypto.randomUUID(),
@@ -125,6 +150,12 @@ export const useHabitStore = create<HabitStore>()(
           repeatDays,
           startDate,
           endDate,
+          type,
+          timeOfDay,
+          reminderTime,
+          endHabitDate,
+          endHabitDays,
+          specificDates,
           history: {},
           streak: 0,
           createdAt: new Date().toISOString(),
@@ -142,6 +173,10 @@ export const useHabitStore = create<HabitStore>()(
             h.id === id ? { ...h, ...updates } : h,
           ),
         }));
+      },
+
+      reorderHabits: (habits) => {
+        set({ habits });
       },
 
       toggleHabit: (id, date, details) => {

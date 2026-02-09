@@ -1,8 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import {
+  Plus,
+  X,
+  Check,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { parseISO, format } from "date-fns";
+import { Pencil, Clock } from "lucide-react";
 import { useHabitStore, HabitFrequency } from "@/store/useHabitStore";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -74,6 +82,19 @@ export function AddHabitDialog() {
     1, 2, 3, 4, 5, 6, 0,
   ]); // Start with all days selected (Daily)
   const [reminders, setReminders] = useState(false);
+  const [reminderTime, setReminderTime] = useState("07:00 AM");
+  const [type, setType] = useState<"habit" | "task">("habit");
+  const [frequencyTab, setFrequencyTab] = useState<
+    "daily" | "weekly" | "monthly"
+  >("daily");
+  const [timeOfDay, setTimeOfDay] = useState<
+    "morning" | "afternoon" | "evening"
+  >("morning");
+  const [endHabitEnabled, setEndHabitEnabled] = useState(false);
+  const [endHabitMode, setEndHabitMode] = useState<"date" | "days">("date");
+  const [endHabitDate, setEndHabitDate] = useState("2025-12-31");
+  const [endHabitDays, setEndHabitDays] = useState(365);
+  const [allDay, setAllDay] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +122,11 @@ export function AddHabitDialog() {
       emoji,
       startDate,
       endDate || undefined,
+      type,
+      timeOfDay,
+      reminders ? reminderTime : undefined,
+      endHabitEnabled && endHabitMode === "date" ? endHabitDate : undefined,
+      endHabitEnabled && endHabitMode === "days" ? endHabitDays : undefined,
     );
     setOpen(false);
     resetForm();
@@ -116,6 +142,13 @@ export function AddHabitDialog() {
     setRepeatDaysEnabled(true);
     setSelectedDays([1, 2, 3, 4, 5, 6, 0]);
     setReminders(false);
+    setReminderTime("07:00 AM");
+    setType("habit");
+    setFrequencyTab("daily");
+    setTimeOfDay("morning");
+    setEndHabitEnabled(false);
+    setEndHabitMode("date");
+    setAllDay(true);
   };
 
   const toggleDay = (index: number) => {
@@ -137,147 +170,161 @@ export function AddHabitDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] p-0 gap-0 bg-background border-none rounded-[2rem]">
-        <div className="p-6 pb-2 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">New habit</h2>
-          <DialogClose className="rounded-full bg-muted p-2 hover:bg-muted/80 transition-colors">
-            <X className="w-4 h-4 text-foreground" />
-          </DialogClose>
+        <div className="p-6 pb-2 relative flex items-center justify-center">
+          <button
+            onClick={() => setOpen(false)}
+            className="absolute left-6 top-7 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <h2 className="text-xl font-bold">Create New Habit</h2>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="px-4 sm:px-6 pb-8 space-y-6 sm:space-y-8 overflow-y-auto max-h-[calc(100vh-250px)]"
+          className="px-6 pb-8 space-y-8 overflow-y-auto max-h-[85vh] no-scrollbar"
         >
-          {/* Emoji & Color Picker Section */}
-          <div className="flex flex-col items-center gap-4 sm:gap-6 py-4 bg-muted/30 rounded-3xl border border-muted/50">
-            <div className="relative group">
-              <div
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center text-3xl sm:text-4xl shadow-2xl transition-transform duration-300 group-hover:scale-105"
-                style={{
-                  backgroundColor: color,
-                  boxShadow: `0 20px 40px -10px ${color}40`,
-                  backgroundImage:
-                    "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0) 100%)",
-                }}
+          {/* Type Toggle */}
+          <div className="bg-gray-100 p-1 rounded-2xl flex">
+            <button
+              type="button"
+              onClick={() => setType("habit")}
+              className={cn(
+                "flex-1 py-2.5 text-sm font-bold rounded-xl transition-all",
+                type === "habit"
+                  ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
+                  : "text-gray-500 hover:text-gray-700",
+              )}
+            >
+              Regular Habit
+            </button>
+            <button
+              type="button"
+              onClick={() => setType("task")}
+              className={cn(
+                "flex-1 py-2.5 text-sm font-bold rounded-xl transition-all",
+                type === "task"
+                  ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
+                  : "text-gray-500 hover:text-gray-700",
+              )}
+            >
+              One-Time Task
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-gray-800 text-[15px] font-bold">
+              Habit Name
+            </Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Study Art"
+              className="h-14 rounded-2xl bg-gray-50 border-none shadow-none text-[17px] font-bold"
+            />
+          </div>
+
+          {/* Icon Selector */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <Label className="text-gray-800 text-[15px] font-bold">
+                Icon
+              </Label>
+              <button
+                type="button"
+                className="text-indigo-500 text-xs font-bold flex items-center gap-1"
               >
-                {emoji}
-              </div>
-              <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-white rounded-full p-1 shadow-md border border-muted">
-                <div
-                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-              </div>
+                View All <span className="text-[10px]">→</span>
+              </button>
             </div>
-
-            <div className="w-full space-y-4 px-2 sm:px-4">
-              {/* Color Picker */}
-              <div className="flex justify-center gap-1.5 sm:gap-2 flex-wrap">
-                {COLORS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setColor(c)}
-                    className={cn(
-                      "w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all duration-300 border-2",
-                      color === c
-                        ? "border-black scale-110 shadow-lg"
-                        : "border-transparent hover:scale-110",
-                    )}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-
-              {/* Emoji Picker - Grid */}
-              <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 bg-white/50 p-2 rounded-2xl border border-muted/30">
-                {EMOJIS.map((e) => (
-                  <button
-                    key={e}
-                    type="button"
-                    onClick={() => setEmoji(e)}
-                    className={cn(
-                      "w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-lg sm:text-xl transition-all duration-200",
-                      emoji === e
-                        ? "bg-white shadow-md scale-110 ring-1 ring-black/5"
-                        : "hover:bg-white/80",
-                    )}
-                  >
-                    {e}
-                  </button>
-                ))}
-              </div>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar py-1">
+              {EMOJIS.slice(0, 5).map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  onClick={() => setEmoji(e)}
+                  className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all border shrink-0",
+                    emoji === e
+                      ? "bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/30"
+                      : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100",
+                  )}
+                >
+                  {e}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-4 sm:space-y-5">
-            <div className="space-y-2">
-              <Label
-                htmlFor="name"
-                className="text-foreground/70 text-xs sm:text-sm font-semibold pl-1 tracking-wide"
+          {/* Color Selector */}
+          <div className="space-y-3">
+            <Label className="text-gray-800 text-[15px] font-bold">Color</Label>
+            <div className="grid grid-cols-5 gap-y-3 gap-x-2">
+              {COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className={cn(
+                    "w-10 h-10 rounded-full transition-all flex items-center justify-center border-2 border-transparent",
+                    color === c && "border-white shadow-xl scale-110",
+                  )}
+                  style={{ backgroundColor: c }}
+                >
+                  {color === c && <Check className="w-5 h-5 text-white" />}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 shadow-sm"
               >
-                HABIT NAME
-              </Label>
-              <Input
-                id="name"
-                placeholder="Morning Meditations"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-14 sm:h-16 rounded-2xl bg-muted/20 border-muted/50 shadow-none px-4 sm:px-5 text-lg sm:text-xl font-bold placeholder:font-normal placeholder:text-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:bg-white transition-all"
-                required
-              />
+                <div className="w-6 h-6 rounded-full bg-linear-to-tr from-red-500 via-green-500 to-blue-500" />
+              </button>
+            </div>
+          </div>
+
+          {/* Repeat Section */}
+          <div className="space-y-4">
+            <Label className="text-gray-800 text-[15px] font-bold">
+              Repeat
+            </Label>
+            <div className="bg-gray-100 p-1 rounded-2xl flex">
+              {(["daily", "weekly", "monthly"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setFrequencyTab(tab)}
+                  className={cn(
+                    "flex-1 py-2 text-sm font-bold rounded-xl transition-all capitalize",
+                    frequencyTab === tab
+                      ? "bg-white text-indigo-500 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700",
+                  )}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-foreground/70 text-xs sm:text-sm font-semibold pl-1 tracking-wide">
-                  START DATE
-                </Label>
-                <div className="group">
-                  <DatePicker
-                    date={startDate ? parseISO(startDate) : undefined}
-                    onChange={(date) =>
-                      setStartDate(date ? format(date, "yyyy-MM-dd") : "")
-                    }
-                  />
+            {/* Daily UI */}
+            {frequencyTab === "daily" && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-gray-800">
+                    On these day:
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 font-bold">
+                      All day
+                    </span>
+                    <Checkbox
+                      checked={allDay}
+                      onCheckedChange={(checked) => setAllDay(!!checked)}
+                      className="rounded-md border-gray-200 data-[state=checked]:bg-indigo-500"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-muted-foreground text-xs sm:text-sm font-semibold pl-1 tracking-wide">
-                  END DATE
-                </Label>
-                <DatePicker
-                  date={endDate ? parseISO(endDate) : undefined}
-                  onChange={(date) =>
-                    setEndDate(date ? format(date, "yyyy-MM-dd") : "")
-                  }
-                  placeholder="Optional"
-                />
-              </div>
-            </div>
-
-            <div className="bg-muted/20 rounded-3xl p-4 sm:p-5 border border-muted/50 space-y-4">
-              <div className="flex justify-between items-center">
-                <Label className="text-foreground/80 font-bold text-sm sm:text-base tracking-tight">
-                  Repeat days
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={repeatDaysEnabled}
-                    onCheckedChange={(checked) => {
-                      const isChecked = !!checked;
-                      setRepeatDaysEnabled(isChecked);
-                      if (isChecked) {
-                        setSelectedDays([1, 2, 3, 4, 5, 6, 0]);
-                      } else {
-                        setSelectedDays([]);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-              {repeatDaysEnabled && (
-                <div className="flex justify-between items-center bg-white/50 p-1 rounded-2xl border border-muted/30">
+                <div className="flex justify-between items-center bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
                   {DAYS.map((day, i) => {
                     const jsDayIndex = (i + 1) % 7;
                     const isSelected = selectedDays.includes(jsDayIndex);
@@ -287,10 +334,10 @@ export function AddHabitDialog() {
                         type="button"
                         onClick={() => toggleDay(jsDayIndex)}
                         className={cn(
-                          "w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-sm font-black transition-all duration-300",
+                          "w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all",
                           isSelected
-                            ? "bg-[#1A1A1A] text-white shadow-lg shadow-black/20 scale-105"
-                            : "text-muted-foreground hover:bg-black/5",
+                            ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
+                            : "text-gray-400",
                         )}
                       >
                         {day}
@@ -298,33 +345,200 @@ export function AddHabitDialog() {
                     );
                   })}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="flex items-center justify-between pl-1 pt-2">
-              <Label
-                htmlFor="reminders"
-                className="text-foreground/70 text-xs sm:text-sm font-semibold tracking-wide"
-              >
-                GET REMINDERS
+            {/* Weekly UI */}
+            {frequencyTab === "weekly" && (
+              <div className="space-y-4">
+                <p className="text-sm font-bold text-gray-800">
+                  5 days per week
+                </p>
+                <div className="flex justify-between">
+                  {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border transition-all",
+                        num === 5
+                          ? "bg-indigo-500 border-indigo-500 text-white shadow-lg"
+                          : "bg-white border-gray-100 text-gray-400",
+                      )}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Monthly UI */}
+            {frequencyTab === "monthly" && (
+              <div className="bg-white rounded-3xl border border-gray-100 p-4 space-y-4">
+                <p className="text-xs font-bold text-gray-500 text-center">
+                  Every month on 3, 8, 13, 17, 22, 27, 31
+                </p>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-7 text-center">
+                    {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => (
+                      <span
+                        key={d}
+                        className="text-[10px] font-bold text-gray-300"
+                      >
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-y-2">
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                      <div
+                        key={day}
+                        className="flex items-center justify-center"
+                      >
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                            [3, 8, 13, 17, 22, 27, 31].includes(day)
+                              ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
+                              : "text-gray-400",
+                          )}
+                        >
+                          {day}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Time Selector */}
+          <div className="space-y-4">
+            <Label className="text-gray-800 text-[15px] font-bold">
+              Do it at:
+            </Label>
+            <div className="flex gap-2">
+              {(["morning", "afternoon", "evening"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTimeOfDay(t)}
+                  className={cn(
+                    "flex-1 py-3 text-xs font-bold rounded-full border transition-all capitalize",
+                    timeOfDay === t
+                      ? "bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                      : "bg-white border-gray-100 text-gray-400",
+                  )}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* End Habit Section */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Label className="text-gray-800 text-[15px] font-bold">
+                End Habit on
               </Label>
               <Switch
-                id="reminders"
-                checked={reminders}
-                onCheckedChange={setReminders}
-                className="sm:scale-110 data-[state=checked]:bg-primary"
+                checked={endHabitEnabled}
+                onCheckedChange={setEndHabitEnabled}
+                className="data-[state=checked]:bg-indigo-500"
               />
             </div>
+
+            {endHabitEnabled && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="bg-gray-100 p-1 rounded-2xl flex">
+                  <button
+                    type="button"
+                    onClick={() => setEndHabitMode("date")}
+                    className={cn(
+                      "flex-1 py-2 text-xs font-bold rounded-xl transition-all",
+                      endHabitMode === "date"
+                        ? "bg-indigo-400 text-white"
+                        : "text-gray-500",
+                    )}
+                  >
+                    Date
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEndHabitMode("days")}
+                    className={cn(
+                      "flex-1 py-2 text-xs font-bold rounded-xl transition-all",
+                      endHabitMode === "days"
+                        ? "bg-indigo-400 text-white"
+                        : "text-gray-500",
+                    )}
+                  >
+                    Days
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
+                      {endHabitMode === "date" ? (
+                        <CalendarIcon className="w-4 h-4 text-indigo-500" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-indigo-500" />
+                      )}
+                    </div>
+                    <span className="text-[15px] font-bold text-gray-700">
+                      {endHabitMode === "date"
+                        ? "December 31, 2025"
+                        : "After 365 days"}
+                    </span>
+                  </div>
+                  <button type="button" className="text-gray-400">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Reminder Section */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Label className="text-gray-800 text-[15px] font-bold">
+                Set Reminder
+              </Label>
+              <Switch
+                checked={reminders}
+                onCheckedChange={setReminders}
+                className="data-[state=checked]:bg-indigo-500"
+              />
+            </div>
+
+            {reminders && (
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-indigo-500" />
+                  </div>
+                  <span className="text-[15px] font-bold text-gray-700">
+                    {reminderTime}
+                  </span>
+                </div>
+                <button type="button" className="text-gray-400">
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           <Button
             type="submit"
-            className="w-full h-14 sm:h-16 rounded-2xl text-lg sm:text-xl font-bold shadow-2xl transition-all active:scale-[0.98] mt-4 bg-linear-to-r from-primary to-primary/80 text-white"
-            style={{
-              boxShadow: "0 10px 30px -5px var(--primary)",
-            }}
+            className="w-full h-14 rounded-full text-[17px] font-bold shadow-xl transition-all active:scale-[0.98] mt-4 bg-indigo-500 hover:bg-indigo-600 text-white shadow-indigo-500/20"
           >
-            Save Habit
+            Save
           </Button>
         </form>
       </DialogContent>
