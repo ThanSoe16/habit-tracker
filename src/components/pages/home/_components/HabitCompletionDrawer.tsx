@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Habit } from "@/store/useHabitStore";
 import { X, Trash2, Pencil } from "lucide-react";
-import { EditHabitDialog } from "../../../components/pages/home/_components/EditHabitDialog";
+import { EditHabitDialog } from "./EditHabitDialog";
 
 interface HabitCompletionDrawerProps {
   habit: Habit;
@@ -218,21 +218,6 @@ export function HabitCompletionDrawer({
                     })}
                   </p>
                 )}
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full"
-                  onClick={() => setShowEditDialog(true)}
-                >
-                  <Pencil className="w-4 h-4 opacity-50" />
-                </Button>
-                <DrawerClose asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <X className="w-5 h-5 opacity-50" />
-                  </Button>
-                </DrawerClose>
               </div>
             </DrawerHeader>
 

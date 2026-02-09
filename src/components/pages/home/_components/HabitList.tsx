@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useHabitStore } from "@/store/useHabitStore";
 import { HabitCard } from "./HabitCard";
 import { HabitCompletionDrawer } from "./HabitCompletionDrawer";
-import { EditHabitDialog } from "../../../components/pages/home/_components/EditHabitDialog";
+import { EditHabitDialog } from "./EditHabitDialog";
 
 interface HabitListProps {
   selectedDate?: Date;

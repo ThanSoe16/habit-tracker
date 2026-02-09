@@ -16,9 +16,16 @@ interface CalendarStripProps {
   onSelectDate: (date: Date) => void;
 }
 
-export function CalendarStrip({ weekDays, onSelectDate }: CalendarStripProps) {
+export function CalendarStrip({
+  weekDays,
+  onSelectDate,
+  scrollContainerRef,
+}: CalendarStripProps) {
   return (
-    <div className="flex items-center gap-4 overflow-x-auto pb-2 px-2">
+    <div
+      ref={scrollContainerRef}
+      className="flex items-center gap-4 overflow-x-auto pb-2 px-2 no-scrollbar"
+    >
       {weekDays.map((d, i) => (
         <div
           key={i}

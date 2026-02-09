@@ -1,9 +1,15 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 
-import { HabitList } from "@/features/habits/components/HabitList";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import { HabitList } from "@/components/pages/home/_components/HabitList";
+import {
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  format,
+  isSameDay,
+} from "date-fns";
+import { AddHabitDialog } from "@/components/pages/home/_components/AddHabitDialog";
 import { HomeHeader } from "./_components/HomeHeader";
 import { CalendarStrip } from "./_components/CalendarStrip";
 import { PromoCard } from "./_components/PromoCard";
@@ -22,21 +28,22 @@ export default function Home() {
     return "Night";
   };
 
-  const currentDay = today.getDay(); // 0=Sun
-  const distanceToMon = currentDay === 0 ? 6 : currentDay - 1;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - distanceToMon);
+  const monthStart = startOfMonth(today);
+  const monthEnd = endOfMonth(today);
 
-  const weekDays = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+  const monthDays = eachDayOfInterval({
+    start: monthStart,
+    end: monthEnd,
+  });
+
+  const allMonthDays = monthDays.map((d) => {
     return {
       date: d,
       day: d.getDate(),
-      weekday: d.toLocaleDateString("en-US", { weekday: "short" }),
-      isToday: d.toDateString() === today.toDateString(),
-      isSelected: d.toDateString() === selectedDate.toDateString(),
-      id: `date-${d.toISOString().split("T")[0]}`,
+      weekday: format(d, "EEE"),
+      isToday: isSameDay(d, today),
+      isSelected: isSameDay(d, selectedDate),
+      id: `date-${format(d, "yyyy-MM-dd")}`,
     };
   });
 
@@ -53,7 +60,7 @@ export default function Home() {
   // Auto-scroll to center selected date
   useEffect(() => {
     if (scrollContainerRef.current) {
-      const selectedId = `date-${selectedDate.toISOString().split("T")[0]}`;
+      const selectedId = `date-${format(selectedDate, "yyyy-MM-dd")}`;
       const selectedEl = document.getElementById(selectedId);
 
       if (selectedEl && scrollContainerRef.current) {
@@ -84,7 +91,7 @@ export default function Home() {
 
           <CalendarStrip
             scrollContainerRef={scrollContainerRef}
-            weekDays={weekDays}
+            weekDays={allMonthDays}
             onSelectDate={setSelectedDate}
           />
 
@@ -105,11 +112,7 @@ export default function Home() {
 
       {/* Floating Layout for Add Button */}
       <div className="fixed bottom-28 right-6 z-50">
-        <Link href="/home/new-habit">
-          <button className="w-14 h-14 rounded-full bg-blue-600 text-white shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all border-[3px] border-white/20">
-            <Plus className="w-7 h-7" />
-          </button>
-        </Link>
+        <AddHabitDialog />
       </div>
     </div>
   );

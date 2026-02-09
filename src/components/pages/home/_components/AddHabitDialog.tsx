@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/utils/cn";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 
 const COLORS = [
   "#FF7F27", // Orange
@@ -81,22 +82,14 @@ export function AddHabitDialog() {
     // Determine which days to save based on repeat days checkbox
     let daysToSave: number[];
 
-    console.log("Submit Debug:", { repeatDaysEnabled, selectedDays });
-
     if (!repeatDaysEnabled) {
       // Repeat days is UNCHECKED = today only, save empty array
-      console.log("Repeat days DISABLED -> saving []");
       daysToSave = [];
     } else if (selectedDays.length === 0) {
       // Repeat days is CHECKED but no days selected -> treat as "Today Only" (no repeat)
-      console.log("Repeat days ENABLED but none selected -> saving []");
       daysToSave = [];
     } else {
       // Repeat days is CHECKED with specific days selected
-      console.log(
-        "Repeat days ENABLED with selection -> saving selection:",
-        selectedDays,
-      );
       daysToSave = selectedDays;
     }
 
@@ -138,12 +131,12 @@ export function AddHabitDialog() {
       <DialogTrigger asChild>
         <Button
           size="lg"
-          className="rounded-full w-14 h-14 shadow-2xl bg-blue-600 hover:bg-blue-600/90 text-white p-0 flex items-center justify-center shrink-0 border-[3px] border-white/20"
+          className="rounded-full w-14 h-14 shadow-2xl bg-blue-600 hover:bg-blue-600/90 text-white p-0 flex items-center justify-center shrink-0 border-[3px] border-white/20 hover:scale-105 active:scale-95 transition-all"
         >
           <Plus className="w-7 h-7" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] p-0 gap-0 overflow-hidden bg-background border-none rounded-[2rem]">
+      <DialogContent className="sm:max-w-[425px] p-0 gap-0 bg-background border-none rounded-[2rem]">
         <div className="p-6 pb-2 flex items-center justify-between">
           <h2 className="text-2xl font-bold">New habit</h2>
           <DialogClose className="rounded-full bg-muted p-2 hover:bg-muted/80 transition-colors">
@@ -153,7 +146,7 @@ export function AddHabitDialog() {
 
         <form
           onSubmit={handleSubmit}
-          className="px-4 sm:px-6 pb-8 space-y-6 sm:space-y-8"
+          className="px-4 sm:px-6 pb-8 space-y-6 sm:space-y-8 overflow-y-auto max-h-[calc(100vh-250px)]"
         >
           {/* Emoji & Color Picker Section */}
           <div className="flex flex-col items-center gap-4 sm:gap-6 py-4 bg-muted/30 rounded-3xl border border-muted/50">
@@ -169,11 +162,7 @@ export function AddHabitDialog() {
               >
                 {emoji}
               </div>
-              {/* Decorative elements */}
-              <div className="absolute -top-2 -right-2 text-xl sm:text-2xl animate-bounce">
-                ✨
-              </div>
-              <div className="absolute bottom-0 -left-1 text-base sm:text-xl rotate-12 bg-white rounded-full p-0.5 sm:p-1 shadow-md border border-muted">
+              <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-white rounded-full p-1 shadow-md border border-muted">
                 <div
                   className="w-4 h-4 sm:w-5 sm:h-5 rounded-full"
                   style={{ backgroundColor: color }}
@@ -201,7 +190,7 @@ export function AddHabitDialog() {
               </div>
 
               {/* Emoji Picker - Grid */}
-              <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 bg-white/50 p-2 rounded-2xl overflow-y-auto max-h-[120px] scrollbar-hide border border-muted/30">
+              <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 bg-white/50 p-2 rounded-2xl border border-muted/30">
                 {EMOJIS.map((e) => (
                   <button
                     key={e}
@@ -227,7 +216,7 @@ export function AddHabitDialog() {
                 htmlFor="name"
                 className="text-foreground/70 text-xs sm:text-sm font-semibold pl-1 tracking-wide"
               >
-                NAME YOUR HABIT
+                HABIT NAME
               </Label>
               <Input
                 id="name"
@@ -244,12 +233,14 @@ export function AddHabitDialog() {
                 <Label className="text-foreground/70 text-xs sm:text-sm font-semibold pl-1 tracking-wide">
                   START DATE
                 </Label>
-                <DatePicker
-                  date={startDate ? parseISO(startDate) : undefined}
-                  onChange={(date) =>
-                    setStartDate(date ? format(date, "yyyy-MM-dd") : "")
-                  }
-                />
+                <div className="group">
+                  <DatePicker
+                    date={startDate ? parseISO(startDate) : undefined}
+                    onChange={(date) =>
+                      setStartDate(date ? format(date, "yyyy-MM-dd") : "")
+                    }
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-muted-foreground text-xs sm:text-sm font-semibold pl-1 tracking-wide">
@@ -271,12 +262,10 @@ export function AddHabitDialog() {
                   Repeat days
                 </Label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg border-muted/50 text-primary focus:ring-primary cursor-pointer accent-primary"
+                  <Checkbox
                     checked={repeatDaysEnabled}
-                    onChange={(e) => {
-                      const isChecked = e.target.checked;
+                    onCheckedChange={(checked) => {
+                      const isChecked = !!checked;
                       setRepeatDaysEnabled(isChecked);
                       if (isChecked) {
                         setSelectedDays([1, 2, 3, 4, 5, 6, 0]);
