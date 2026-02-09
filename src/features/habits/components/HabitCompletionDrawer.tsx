@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Habit } from "@/store/useHabitStore";
 import { X, Trash2, Pencil } from "lucide-react";
-import { EditHabitDialog } from "./EditHabitDialog";
+import { EditHabitDialog } from "../../../components/pages/home/_components/EditHabitDialog";
 
 interface HabitCompletionDrawerProps {
   habit: Habit;

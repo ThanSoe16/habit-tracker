@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/utils/cn";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const COLORS = [
   "#FF7F27", // Orange
@@ -124,7 +125,7 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
   };
 
   return (
-    <div className="px-4 sm:px-6 pb-8 space-y-6 sm:space-y-8">
+    <div className="px-4 sm:px-6 pb-8 space-y-6 sm:space-y-8 overflow-y-auto max-h-[calc(100vh-250px)]">
       {/* Emoji & Color Picker Section */}
       <div className="flex flex-col items-center gap-4 sm:gap-6 py-4 bg-muted/30 rounded-3xl border border-muted/50">
         <div className="relative group">
@@ -167,7 +168,7 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
           </div>
 
           {/* Emoji Picker - Responsive Grid */}
-          <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 bg-white/50 p-2 rounded-2xl overflow-y-auto max-h-[120px] scrollbar-hide border border-muted/30">
+          <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 bg-white/50 p-2 rounded-2xl border border-muted/30">
             {EMOJIS.map((e) => (
               <button
                 key={e}
@@ -239,24 +240,11 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
               Repeat days
             </Label>
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg border-muted/50 text-primary focus:ring-primary cursor-pointer accent-primary"
+              <Checkbox
                 checked={repeatDaysEnabled}
-                onChange={(e) => {
-                  const isChecked = e.target.checked;
-                  setRepeatDaysEnabled(isChecked);
-                  if (isChecked) {
-                    if (selectedDays.length === 0) {
-                      setSelectedDays([1, 2, 3, 4, 5, 6, 0]);
-                    }
-                  } else {
-                    const today = new Date().toISOString().split("T")[0];
-                    setSelectedDays([]);
-                    setCreatedAt(new Date().toISOString());
-                    setStartDate(today);
-                  }
-                }}
+                onCheckedChange={(checked) =>
+                  setRepeatDaysEnabled(!repeatDaysEnabled)
+                }
               />
             </div>
           </div>
@@ -287,24 +275,11 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
-        <Button
-          type="button"
-          onClick={handleDelete}
-          variant="outline"
-          className="w-full sm:w-auto h-14 sm:h-16 px-6 sm:px-8 rounded-2xl font-bold border-red-100 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all order-2 sm:order-1"
-        >
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-2">
+        <Button type="button" onClick={handleDelete} variant="outline">
           Delete
         </Button>
-        <Button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!name.trim()}
-          className="flex-1 w-full h-14 sm:h-16 rounded-2xl text-lg sm:text-xl font-bold shadow-2xl transition-all active:scale-[0.98] bg-linear-to-r from-primary to-primary/80 text-white disabled:opacity-50 order-1 sm:order-2"
-          style={{
-            boxShadow: "0 10px 30px -5px var(--primary)",
-          }}
-        >
+        <Button type="button" onClick={handleSubmit} disabled={!name.trim()}>
           Save Changes
         </Button>
       </div>
@@ -323,7 +298,7 @@ export function EditHabitDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="sm:max-w-[425px] p-0 gap-0 overflow-hidden bg-background border-none rounded-[2rem]"
+        className="sm:max-w-[425px] p-0 gap-0 bg-background border-none rounded-[2rem]"
         onInteractOutside={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
       >

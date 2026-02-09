@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useHabitStore } from "@/store/useHabitStore";
 import { HabitCard } from "./HabitCard";
 import { HabitCompletionDrawer } from "./HabitCompletionDrawer";
-import { EditHabitDialog } from "./EditHabitDialog";
+import { EditHabitDialog } from "../../../components/pages/home/_components/EditHabitDialog";
 
 interface HabitListProps {
   selectedDate?: Date;
@@ -72,7 +72,7 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-2.5 overflow-auto h-[calc(100dvh-400px)] overflow-y-auto no-scrollbar">
+      <div className="flex flex-col gap-2.5 no-scrollbar">
         {filteredHabits.map((habit, index) => (
           <HabitCard
             key={habit.id}
