@@ -124,118 +124,133 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
   };
 
   return (
-    <div className="px-6 pb-8 space-y-6">
-      {/* Emoji & Color Picker */}
-      <div className="flex flex-col items-center gap-4 py-4">
-        <div
-          className="w-20 h-20 rounded-3xl flex items-center justify-center text-3xl shadow-lg"
-          style={{ backgroundColor: color }}
-        >
-          {emoji}
-        </div>
-
-        {/* Color Picker */}
-        <div className="flex justify-center gap-2">
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setColor(c)}
-              className={cn(
-                "w-7 h-7 rounded-full transition-all",
-                color === c
-                  ? "ring-2 ring-offset-2 ring-gray-800 scale-110"
-                  : "hover:scale-105",
-              )}
-              style={{ backgroundColor: c }}
+    <div className="px-4 sm:px-6 pb-8 space-y-6 sm:space-y-8">
+      {/* Emoji & Color Picker Section */}
+      <div className="flex flex-col items-center gap-4 sm:gap-6 py-4 bg-muted/30 rounded-3xl border border-muted/50">
+        <div className="relative group">
+          <div
+            className="w-20 h-20 sm:w-24 sm:h-24 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center text-3xl sm:text-4xl shadow-2xl transition-transform duration-300 group-hover:scale-105"
+            style={{
+              backgroundColor: color,
+              boxShadow: `0 20px 40px -10px ${color}40`,
+              backgroundImage:
+                "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0) 100%)",
+            }}
+          >
+            {emoji}
+          </div>
+          <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-white rounded-full p-1 shadow-md border border-muted">
+            <div
+              className="w-4 h-4 sm:w-5 sm:h-5 rounded-full"
+              style={{ backgroundColor: color }}
             />
-          ))}
+          </div>
         </div>
 
-        {/* Emoji Picker */}
-        <div className="flex gap-2 overflow-x-auto pb-2 max-w-full scrollbar-hide">
-          {EMOJIS.map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => setEmoji(e)}
-              className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center text-xl transition-all",
-                emoji === e
-                  ? "bg-gray-200 ring-2 ring-gray-800 scale-110"
-                  : "bg-gray-100 hover:bg-gray-200 hover:scale-105",
-              )}
-            >
-              {e}
-            </button>
-          ))}
+        <div className="w-full space-y-4 px-2 sm:px-4">
+          {/* Color Picker */}
+          <div className="flex justify-center gap-1.5 sm:gap-2 flex-wrap">
+            {COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setColor(c)}
+                className={cn(
+                  "w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all duration-300 border-2",
+                  color === c
+                    ? "border-black scale-110 shadow-lg"
+                    : "border-transparent hover:scale-110",
+                )}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+
+          {/* Emoji Picker - Responsive Grid */}
+          <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 bg-white/50 p-2 rounded-2xl overflow-y-auto max-h-[120px] scrollbar-hide border border-muted/30">
+            {EMOJIS.map((e) => (
+              <button
+                key={e}
+                type="button"
+                onClick={() => setEmoji(e)}
+                className={cn(
+                  "w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-lg sm:text-xl transition-all duration-200",
+                  emoji === e
+                    ? "bg-white shadow-md scale-110 ring-1 ring-black/5"
+                    : "hover:bg-white/80",
+                )}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-5">
         <div className="space-y-2">
           <Label
             htmlFor="name"
-            className="text-muted-foreground font-medium pl-1"
+            className="text-foreground/70 text-xs sm:text-sm font-semibold pl-1 tracking-wide"
           >
-            Habit name
+            HABIT NAME
           </Label>
           <Input
             id="name"
             placeholder="Morning Meditations"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-14 rounded-2xl bg-white border-transparent shadow-sm px-4 text-lg font-semibold placeholder:font-normal placeholder:text-muted-foreground/50 focus-visible:ring-primary/20"
+            className="h-14 sm:h-16 rounded-2xl bg-muted/20 border-muted/50 shadow-none px-4 sm:px-5 text-lg sm:text-xl font-bold placeholder:font-normal placeholder:text-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:bg-white transition-all"
             required
           />
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1 space-y-2">
-            <Label className="text-muted-foreground font-medium pl-1">
-              Start Date
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-foreground/70 text-xs sm:text-sm font-semibold pl-1 tracking-wide">
+              START DATE
             </Label>
-            <DatePicker
-              date={startDate ? parseISO(startDate) : undefined}
-              onChange={(date) =>
-                setStartDate(date ? format(date, "yyyy-MM-dd") : "")
-              }
-            />
+            <div className="group">
+              <DatePicker
+                date={startDate ? parseISO(startDate) : undefined}
+                onChange={(date) =>
+                  setStartDate(date ? format(date, "yyyy-MM-dd") : "")
+                }
+              />
+            </div>
           </div>
-          <div className="flex-1 space-y-2">
-            <Label className="text-muted-foreground font-medium pl-1">
-              End Date
+          <div className="space-y-2">
+            <Label className="text-muted-foreground text-xs sm:text-sm font-semibold pl-1 tracking-wide">
+              END DATE
             </Label>
             <DatePicker
               date={endDate ? parseISO(endDate) : undefined}
               onChange={(date) =>
                 setEndDate(date ? format(date, "yyyy-MM-dd") : "")
               }
-              placeholder="Optional"
+              placeholder="No end date"
             />
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex justify-between items-center pl-1 pr-1">
-            <Label className="text-muted-foreground font-medium">
+        <div className="bg-muted/20 rounded-3xl p-4 sm:p-5 border border-muted/50 space-y-4">
+          <div className="flex justify-between items-center">
+            <Label className="text-foreground/80 font-bold text-sm sm:text-base tracking-tight">
               Repeat days
             </Label>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                className="rounded-md border-muted text-primary focus:ring-primary w-5 h-5 cursor-pointer"
+                className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg border-muted/50 text-primary focus:ring-primary cursor-pointer accent-primary"
                 checked={repeatDaysEnabled}
                 onChange={(e) => {
                   const isChecked = e.target.checked;
                   setRepeatDaysEnabled(isChecked);
                   if (isChecked) {
-                    // If switching to repeat, default to all days if currently empty
                     if (selectedDays.length === 0) {
                       setSelectedDays([1, 2, 3, 4, 5, 6, 0]);
                     }
                   } else {
-                    // If switching to "today only", clear selection and update date to now
                     const today = new Date().toISOString().split("T")[0];
                     setSelectedDays([]);
                     setCreatedAt(new Date().toISOString());
@@ -247,9 +262,8 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
           </div>
 
           {repeatDaysEnabled && (
-            <div className="flex justify-between px-1">
+            <div className="flex justify-between items-center bg-white/50 p-1 rounded-2xl border border-muted/30">
               {DAYS.map((day, i) => {
-                // Convert UI index to JS day: M(0)->1, T(1)->2, ..., S(5)->6, S(6)->0
                 const jsDayIndex = (i + 1) % 7;
                 const isSelected = selectedDays.includes(jsDayIndex);
                 return (
@@ -258,10 +272,10 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
                     type="button"
                     onClick={() => toggleDay(jsDayIndex)}
                     className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                      "w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-sm font-black transition-all duration-300",
                       isSelected
-                        ? "bg-[#1A1A1A] text-white shadow-md translate-y-[-2px]"
-                        : "bg-white text-muted-foreground hover:bg-white/80",
+                        ? "bg-[#1A1A1A] text-white shadow-lg shadow-black/20 scale-105"
+                        : "text-muted-foreground hover:bg-black/5",
                     )}
                   >
                     {day}
@@ -273,12 +287,12 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
         </div>
       </div>
 
-      <div className="flex gap-3 pt-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
         <Button
           type="button"
           onClick={handleDelete}
           variant="outline"
-          className="h-14 px-6 rounded-full font-bold border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+          className="w-full sm:w-auto h-14 sm:h-16 px-6 sm:px-8 rounded-2xl font-bold border-red-100 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all order-2 sm:order-1"
         >
           Delete
         </Button>
@@ -286,7 +300,10 @@ function EditForm({ habit, onClose }: { habit: Habit; onClose: () => void }) {
           type="button"
           onClick={handleSubmit}
           disabled={!name.trim()}
-          className="flex-1 h-14 rounded-full text-lg font-bold shadow-xl shadow-primary/20 bg-[#FF7F27] hover:bg-[#FF7F27]/90 text-white disabled:opacity-50"
+          className="flex-1 w-full h-14 sm:h-16 rounded-2xl text-lg sm:text-xl font-bold shadow-2xl transition-all active:scale-[0.98] bg-linear-to-r from-primary to-primary/80 text-white disabled:opacity-50 order-1 sm:order-2"
+          style={{
+            boxShadow: "0 10px 30px -5px var(--primary)",
+          }}
         >
           Save Changes
         </Button>

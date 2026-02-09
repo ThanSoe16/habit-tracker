@@ -38,10 +38,10 @@ export function ProgressStats() {
         ];
 
   return (
-    <div className="bg-[#FAF3EB] rounded-[2.5rem] p-8 relative overflow-hidden">
+    <div className="bg-secondary rounded-[2.5rem] p-8 relative overflow-hidden">
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
-        <h2 className="text-3xl font-bold leading-tight text-[#2D2D2D] max-w-[12rem]">
+        <h2 className="text-3xl font-bold leading-tight text-foreground max-w-48">
           Your progress and insights
         </h2>
         <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm hover:bg-white/80 transition-colors">
@@ -84,7 +84,7 @@ export function ProgressStats() {
             <h3 className="font-bold text-lg">Points Earned</h3>
             <p className="text-muted-foreground text-xs">For this week</p>
           </div>
-          <span className="text-2xl font-bold text-[#E67E22]">842 Points</span>
+          <span className="text-2xl font-bold text-primary">842 Points</span>
         </div>
 
         <div className="grid grid-cols-3 gap-4 border-t pt-6">
@@ -117,7 +117,7 @@ export function ProgressStats() {
           </div>
         </div>
 
-        <button className="w-full bg-[#FF7F27] text-white font-bold py-4 rounded-full mt-6 hover:bg-[#FF7F27]/90 transition-colors shadow-lg shadow-orange-200">
+        <button className="w-full bg-primary text-white font-bold py-4 rounded-full mt-6 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
           Share Progress
         </button>
       </div>

@@ -72,7 +72,7 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5 overflow-auto h-[calc(100dvh-400px)] overflow-y-auto no-scrollbar">
         {filteredHabits.map((habit, index) => (
           <HabitCard
             key={habit.id}

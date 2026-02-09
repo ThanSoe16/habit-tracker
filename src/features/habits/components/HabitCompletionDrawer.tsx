@@ -160,7 +160,7 @@ function CompletionForm({
         <Button
           onClick={handleSave}
           disabled={!timeTaken.trim()}
-          className="flex-1 h-12 rounded-full text-lg font-bold bg-[#FF7F27] hover:bg-[#FF7F27]/90 text-white shadow-lg shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 h-12 rounded-full text-lg font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isCompleted ? "Update" : "Finish"}
         </Button>
@@ -202,7 +202,7 @@ export function HabitCompletionDrawer({
   return (
     <>
       <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DrawerContent className="bg-[#F9F4EE] rounded-t-[2rem]">
+        <DrawerContent className="bg-background rounded-t-[2rem]">
           <div className="mx-auto w-full max-w-sm">
             <DrawerHeader className="flex justify-between items-center p-4">
               <div>

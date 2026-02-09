@@ -78,8 +78,8 @@ export function HabitCard({
           className={cn(
             "w-4 h-4 rounded-full flex items-center justify-center transition-all shadow-sm border-2",
             isCompleted
-              ? "bg-[#EF4444] border-[#EF4444] text-white"
-              : "bg-white border-gray-200 text-transparent",
+              ? "bg-destructive border-destructive text-white"
+              : "bg-white border-muted text-transparent",
           )}
         >
           <Check className="w-2.5 h-2.5" strokeWidth={2} />
@@ -87,7 +87,7 @@ export function HabitCard({
       </div>
 
       {/* Card Content */}
-      <div className="flex-1 bg-white rounded-lg px-3 py-2.5 flex items-center justify-between border border-gray-50/50 active:scale-[0.98] transition-transform">
+      <div className="flex-1 bg-white rounded-lg px-3 py-2.5 flex items-center justify-between border border-border/50 active:scale-[0.98] transition-transform">
         <div className="flex items-center gap-3">
           {/* Icon Box */}
           <div
@@ -98,7 +98,7 @@ export function HabitCard({
           </div>
 
           <div>
-            <h3 className="font-bold text-[#1A1A1A] text-sm">{habit.name}</h3>
+            <h3 className="font-bold text-foreground text-sm">{habit.name}</h3>
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-0.5">
               <Flame className="w-3 h-3 text-orange-500 fill-orange-500" />
               <span className="font-medium text-gray-500">

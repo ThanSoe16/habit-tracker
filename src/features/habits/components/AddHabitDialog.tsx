@@ -138,7 +138,7 @@ export function AddHabitDialog() {
       <DialogTrigger asChild>
         <Button
           size="lg"
-          className="rounded-full w-14 h-14 shadow-2xl bg-[#545CEB] hover:bg-[#545CEB]/90 text-white p-0 flex items-center justify-center shrink-0 border-[3px] border-white/20"
+          className="rounded-full w-14 h-14 shadow-2xl bg-blue-600 hover:bg-blue-600/90 text-white p-0 flex items-center justify-center shrink-0 border-[3px] border-white/20"
         >
           <Plus className="w-7 h-7" />
         </Button>
@@ -151,83 +151,98 @@ export function AddHabitDialog() {
           </DialogClose>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 pb-8 space-y-6">
-          {/* Emoji & Color Picker */}
-          <div className="flex flex-col items-center gap-4 py-4">
-            <div className="relative">
+        <form
+          onSubmit={handleSubmit}
+          className="px-4 sm:px-6 pb-8 space-y-6 sm:space-y-8"
+        >
+          {/* Emoji & Color Picker Section */}
+          <div className="flex flex-col items-center gap-4 sm:gap-6 py-4 bg-muted/30 rounded-3xl border border-muted/50">
+            <div className="relative group">
               <div
-                className="w-24 h-24 rounded-3xl flex items-center justify-center text-4xl shadow-lg"
-                style={{ backgroundColor: color }}
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center text-3xl sm:text-4xl shadow-2xl transition-transform duration-300 group-hover:scale-105"
+                style={{
+                  backgroundColor: color,
+                  boxShadow: `0 20px 40px -10px ${color}40`,
+                  backgroundImage:
+                    "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0) 100%)",
+                }}
               >
                 {emoji}
               </div>
               {/* Decorative elements */}
-              <div className="absolute -top-2 -right-2 text-2xl">✨</div>
-              <div className="absolute bottom-0 -left-4 text-xl rotate-12">
-                ⚡️
+              <div className="absolute -top-2 -right-2 text-xl sm:text-2xl animate-bounce">
+                ✨
+              </div>
+              <div className="absolute bottom-0 -left-1 text-base sm:text-xl rotate-12 bg-white rounded-full p-0.5 sm:p-1 shadow-md border border-muted">
+                <div
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
               </div>
             </div>
 
-            {/* Color Picker */}
-            <div className="flex gap-2">
-              {COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setColor(c)}
-                  className={cn(
-                    "w-7 h-7 rounded-full transition-all",
-                    color === c
-                      ? "ring-2 ring-offset-2 ring-gray-800 scale-110"
-                      : "hover:scale-105",
-                  )}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
+            <div className="w-full space-y-4 px-2 sm:px-4">
+              {/* Color Picker */}
+              <div className="flex justify-center gap-1.5 sm:gap-2 flex-wrap">
+                {COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className={cn(
+                      "w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all duration-300 border-2",
+                      color === c
+                        ? "border-black scale-110 shadow-lg"
+                        : "border-transparent hover:scale-110",
+                    )}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
 
-            {/* Emoji Picker */}
-            <div className="flex gap-2 overflow-x-auto pb-2 max-w-full scrollbar-hide">
-              {EMOJIS.map((e) => (
-                <button
-                  key={e}
-                  type="button"
-                  onClick={() => setEmoji(e)}
-                  className={cn(
-                    "w-9 h-9 rounded-lg flex items-center justify-center text-xl transition-all",
-                    emoji === e
-                      ? "bg-gray-200 ring-2 ring-gray-800 scale-110"
-                      : "bg-gray-100 hover:bg-gray-200 hover:scale-105",
-                  )}
-                >
-                  {e}
-                </button>
-              ))}
+              {/* Emoji Picker - Grid */}
+              <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 bg-white/50 p-2 rounded-2xl overflow-y-auto max-h-[120px] scrollbar-hide border border-muted/30">
+                {EMOJIS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => setEmoji(e)}
+                    className={cn(
+                      "w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-lg sm:text-xl transition-all duration-200",
+                      emoji === e
+                        ? "bg-white shadow-md scale-110 ring-1 ring-black/5"
+                        : "hover:bg-white/80",
+                    )}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 sm:space-y-5">
             <div className="space-y-2">
               <Label
                 htmlFor="name"
-                className="text-muted-foreground font-medium pl-1"
+                className="text-foreground/70 text-xs sm:text-sm font-semibold pl-1 tracking-wide"
               >
-                Name your habit
+                NAME YOUR HABIT
               </Label>
               <Input
                 id="name"
                 placeholder="Morning Meditations"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="h-14 rounded-2xl bg-white border-transparent shadow-sm px-4 text-lg font-semibold placeholder:font-normal placeholder:text-muted-foreground/50 focus-visible:ring-primary/20"
+                className="h-14 sm:h-16 rounded-2xl bg-muted/20 border-muted/50 shadow-none px-4 sm:px-5 text-lg sm:text-xl font-bold placeholder:font-normal placeholder:text-muted-foreground/30 focus-visible:ring-primary/20 focus-visible:bg-white transition-all"
                 required
               />
             </div>
 
-            <div className="flex gap-4">
-              <div className="flex-1 space-y-2">
-                <Label className="text-muted-foreground font-medium pl-1">
-                  Start Date
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-foreground/70 text-xs sm:text-sm font-semibold pl-1 tracking-wide">
+                  START DATE
                 </Label>
                 <DatePicker
                   date={startDate ? parseISO(startDate) : undefined}
@@ -236,9 +251,9 @@ export function AddHabitDialog() {
                   }
                 />
               </div>
-              <div className="flex-1 space-y-2">
-                <Label className="text-muted-foreground font-medium pl-1">
-                  End Date
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs sm:text-sm font-semibold pl-1 tracking-wide">
+                  END DATE
                 </Label>
                 <DatePicker
                   date={endDate ? parseISO(endDate) : undefined}
@@ -250,15 +265,15 @@ export function AddHabitDialog() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex justify-between items-center pl-1 pr-1">
-                <Label className="text-muted-foreground font-medium">
+            <div className="bg-muted/20 rounded-3xl p-4 sm:p-5 border border-muted/50 space-y-4">
+              <div className="flex justify-between items-center">
+                <Label className="text-foreground/80 font-bold text-sm sm:text-base tracking-tight">
                   Repeat days
                 </Label>
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    className="rounded-md border-muted text-primary focus:ring-primary w-5 h-5 cursor-pointer"
+                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg border-muted/50 text-primary focus:ring-primary cursor-pointer accent-primary"
                     checked={repeatDaysEnabled}
                     onChange={(e) => {
                       const isChecked = e.target.checked;
@@ -273,9 +288,8 @@ export function AddHabitDialog() {
                 </div>
               </div>
               {repeatDaysEnabled && (
-                <div className="flex justify-between px-1">
+                <div className="flex justify-between items-center bg-white/50 p-1 rounded-2xl border border-muted/30">
                   {DAYS.map((day, i) => {
-                    // Convert UI index to JS day: M(0)->1, T(1)->2, ..., S(5)->6, S(6)->0
                     const jsDayIndex = (i + 1) % 7;
                     const isSelected = selectedDays.includes(jsDayIndex);
                     return (
@@ -284,10 +298,10 @@ export function AddHabitDialog() {
                         type="button"
                         onClick={() => toggleDay(jsDayIndex)}
                         className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                          "w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-[10px] sm:text-sm font-black transition-all duration-300",
                           isSelected
-                            ? "bg-[#1A1A1A] text-white shadow-md translate-y-[-2px]"
-                            : "bg-white text-muted-foreground hover:bg-white/80",
+                            ? "bg-[#1A1A1A] text-white shadow-lg shadow-black/20 scale-105"
+                            : "text-muted-foreground hover:bg-black/5",
                         )}
                       >
                         {day}
@@ -301,22 +315,25 @@ export function AddHabitDialog() {
             <div className="flex items-center justify-between pl-1 pt-2">
               <Label
                 htmlFor="reminders"
-                className="text-muted-foreground font-medium"
+                className="text-foreground/70 text-xs sm:text-sm font-semibold tracking-wide"
               >
-                Get reminders
+                GET REMINDERS
               </Label>
               <Switch
                 id="reminders"
                 checked={reminders}
                 onCheckedChange={setReminders}
-                className="data-[state=checked]:bg-primary"
+                className="sm:scale-110 data-[state=checked]:bg-primary"
               />
             </div>
           </div>
 
           <Button
             type="submit"
-            className="w-full h-14 rounded-full text-lg font-bold shadow-xl shadow-primary/20 mt-4 bg-[#FF7F27] hover:bg-[#FF7F27]/90 text-white"
+            className="w-full h-14 sm:h-16 rounded-2xl text-lg sm:text-xl font-bold shadow-2xl transition-all active:scale-[0.98] mt-4 bg-linear-to-r from-primary to-primary/80 text-white"
+            style={{
+              boxShadow: "0 10px 30px -5px var(--primary)",
+            }}
           >
             Save Habit
           </Button>
