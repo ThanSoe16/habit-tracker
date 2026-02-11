@@ -6,9 +6,20 @@ import { useHabitStore } from "@/store/useHabitStore";
 import { ChevronLeft, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/utils/cn";
 // Assuming we have a Calendar component or we'll build a simplified one for stats
-import { startOfMonth, endOfMonth, eachDayOfInterval, format } from "date-fns";
+import {
+  addMonths,
+  format,
+  isAfter,
+  parseISO,
+  startOfDay,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+} from "date-fns";
+import { isHabitRequiredOnDate, getLocalDateString } from "@/utils/dateUtils";
 
 export default function HabitDetail({ id }: { id: string }) {
+  const [viewDate, setViewDate] = React.useState(new Date());
   const router = useRouter();
   const { habits, removeHabit } = useHabitStore();
   const habit = habits.find((h) => h.id === id);
@@ -28,8 +39,41 @@ export default function HabitDetail({ id }: { id: string }) {
     }
   };
 
-  const currentDate = new Date();
-  const monthStart = startOfMonth(currentDate);
+  // Navigation functions
+  const handlePrevMonth = () => setViewDate(addMonths(viewDate, -1));
+  const handleNextMonth = () => setViewDate(addMonths(viewDate, 1));
+
+  // Calculate Real Stats
+  const history = habit.history;
+  const historyEntries = Object.entries(history);
+  const totalCompletions = historyEntries.filter(([, entry]) =>
+    typeof entry === "boolean" ? entry : entry.completed,
+  ).length;
+
+  // Calculate perfect days (days where all required habits were done - for THIS habit, it's just completions)
+  // But user asked for "Total perfect days" and "Completion rate"
+  // Let's calculate Completion Rate based on required days since habit start
+  const startDate = habit.startDate
+    ? parseISO(habit.startDate)
+    : new Date(habit.createdAt);
+  const today = startOfDay(new Date());
+
+  // Count required days from start until today
+  let requiredDaysCount = 0;
+  let tempDate = startOfDay(startDate);
+  while (!isAfter(tempDate, today)) {
+    if (isHabitRequiredOnDate(habit as any, tempDate)) {
+      requiredDaysCount++;
+    }
+    tempDate = new Date(tempDate.getTime() + 24 * 60 * 60 * 1000);
+  }
+
+  const completionRate =
+    requiredDaysCount > 0
+      ? Math.round((totalCompletions / requiredDaysCount) * 100)
+      : 0;
+
+  const monthStart = startOfMonth(viewDate);
   const monthEnd = endOfMonth(monthStart);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
@@ -86,19 +130,25 @@ export default function HabitDetail({ id }: { id: string }) {
             </p>
           </div>
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">95%</p>
+            <p className="text-[17px] font-bold text-gray-800">
+              {completionRate}%
+            </p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">
               Completion rate
             </p>
           </div>
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">459</p>
+            <p className="text-[17px] font-bold text-gray-800">
+              {totalCompletions}
+            </p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">
               Habits completed
             </p>
           </div>
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">386</p>
+            <p className="text-[17px] font-bold text-gray-800">
+              {totalCompletions}
+            </p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">
               Total perfect days
             </p>
@@ -115,9 +165,23 @@ export default function HabitDetail({ id }: { id: string }) {
           </div>
 
           <div className="flex flex-col items-center">
-            <p className="text-[15px] font-bold text-gray-800 mb-6">
-              {format(currentDate, "MMMM yyyy")}
-            </p>
+            <div className="flex items-center justify-between w-full mb-6">
+              <button
+                onClick={handlePrevMonth}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-400" />
+              </button>
+              <p className="text-[15px] font-bold text-gray-800">
+                {format(viewDate, "MMMM yyyy")}
+              </p>
+              <button
+                onClick={handleNextMonth}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors rotate-180"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
 
             <div className="w-full grid grid-cols-7 gap-y-4">
               {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => (
@@ -129,8 +193,12 @@ export default function HabitDetail({ id }: { id: string }) {
                 </div>
               ))}
               {days.map((day) => {
-                const dateKey = format(day, "yyyy-MM-dd");
-                const isDone = habit.history[dateKey];
+                const dateKey = getLocalDateString(day);
+                const entry = habit.history[dateKey];
+                const isDone =
+                  typeof entry === "boolean" ? entry : entry?.completed;
+                const isRequired = isHabitRequiredOnDate(habit as any, day);
+
                 return (
                   <div
                     key={dateKey}
@@ -140,8 +208,10 @@ export default function HabitDetail({ id }: { id: string }) {
                       className={cn(
                         "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all",
                         isDone
-                          ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
-                          : "text-gray-400",
+                          ? "bg-green-500 text-white shadow-md shadow-green-500/20"
+                          : isRequired
+                            ? "bg-blue-500 text-white shadow-md shadow-blue-500/20"
+                            : "text-gray-400",
                       )}
                     >
                       {format(day, "d")}
