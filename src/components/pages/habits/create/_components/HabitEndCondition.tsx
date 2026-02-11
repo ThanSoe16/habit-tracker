@@ -5,28 +5,15 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/utils/cn";
 import { DatePicker } from "@/components/ui/date-picker";
 import { parseISO, format } from "date-fns";
+import { useFormContext } from "react-hook-form";
 
-interface HabitEndConditionProps {
-  enabled: boolean;
-  setEnabled: (enabled: boolean) => void;
-  mode: "date" | "days";
-  setMode: (mode: "date" | "days") => void;
-  date: string;
-  setDate: (date: string) => void;
-  days: number;
-  setDays: (days: number) => void;
-}
+export const HabitEndCondition: React.FC = () => {
+  const { watch, setValue } = useFormContext();
+  const enabled = watch("endHabitEnabled");
+  const mode = watch("endHabitMode");
+  const date = watch("endHabitDate");
+  const days = watch("endHabitDays");
 
-export const HabitEndCondition: React.FC<HabitEndConditionProps> = ({
-  enabled,
-  setEnabled,
-  mode,
-  setMode,
-  date,
-  setDate,
-  days,
-  setDays,
-}) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -35,7 +22,7 @@ export const HabitEndCondition: React.FC<HabitEndConditionProps> = ({
         </Label>
         <Switch
           checked={enabled}
-          onCheckedChange={setEnabled}
+          onCheckedChange={(val) => setValue("endHabitEnabled", val)}
           className="data-[state=checked]:bg-primary"
         />
       </div>
@@ -47,7 +34,7 @@ export const HabitEndCondition: React.FC<HabitEndConditionProps> = ({
               <button
                 key={m}
                 type="button"
-                onClick={() => setMode(m)}
+                onClick={() => setValue("endHabitMode", m)}
                 className={cn(
                   "flex-1 py-2 text-xs font-bold rounded-xl transition-all capitalize",
                   mode === m ? "bg-primary text-white" : "text-gray-500",
@@ -73,7 +60,7 @@ export const HabitEndCondition: React.FC<HabitEndConditionProps> = ({
                     date={date ? parseISO(date) : undefined}
                     onChange={(newDate) => {
                       if (newDate) {
-                        setDate(format(newDate, "yyyy-MM-dd"));
+                        setValue("endHabitDate", format(newDate, "yyyy-MM-dd"));
                       }
                     }}
                     className="bg-transparent border-none p-0 h-auto shadow-none text-[15px] font-bold text-gray-700 hover:bg-transparent"
@@ -86,7 +73,9 @@ export const HabitEndCondition: React.FC<HabitEndConditionProps> = ({
                     <input
                       type="number"
                       value={days}
-                      onChange={(e) => setDays(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setValue("endHabitDays", parseInt(e.target.value) || 0)
+                      }
                       className="bg-gray-100 rounded-lg px-2 py-1 w-20 text-[15px] font-bold text-gray-700 focus:outline-none"
                     />
                     <span className="text-[15px] font-bold text-gray-700">

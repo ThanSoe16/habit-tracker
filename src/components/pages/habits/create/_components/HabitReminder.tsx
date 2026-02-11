@@ -2,18 +2,13 @@ import React from "react";
 import { Clock, Pencil } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useFormContext } from "react-hook-form";
 
-interface HabitReminderProps {
-  enabled: boolean;
-  setEnabled: (enabled: boolean) => void;
-  time: string;
-}
+export const HabitReminder: React.FC = () => {
+  const { watch, setValue } = useFormContext();
+  const enabled = watch("reminders");
+  const time = watch("reminderTime");
 
-export const HabitReminder: React.FC<HabitReminderProps> = ({
-  enabled,
-  setEnabled,
-  time,
-}) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -22,7 +17,7 @@ export const HabitReminder: React.FC<HabitReminderProps> = ({
         </Label>
         <Switch
           checked={enabled}
-          onCheckedChange={setEnabled}
+          onCheckedChange={(val) => setValue("reminders", val)}
           className="data-[state=checked]:bg-primary"
         />
       </div>

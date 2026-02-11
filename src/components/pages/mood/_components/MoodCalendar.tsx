@@ -96,7 +96,7 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
                 <span
                   className={cn(
                     "text-xs mt-2 font-bold",
-                    isToday(day) ? "text-indigo-600" : "text-gray-400",
+                    isToday(day) ? "text-primary" : "text-gray-400",
                   )}
                 >
                   {format(day, "d")}

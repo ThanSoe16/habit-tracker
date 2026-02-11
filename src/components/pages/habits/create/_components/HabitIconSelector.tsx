@@ -1,11 +1,7 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/utils/cn";
-
-interface HabitIconSelectorProps {
-  selectedEmoji: string;
-  onSelect: (emoji: string) => void;
-}
+import { useFormContext } from "react-hook-form";
 
 const EMOJIS = [
   "📚",
@@ -26,10 +22,10 @@ const EMOJIS = [
   "🎵",
 ];
 
-export const HabitIconSelector: React.FC<HabitIconSelectorProps> = ({
-  selectedEmoji,
-  onSelect,
-}) => {
+export const HabitIconSelector: React.FC = () => {
+  const { watch, setValue } = useFormContext();
+  const selectedEmoji = watch("emoji");
+
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
@@ -46,7 +42,7 @@ export const HabitIconSelector: React.FC<HabitIconSelectorProps> = ({
           <button
             key={e}
             type="button"
-            onClick={() => onSelect(e)}
+            onClick={() => setValue("emoji", e)}
             className={cn(
               "w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all border shrink-0",
               selectedEmoji === e

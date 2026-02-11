@@ -1,16 +1,12 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/utils/cn";
+import { useFormContext } from "react-hook-form";
 
-interface HabitTimeSelectorProps {
-  timeOfDay: "morning" | "afternoon" | "evening";
-  setTimeOfDay: (time: "morning" | "afternoon" | "evening") => void;
-}
+export const HabitTimeSelector: React.FC = () => {
+  const { watch, setValue } = useFormContext();
+  const timeOfDay = watch("timeOfDay");
 
-export const HabitTimeSelector: React.FC<HabitTimeSelectorProps> = ({
-  timeOfDay,
-  setTimeOfDay,
-}) => {
   return (
     <div className="space-y-4">
       <Label className="text-gray-800 text-[15px] font-bold">Do it at:</Label>
@@ -19,7 +15,7 @@ export const HabitTimeSelector: React.FC<HabitTimeSelectorProps> = ({
           <button
             key={t}
             type="button"
-            onClick={() => setTimeOfDay(t)}
+            onClick={() => setValue("timeOfDay", t)}
             className={cn(
               "flex-1 py-3 text-xs font-bold rounded-full border transition-all capitalize",
               timeOfDay === t

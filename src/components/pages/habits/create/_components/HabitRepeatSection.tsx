@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -11,56 +11,42 @@ import {
   getDaysInMonth,
   getDay,
 } from "date-fns";
+import { useFormContext } from "react-hook-form";
 
 const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
-interface HabitRepeatSectionProps {
-  frequencyTab: "daily" | "weekly" | "monthly" | "specific";
-  setFrequencyTab: (tab: "daily" | "weekly" | "monthly" | "specific") => void;
-  selectedDays: number[];
-  setSelectedDays: (days: number[]) => void;
-  selectedMonthlyDays: number[];
-  setSelectedMonthlyDays: (days: number[]) => void;
-  selectedSpecificDates: string[];
-  setSelectedSpecificDates: (dates: string[]) => void;
-  weeklyCount: number;
-  setWeeklyCount: (count: number) => void;
-  allDay: boolean;
-  setAllDay: (allDay: boolean) => void;
-  currentViewDate: Date;
-  setCurrentViewDate: (date: Date) => void;
-}
+export const HabitRepeatSection: React.FC = () => {
+  const { watch, setValue } = useFormContext();
+  const frequencyTab = watch("frequencyTab");
+  const selectedDays = watch("selectedDays");
+  const selectedMonthlyDays = watch("selectedMonthlyDays");
+  const selectedSpecificDates = watch("selectedSpecificDates");
+  const allDay = watch("allDay");
 
-export const HabitRepeatSection: React.FC<HabitRepeatSectionProps> = ({
-  frequencyTab,
-  setFrequencyTab,
-  selectedDays,
-  setSelectedDays,
-  selectedMonthlyDays,
-  setSelectedMonthlyDays,
-  selectedSpecificDates,
-  setSelectedSpecificDates,
-  weeklyCount,
-  setWeeklyCount,
-  allDay,
-  setAllDay,
-  currentViewDate,
-  setCurrentViewDate,
-}) => {
+  // UI state for calendar navigation
+  const [currentViewDate, setCurrentViewDate] = useState(new Date());
+
   const toggleDay = (index: number) => {
     if (selectedDays.includes(index)) {
-      setSelectedDays(selectedDays.filter((d) => d !== index));
+      setValue(
+        "selectedDays",
+        selectedDays.filter((d: number) => d !== index),
+      );
     } else {
-      setSelectedDays([...selectedDays, index]);
+      setValue("selectedDays", [...selectedDays, index]);
     }
   };
 
   const toggleMonthlyDay = (day: number) => {
     if (selectedMonthlyDays.includes(day)) {
-      setSelectedMonthlyDays(selectedMonthlyDays.filter((d) => d !== day));
+      setValue(
+        "selectedMonthlyDays",
+        selectedMonthlyDays.filter((d: number) => d !== day),
+      );
     } else {
-      setSelectedMonthlyDays(
-        [...selectedMonthlyDays, day].sort((a, b) => a - b),
+      setValue(
+        "selectedMonthlyDays",
+        [...selectedMonthlyDays, day].sort((a: number, b: number) => a - b),
       );
     }
   };
@@ -69,27 +55,30 @@ export const HabitRepeatSection: React.FC<HabitRepeatSectionProps> = ({
     const dayStr = day.toString().padStart(2, "0");
     const dateStr = format(currentViewDate, `yyyy-MM-${dayStr}`);
     if (selectedSpecificDates.includes(dateStr)) {
-      setSelectedSpecificDates(
-        selectedSpecificDates.filter((d) => d !== dateStr),
+      setValue(
+        "selectedSpecificDates",
+        selectedSpecificDates.filter((d: string) => d !== dateStr),
       );
     } else {
-      setSelectedSpecificDates([...selectedSpecificDates, dateStr].sort());
+      setValue(
+        "selectedSpecificDates",
+        [...selectedSpecificDates, dateStr].sort(),
+      );
     }
   };
 
-  const resetData = (tab: "daily" | "weekly" | "monthly" | "specific") => {
-    setFrequencyTab(tab);
-    setSelectedDays([1, 2, 3, 4, 5, 6, 0]);
-    setSelectedMonthlyDays([]);
-    setSelectedSpecificDates([]);
-    setWeeklyCount(1);
+  const resetData = (tab: "daily" | "monthly" | "specific") => {
+    setValue("frequencyTab", tab);
+    setValue("selectedDays", [1, 2, 3, 4, 5, 6, 0]);
+    setValue("selectedMonthlyDays", []);
+    setValue("selectedSpecificDates", []);
   };
 
   return (
     <div className="space-y-4">
       <Label className="text-gray-800 text-[15px] font-bold">Repeat</Label>
       <div className="bg-gray-100 p-1.5 rounded-2xl flex overflow-x-auto no-scrollbar gap-1">
-        {(["daily", "weekly", "monthly", "specific"] as const).map((tab) => (
+        {(["daily", "monthly", "specific"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -116,7 +105,7 @@ export const HabitRepeatSection: React.FC<HabitRepeatSectionProps> = ({
               <span className="text-xs text-gray-400 font-bold">All day</span>
               <Switch
                 checked={allDay}
-                onCheckedChange={setAllDay}
+                onCheckedChange={(val) => setValue("allDay", val)}
                 className="data-[state=checked]:bg-primary"
               />
             </div>
@@ -141,31 +130,6 @@ export const HabitRepeatSection: React.FC<HabitRepeatSectionProps> = ({
                 </button>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {frequencyTab === "weekly" && (
-        <div className="space-y-4 animate-in fade-in duration-300">
-          <p className="text-sm font-bold text-gray-800">
-            {weeklyCount} {weeklyCount === 1 ? "day" : "days"} per week
-          </p>
-          <div className="flex justify-between">
-            {[1, 2, 3, 4, 5, 6, 7].map((num) => (
-              <button
-                key={num}
-                type="button"
-                onClick={() => setWeeklyCount(num)}
-                className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border transition-all",
-                  num === weeklyCount
-                    ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-110"
-                    : "bg-white border-gray-100 text-gray-400 hover:bg-gray-100",
-                )}
-              >
-                {num}
-              </button>
-            ))}
           </div>
         </div>
       )}
@@ -241,7 +205,7 @@ export const HabitRepeatSection: React.FC<HabitRepeatSectionProps> = ({
             </div>
           </div>
 
-          <p className="text-[10px] font-bold text-gray-400 text-center uppercase tracking-widest pt-2">
+          <div className="text-[10px] font-bold text-gray-400 text-center uppercase tracking-widest pt-2 min-h-5">
             {frequencyTab === "monthly"
               ? selectedMonthlyDays.length > 0
                 ? `Repeats on: ${selectedMonthlyDays.join(", ")}`
@@ -249,7 +213,7 @@ export const HabitRepeatSection: React.FC<HabitRepeatSectionProps> = ({
               : selectedSpecificDates.length > 0
                 ? `${selectedSpecificDates.length} specific dates selected`
                 : "Pick any dates from the calendar"}
-          </p>
+          </div>
         </div>
       )}
     </div>
