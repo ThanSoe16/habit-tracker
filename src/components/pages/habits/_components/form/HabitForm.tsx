@@ -12,6 +12,11 @@ import { HabitIconSelector } from "./HabitIconSelector";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format, parseISO } from "date-fns";
 import { TabToggle } from "./TabToggle";
+import { WeekdaySelector } from "./WeekdaySelector";
+import { MonthlyDaySelector } from "./MonthlyDaySelector";
+import { SpecificDateSelector } from "./SpecificDateSelector";
+import { Switch } from "@/components/ui/switch";
+import { HabitEndCondition } from "./HabitEndCondition";
 
 const HabitForm = ({ form }: { form: any }) => {
   const {
@@ -21,11 +26,14 @@ const HabitForm = ({ form }: { form: any }) => {
 
   const selectedColor = watch("color");
   const habitName = watch("name");
+  const frequencyTab = watch("frequencyTab");
+  const allDay = watch("allDay");
+  const reminders = watch("reminders");
 
   return (
-    <div className="flex flex-col p-6">
-      <FieldGroup>
-        <Field data-invalid={!!errors.name}>
+    <div className="flex flex-col p-6 space-y-8 pb-24">
+      <FieldGroup className="space-y-6">
+        <Field data-invalid={!!errors.type}>
           <Controller
             name="type"
             control={form.control}
@@ -41,6 +49,7 @@ const HabitForm = ({ form }: { form: any }) => {
             )}
           />
         </Field>
+
         <Field data-invalid={!!errors.name}>
           <FieldLabel htmlFor="form-name">Habit Name</FieldLabel>
           <Controller
@@ -58,6 +67,7 @@ const HabitForm = ({ form }: { form: any }) => {
           />
           <FieldError errors={[errors.name]} />
         </Field>
+
         <Field data-invalid={!!errors.emoji}>
           <FieldLabel htmlFor="form-icon">Icon</FieldLabel>
           <Controller
@@ -74,6 +84,7 @@ const HabitForm = ({ form }: { form: any }) => {
           />
           <FieldError errors={[errors.emoji]} />
         </Field>
+
         <Field data-invalid={!!errors.color}>
           <FieldLabel htmlFor="form-color">Color</FieldLabel>
           <Controller
@@ -88,6 +99,7 @@ const HabitForm = ({ form }: { form: any }) => {
           />
           <FieldError errors={[errors.color]} />
         </Field>
+
         <Field data-invalid={!!errors.startDate}>
           <FieldLabel htmlFor="form-startDate">Start Date</FieldLabel>
           <Controller
@@ -106,31 +118,182 @@ const HabitForm = ({ form }: { form: any }) => {
           />
           <FieldError errors={[errors.startDate]} />
         </Field>
-        <Field data-invalid={!!errors.frequencyTab}>
-          <FieldLabel htmlFor="form-frequencyTab">Repeat</FieldLabel>
-          <Controller
-            name="frequencyTab"
-            control={form.control}
-            render={({ field }) => (
-              <TabToggle
-                value={field.value}
-                setValue={field.onChange}
-                options={[
-                  { value: "daily", label: "Daily" },
-                  { value: "monthly", label: "Monthly" },
-                  { value: "specific", label: "Specific Dates" },
-                ]}
+
+        <div className="space-y-4">
+          <Field data-invalid={!!errors.frequencyTab}>
+            <FieldLabel htmlFor="form-frequencyTab">Repeat</FieldLabel>
+            <Controller
+              name="frequencyTab"
+              control={form.control}
+              render={({ field }) => (
+                <TabToggle
+                  value={field.value}
+                  setValue={field.onChange}
+                  options={[
+                    { value: "daily", label: "Daily" },
+                    { value: "monthly", label: "Monthly" },
+                    { value: "specific", label: "Specific Dates" },
+                  ]}
+                />
+              )}
+            />
+          </Field>
+
+          {frequencyTab === "daily" && (
+            <Field data-invalid={!!errors.selectedDays}>
+              <Controller
+                name="selectedDays"
+                control={form.control}
+                render={({ field }) => (
+                  <WeekdaySelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    selectedColor={selectedColor}
+                  />
+                )}
               />
-            )}
-          />
-          <FieldError errors={[errors.color]} />
-        </Field>
-        <Field orientation="horizontal">
-          <Button type="button" variant="outline">
+              <FieldError errors={[errors.selectedDays]} />
+            </Field>
+          )}
+
+          {frequencyTab === "monthly" && (
+            <Field data-invalid={!!errors.selectedMonthlyDays}>
+              <Controller
+                name="selectedMonthlyDays"
+                control={form.control}
+                render={({ field }) => (
+                  <MonthlyDaySelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    selectedColor={selectedColor}
+                  />
+                )}
+              />
+              <FieldError errors={[errors.selectedMonthlyDays]} />
+            </Field>
+          )}
+
+          {frequencyTab === "specific" && (
+            <Field data-invalid={!!errors.selectedSpecificDates}>
+              <Controller
+                name="selectedSpecificDates"
+                control={form.control}
+                render={({ field }) => (
+                  <SpecificDateSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    selectedColor={selectedColor}
+                  />
+                )}
+              />
+              <FieldError errors={[errors.selectedSpecificDates]} />
+            </Field>
+          )}
+        </div>
+
+        <div className="space-y-4 pt-2 border-t border-gray-100">
+          <Field
+            orientation="horizontal"
+            className="flex items-center justify-between"
+          >
+            <FieldLabel className="mb-0 cursor-pointer" htmlFor="form-allDay">
+              All Day
+            </FieldLabel>
+            <Controller
+              name="allDay"
+              control={form.control}
+              render={({ field }) => (
+                <Switch
+                  id="form-allDay"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+          </Field>
+
+          {!allDay && (
+            <Field data-invalid={!!errors.timeOfDay}>
+              <Controller
+                name="timeOfDay"
+                control={form.control}
+                render={({ field }) => (
+                  <TabToggle
+                    value={field.value}
+                    setValue={field.onChange}
+                    options={[
+                      { value: "morning", label: "Morning" },
+                      { value: "afternoon", label: "Afternoon" },
+                      { value: "evening", label: "Evening" },
+                    ]}
+                  />
+                )}
+              />
+              <FieldError errors={[errors.timeOfDay]} />
+            </Field>
+          )}
+        </div>
+
+        <HabitEndCondition form={form} />
+
+        <div className="space-y-4 pt-2 border-t border-gray-100">
+          <Field
+            orientation="horizontal"
+            className="flex items-center justify-between"
+          >
+            <FieldLabel
+              className="mb-0 cursor-pointer"
+              htmlFor="form-reminders"
+            >
+              Reminders
+            </FieldLabel>
+            <Controller
+              name="reminders"
+              control={form.control}
+              render={({ field }) => (
+                <Switch
+                  id="form-reminders"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+          </Field>
+
+          {reminders && (
+            <Field data-invalid={!!errors.reminderTime}>
+              <Controller
+                name="reminderTime"
+                control={form.control}
+                render={({ field }) => (
+                  <Input
+                    type="time"
+                    className="h-12 rounded-xl bg-white border-transparent shadow-sm"
+                    {...field}
+                  />
+                )}
+              />
+              <FieldError errors={[errors.reminderTime]} />
+            </Field>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-100">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 rounded-xl border-gray-200 text-gray-500 font-bold"
+          >
             Cancel
           </Button>
-          <Button type="submit">Submit</Button>
-        </Field>
+          <Button
+            type="submit"
+            className="h-12 rounded-xl shadow-lg font-bold"
+            style={{ backgroundColor: selectedColor }}
+          >
+            Create Habit
+          </Button>
+        </div>
       </FieldGroup>
     </div>
   );

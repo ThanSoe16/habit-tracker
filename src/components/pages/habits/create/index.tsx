@@ -29,6 +29,8 @@ const CreateHabitPage = () => {
     },
   });
 
+  console.log(form.formState.errors);
+
   const onSubmit = (data: HabitData) => {
     console.log(data);
   };
