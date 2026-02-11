@@ -18,7 +18,7 @@ import { SpecificDateSelector } from "./SpecificDateSelector";
 import { Switch } from "@/components/ui/switch";
 import { HabitEndCondition } from "./HabitEndCondition";
 
-const HabitForm = ({ form }: { form: any }) => {
+const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const {
     formState: { errors },
     watch,
@@ -29,6 +29,7 @@ const HabitForm = ({ form }: { form: any }) => {
   const frequencyTab = watch("frequencyTab");
   const allDay = watch("allDay");
   const reminders = watch("reminders");
+  const type = watch("type");
 
   return (
     <div className="flex flex-col p-6 space-y-8 pb-24">
@@ -101,7 +102,9 @@ const HabitForm = ({ form }: { form: any }) => {
         </Field>
 
         <Field data-invalid={!!errors.startDate}>
-          <FieldLabel htmlFor="form-startDate">Start Date</FieldLabel>
+          <FieldLabel htmlFor="form-startDate">
+            {type === "task" ? "Date" : "Start Date"}
+          </FieldLabel>
           <Controller
             name="startDate"
             control={form.control}
@@ -119,77 +122,78 @@ const HabitForm = ({ form }: { form: any }) => {
           <FieldError errors={[errors.startDate]} />
         </Field>
 
-        <div className="space-y-4">
-          <Field data-invalid={!!errors.frequencyTab}>
-            <FieldLabel htmlFor="form-frequencyTab">Repeat</FieldLabel>
-            <Controller
-              name="frequencyTab"
-              control={form.control}
-              render={({ field }) => (
-                <TabToggle
-                  value={field.value}
-                  setValue={field.onChange}
-                  options={[
-                    { value: "daily", label: "Daily" },
-                    { value: "monthly", label: "Monthly" },
-                    { value: "specific", label: "Specific Dates" },
-                  ]}
+        {type !== "task" && (
+          <div className="space-y-4">
+            <Field data-invalid={!!errors.frequencyTab}>
+              <FieldLabel htmlFor="form-frequencyTab">Repeat</FieldLabel>
+              <Controller
+                name="frequencyTab"
+                control={form.control}
+                render={({ field }) => (
+                  <TabToggle
+                    value={field.value}
+                    setValue={field.onChange}
+                    options={[
+                      { value: "daily", label: "Daily" },
+                      { value: "monthly", label: "Monthly" },
+                      { value: "specific", label: "Specific Dates" },
+                    ]}
+                  />
+                )}
+              />
+            </Field>
+
+            {frequencyTab === "daily" && (
+              <Field data-invalid={!!errors.selectedDays}>
+                <Controller
+                  name="selectedDays"
+                  control={form.control}
+                  render={({ field }) => (
+                    <WeekdaySelector
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
                 />
-              )}
-            />
-          </Field>
+                <FieldError errors={[errors.selectedDays]} />
+              </Field>
+            )}
 
-          {frequencyTab === "daily" && (
-            <Field data-invalid={!!errors.selectedDays}>
-              <Controller
-                name="selectedDays"
-                control={form.control}
-                render={({ field }) => (
-                  <WeekdaySelector
-                    value={field.value}
-                    onChange={field.onChange}
-                    selectedColor={selectedColor}
-                  />
-                )}
-              />
-              <FieldError errors={[errors.selectedDays]} />
-            </Field>
-          )}
+            {frequencyTab === "monthly" && (
+              <Field data-invalid={!!errors.selectedMonthlyDays}>
+                <Controller
+                  name="selectedMonthlyDays"
+                  control={form.control}
+                  render={({ field }) => (
+                    <MonthlyDaySelector
+                      value={field.value}
+                      onChange={field.onChange}
+                      selectedColor={selectedColor}
+                    />
+                  )}
+                />
+                <FieldError errors={[errors.selectedMonthlyDays]} />
+              </Field>
+            )}
 
-          {frequencyTab === "monthly" && (
-            <Field data-invalid={!!errors.selectedMonthlyDays}>
-              <Controller
-                name="selectedMonthlyDays"
-                control={form.control}
-                render={({ field }) => (
-                  <MonthlyDaySelector
-                    value={field.value}
-                    onChange={field.onChange}
-                    selectedColor={selectedColor}
-                  />
-                )}
-              />
-              <FieldError errors={[errors.selectedMonthlyDays]} />
-            </Field>
-          )}
-
-          {frequencyTab === "specific" && (
-            <Field data-invalid={!!errors.selectedSpecificDates}>
-              <Controller
-                name="selectedSpecificDates"
-                control={form.control}
-                render={({ field }) => (
-                  <SpecificDateSelector
-                    value={field.value}
-                    onChange={field.onChange}
-                    selectedColor={selectedColor}
-                  />
-                )}
-              />
-              <FieldError errors={[errors.selectedSpecificDates]} />
-            </Field>
-          )}
-        </div>
+            {frequencyTab === "specific" && (
+              <Field data-invalid={!!errors.selectedSpecificDates}>
+                <Controller
+                  name="selectedSpecificDates"
+                  control={form.control}
+                  render={({ field }) => (
+                    <SpecificDateSelector
+                      value={field.value}
+                      onChange={field.onChange}
+                      selectedColor={selectedColor}
+                    />
+                  )}
+                />
+                <FieldError errors={[errors.selectedSpecificDates]} />
+              </Field>
+            )}
+          </div>
+        )}
 
         <div className="space-y-4 pt-2 border-t border-gray-100">
           <Field
@@ -234,7 +238,7 @@ const HabitForm = ({ form }: { form: any }) => {
           )}
         </div>
 
-        <HabitEndCondition form={form} />
+        {type !== "task" && <HabitEndCondition form={form} />}
 
         <div className="space-y-4 pt-2 border-t border-gray-100">
           <Field
@@ -286,12 +290,8 @@ const HabitForm = ({ form }: { form: any }) => {
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            className="h-12 rounded-xl shadow-lg font-bold"
-            style={{ backgroundColor: selectedColor }}
-          >
-            Create Habit
+          <Button type="submit" className="h-12 rounded-xl shadow-lg font-bold">
+            {isEdit ? "Update Habit" : "Create Habit"}
           </Button>
         </div>
       </FieldGroup>

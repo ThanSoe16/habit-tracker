@@ -14,11 +14,9 @@ const DAYS = [
 export const WeekdaySelector = ({
   value,
   onChange,
-  selectedColor,
 }: {
   value: number[];
   onChange: (value: number[]) => void;
-  selectedColor?: string;
 }) => {
   const toggleDay = (day: number) => {
     if (value.includes(day)) {
@@ -40,16 +38,9 @@ export const WeekdaySelector = ({
             className={cn(
               "w-10 h-10 rounded-full text-xs font-bold transition-all border shrink-0 flex items-center justify-center",
               isSelected
-                ? "border-transparent text-white shadow-md"
-                : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100",
+                ? "border-transparent text-white shadow-md bg-primary"
+                : "border-foreground/50 text-foreground hover:bg-primary/10",
             )}
-            style={
-              isSelected
-                ? {
-                    backgroundColor: selectedColor,
-                  }
-                : {}
-            }
           >
             {day.label}
           </button>

@@ -1,24 +1,14 @@
 "use client";
 
 import React from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useHabitStore } from "@/store/useHabitStore";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { Progress } from "@/components/ui/progress";
 // Assuming we have a Calendar component or we'll build a simplified one for stats
-import {
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  format,
-  isSameMonth,
-  isToday,
-} from "date-fns";
+import { startOfMonth, endOfMonth, eachDayOfInterval, format } from "date-fns";
 
-export default function HabitDetailPage() {
-  const { id } = useParams();
+export default function HabitDetail({ id }: { id: string }) {
   const router = useRouter();
   const { habits, removeHabit } = useHabitStore();
   const habit = habits.find((h) => h.id === id);
@@ -55,7 +45,10 @@ export default function HabitDetailPage() {
         </button>
         <h1 className="text-xl font-bold text-foreground">Habit</h1>
         <div className="flex gap-1">
-          <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+          <button
+            onClick={() => router.push(`/habits/${habit.id}/edit`)}
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+          >
             <Pencil className="w-5 h-5 text-gray-400" />
           </button>
           <button

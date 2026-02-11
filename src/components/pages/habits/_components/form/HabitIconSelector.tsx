@@ -1,5 +1,6 @@
 import { cn } from "@/utils/cn";
 import { EMOJIS } from "@/features/habits/data";
+import { getContrastColor } from "@/utils/colorUtils";
 
 export const HabitIconSelector = ({
   value,
@@ -22,13 +23,18 @@ export const HabitIconSelector = ({
           className={cn(
             "w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold transition-all border shrink-0",
             value === ""
-              ? "border-transparent text-white shadow-lg"
+              ? "border-transparent shadow-lg"
               : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100",
           )}
           style={
             value === ""
               ? {
                   backgroundColor: selectedColor,
+                  color: selectedColor
+                    ? getContrastColor(selectedColor) === "black"
+                      ? "#000000"
+                      : "#FFFFFF"
+                    : undefined,
                   boxShadow: selectedColor
                     ? `0 10px 15px -3px ${selectedColor}4D`
                     : undefined,
@@ -47,13 +53,18 @@ export const HabitIconSelector = ({
             className={cn(
               "w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all border shrink-0",
               value === e
-                ? "border-transparent text-white shadow-lg"
+                ? "border-transparent shadow-lg"
                 : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100",
             )}
             style={
               value === e
                 ? {
                     backgroundColor: selectedColor,
+                    color: selectedColor
+                      ? getContrastColor(selectedColor) === "black"
+                        ? "#000000"
+                        : "#FFFFFF"
+                      : undefined,
                     boxShadow: selectedColor
                       ? `0 10px 15px -3px ${selectedColor}4D`
                       : undefined,

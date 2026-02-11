@@ -14,10 +14,23 @@ export function isHabitRequiredOnDate(
     frequency?: string;
     repeatDays?: number[];
     specificDates?: string[];
+    startDate?: string;
+    createdAt?: string;
+    type?: "habit" | "task";
   },
   date: Date,
 ): boolean {
   const dateStr = getLocalDateString(date);
+
+  // One-time tasks
+  if (habit.type === "task") {
+    const targetDate =
+      habit.startDate ||
+      (habit.createdAt
+        ? new Date(habit.createdAt).toLocaleDateString("en-CA")
+        : getLocalDateString());
+    return dateStr === targetDate;
+  }
 
   // Specific dates mode
   if (habit.frequency === "specific") {
@@ -32,7 +45,15 @@ export function isHabitRequiredOnDate(
 
   // Legacy/Default/Weekly frequency (repeatDays contains day of week numbers)
   if (habit.repeatDays === undefined) return true;
-  if (habit.repeatDays.length === 0) return false;
+  if (habit.repeatDays.length === 0) {
+    // One-off habit: only show on its startDate (or createdAt if startDate missing)
+    const targetDate =
+      habit.startDate ||
+      (habit.createdAt
+        ? new Date(habit.createdAt).toLocaleDateString("en-CA")
+        : getLocalDateString());
+    return dateStr === targetDate;
+  }
 
   const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
   return habit.repeatDays.includes(dayOfWeek);

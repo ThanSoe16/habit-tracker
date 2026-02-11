@@ -4,6 +4,7 @@ import { useRef, useCallback } from "react";
 import { Check, Clock, Flame } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Habit } from "@/store/useHabitStore";
+import { getContrastColor } from "@/utils/colorUtils";
 
 interface HabitCardProps {
   habit: Habit;
@@ -78,9 +79,14 @@ export function HabitCard({
           className={cn(
             "w-4 h-4 rounded-full flex items-center justify-center transition-all shadow-sm border-2",
             isCompleted
-              ? "bg-destructive border-destructive text-white"
+              ? "text-white"
               : "bg-white border-muted text-transparent",
           )}
+          style={
+            isCompleted
+              ? { backgroundColor: habit.color, borderColor: habit.color }
+              : {}
+          }
         >
           <Check className="w-2.5 h-2.5" strokeWidth={2} />
         </div>
@@ -92,7 +98,13 @@ export function HabitCard({
           {/* Icon Box */}
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
-            style={{ backgroundColor: `${habit.color}15`, color: habit.color }}
+            style={{
+              backgroundColor: habit.color,
+              color:
+                getContrastColor(habit.color) === "black"
+                  ? "#000000"
+                  : "#FFFFFF",
+            }}
           >
             {habit.emoji || habit.name.charAt(0).toUpperCase()}
           </div>

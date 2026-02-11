@@ -19,7 +19,7 @@ export const TabToggle = ({
           className={cn(
             "flex-1 py-3 text-xs font-bold rounded-lg transition-all capitalize",
             value === t.value
-              ? "bg-primary text-white shadow-md shadow-primary/20"
+              ? "bg-background text-primary shadow-md shadow-blue-500/20"
               : "text-gray-500 hover:text-gray-700",
           )}
         >

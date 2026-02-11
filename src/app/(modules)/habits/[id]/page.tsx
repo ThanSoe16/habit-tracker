@@ -1,5 +1,10 @@
-import HabitDetailPage from "@/components/pages/habits/[id]";
+import HabitDetail from "@/components/pages/habits/detail";
 
-export default function HabitDetailRoute() {
-  return <HabitDetailPage />;
+export default async function HabitDetailRoute({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <HabitDetail id={id} />;
 }

@@ -5,6 +5,7 @@ import { useHabitStore } from "@/store/useHabitStore";
 import { HabitCard } from "./HabitCard";
 import { HabitCompletionDrawer } from "./HabitCompletionDrawer";
 import { EditHabitDialog } from "./EditHabitDialog";
+import { isHabitRequiredOnDate } from "@/utils/dateUtils";
 
 interface HabitListProps {
   selectedDate?: Date;
@@ -33,8 +34,6 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
   }
 
   // Filter habits based on selected date
-  const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, 2 = Tuesday...
-
   const filteredHabits = habits.filter((habit) => {
     // 1. Date Range Check
     const selectedDateStr = selectedDate.toLocaleDateString("en-CA");
@@ -48,18 +47,7 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
     }
 
     // 2. Repeat Logic Check
-    if (habit.repeatDays === undefined) return true; // legacy
-
-    if (habit.repeatDays.length === 0) {
-      // One-off habit: only show on its startDate (or createdAt if startDate missing)
-      const targetDate =
-        habit.startDate ||
-        new Date(habit.createdAt).toLocaleDateString("en-CA");
-      return selectedDateStr === targetDate;
-    }
-
-    // Repeating habit: check if current day is selected
-    return habit.repeatDays.includes(dayOfWeek);
+    return isHabitRequiredOnDate(habit as any, selectedDate);
   });
 
   if (filteredHabits.length === 0) {
