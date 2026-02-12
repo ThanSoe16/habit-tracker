@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { MoodHeader } from "./_components/MoodHeader";
-import { MonthNavigator } from "./_components/MonthNavigator";
-import { MoodCalendar } from "./_components/MoodCalendar";
-import { MoodEntryDrawer } from "./_components/MoodEntryDrawer";
-import { addMonths, subMonths } from "date-fns";
+import React, { useState } from 'react';
+import { MoodHeader } from './_components/MoodHeader';
+import { MonthNavigator } from './_components/MonthNavigator';
+import { MoodCalendar } from './_components/MoodCalendar';
+import { MoodEntryDrawer } from './_components/MoodEntryDrawer';
+import { addMonths, subMonths } from 'date-fns';
 
 export default function MoodPage() {
   const [currentDate, setCurrentDate] = useState(new Date());

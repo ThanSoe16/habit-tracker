@@ -1,11 +1,11 @@
-import React from "react";
-import { Controller } from "react-hook-form";
-import { parseISO, format } from "date-fns";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import { Switch } from "@/components/ui/switch";
-import { TabToggle } from "./TabToggle";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Input } from "@/components/ui/input";
+import React from 'react';
+import { Controller } from 'react-hook-form';
+import { parseISO, format } from 'date-fns';
+import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { Switch } from '@/components/ui/switch';
+import { TabToggle } from './TabToggle';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
 
 export const HabitEndCondition = ({ form }: { form: any }) => {
   const {
@@ -13,19 +13,13 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
     watch,
   } = form;
 
-  const endHabitEnabled = watch("endHabitEnabled");
-  const endHabitMode = watch("endHabitMode");
+  const endHabitEnabled = watch('endHabitEnabled');
+  const endHabitMode = watch('endHabitMode');
 
   return (
     <div className="space-y-4 pt-2 border-t border-gray-100">
-      <Field
-        orientation="horizontal"
-        className="flex items-center justify-between"
-      >
-        <FieldLabel
-          className="mb-0 cursor-pointer"
-          htmlFor="form-endHabitEnabled"
-        >
+      <Field orientation="horizontal" className="flex items-center justify-between">
+        <FieldLabel className="mb-0 cursor-pointer" htmlFor="form-endHabitEnabled">
           End Habit Condition
         </FieldLabel>
         <Controller
@@ -52,15 +46,15 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
                   value={field.value}
                   setValue={field.onChange}
                   options={[
-                    { value: "date", label: "By Date" },
-                    { value: "days", label: "By Days" },
+                    { value: 'date', label: 'By Date' },
+                    { value: 'days', label: 'By Days' },
                   ]}
                 />
               )}
             />
           </Field>
 
-          {endHabitMode === "date" ? (
+          {endHabitMode === 'date' ? (
             <Field data-invalid={!!errors.endHabitDate}>
               <Controller
                 name="endHabitDate"
@@ -70,7 +64,7 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
                     date={field.value ? parseISO(field.value) : undefined}
                     onChange={(newDate) => {
                       if (newDate) {
-                        field.onChange(format(newDate, "yyyy-MM-dd"));
+                        field.onChange(format(newDate, 'yyyy-MM-dd'));
                       }
                     }}
                     placeholder="End date"
@@ -89,9 +83,7 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
                     type="number"
                     placeholder="Number of days"
                     {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value) || 0)
-                    }
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                   />
                 )}
               />

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useHabitStore } from "@/store/useHabitStore";
-import { HabitCard } from "./HabitCard";
-import { HabitCompletionDrawer } from "./HabitCompletionDrawer";
-import { isHabitRequiredOnDate } from "@/utils/dateUtils";
+import { useState } from 'react';
+import { useHabitStore } from '@/store/useHabitStore';
+import { HabitCard } from './HabitCard';
+import { HabitCompletionDrawer } from './HabitCompletionDrawer';
+import { isHabitRequiredOnDate } from '@/utils/dateUtils';
 
 interface HabitListProps {
   selectedDate?: Date;
@@ -20,17 +20,13 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
     : null;
 
   if (!isLoaded) {
-    return (
-      <div className="p-8 text-center text-muted-foreground">
-        Loading habits...
-      </div>
-    );
+    return <div className="p-8 text-center text-muted-foreground">Loading habits...</div>;
   }
 
   // Filter habits based on selected date
   const filteredHabits = habits.filter((habit) => {
     // 1. Date Range Check
-    const selectedDateStr = selectedDate.toLocaleDateString("en-CA");
+    const selectedDateStr = selectedDate.toLocaleDateString('en-CA');
 
     if (habit.startDate) {
       if (selectedDateStr < habit.startDate) return false;

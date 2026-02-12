@@ -1,13 +1,9 @@
-import React from "react";
-import { format, parseISO } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, X } from "lucide-react";
+import React from 'react';
+import { format, parseISO } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon, X } from 'lucide-react';
 
 export const SpecificDateSelector = ({
   value,
@@ -22,7 +18,7 @@ export const SpecificDateSelector = ({
 
   const handleSelect = (dates: Date[] | undefined) => {
     if (dates) {
-      onChange(dates.map((d) => format(d, "yyyy-MM-dd")));
+      onChange(dates.map((d) => format(d, 'yyyy-MM-dd')));
     } else {
       onChange([]);
     }
@@ -45,12 +41,7 @@ export const SpecificDateSelector = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="multiple"
-            selected={selectedDates}
-            onSelect={handleSelect}
-            initialFocus
-          />
+          <Calendar mode="multiple" selected={selectedDates} onSelect={handleSelect} initialFocus />
         </PopoverContent>
       </Popover>
 
@@ -60,9 +51,9 @@ export const SpecificDateSelector = ({
             <div
               key={dateStr}
               className="px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-2 bg-white"
-              style={{ borderColor: selectedColor + "33" }}
+              style={{ borderColor: selectedColor + '33' }}
             >
-              <span>{format(parseISO(dateStr), "MMM d, yyyy")}</span>
+              <span>{format(parseISO(dateStr), 'MMM d, yyyy')}</span>
               <button
                 type="button"
                 onClick={() => removeDate(dateStr)}

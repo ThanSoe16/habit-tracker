@@ -1,6 +1,4 @@
-"use client";
-
-import { Sparkles, EllipsisVertical } from "lucide-react";
+'use client';
 
 export function ReportHeader() {
   return (

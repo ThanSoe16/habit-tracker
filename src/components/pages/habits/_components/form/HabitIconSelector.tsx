@@ -1,6 +1,6 @@
-import { cn } from "@/utils/cn";
-import { EMOJIS } from "@/features/habits/data";
-import { getContrastColor } from "@/utils/colorUtils";
+import { cn } from '@/utils/cn';
+import { EMOJIS } from '@/features/habits/data';
+import { getContrastColor } from '@/utils/colorUtils';
 
 export const HabitIconSelector = ({
   value,
@@ -13,31 +13,29 @@ export const HabitIconSelector = ({
   selectedColor?: string;
   habitName?: string;
 }) => {
-  const firstChar = habitName ? habitName.trim().charAt(0).toUpperCase() : "?";
+  const firstChar = habitName ? habitName.trim().charAt(0).toUpperCase() : '?';
   return (
     <div className="space-y-3">
       <div className="flex gap-3 overflow-x-auto no-scrollbar py-1">
         <button
           type="button"
-          onClick={() => setValue("")}
+          onClick={() => setValue('')}
           className={cn(
-            "w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold transition-all border shrink-0",
-            value === ""
-              ? "border-transparent shadow-lg"
-              : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100",
+            'w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold transition-all border shrink-0',
+            value === ''
+              ? 'border-transparent shadow-lg'
+              : 'bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100',
           )}
           style={
-            value === ""
+            value === ''
               ? {
                   backgroundColor: selectedColor,
                   color: selectedColor
-                    ? getContrastColor(selectedColor) === "black"
-                      ? "#000000"
-                      : "#FFFFFF"
+                    ? getContrastColor(selectedColor) === 'black'
+                      ? '#000000'
+                      : '#FFFFFF'
                     : undefined,
-                  boxShadow: selectedColor
-                    ? `0 10px 15px -3px ${selectedColor}4D`
-                    : undefined,
+                  boxShadow: selectedColor ? `0 10px 15px -3px ${selectedColor}4D` : undefined,
                 }
               : {}
           }
@@ -51,23 +49,21 @@ export const HabitIconSelector = ({
             type="button"
             onClick={() => setValue(e)}
             className={cn(
-              "w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all border shrink-0",
+              'w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all border shrink-0',
               value === e
-                ? "border-transparent shadow-lg"
-                : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100",
+                ? 'border-transparent shadow-lg'
+                : 'bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100',
             )}
             style={
               value === e
                 ? {
                     backgroundColor: selectedColor,
                     color: selectedColor
-                      ? getContrastColor(selectedColor) === "black"
-                        ? "#000000"
-                        : "#FFFFFF"
+                      ? getContrastColor(selectedColor) === 'black'
+                        ? '#000000'
+                        : '#FFFFFF'
                       : undefined,
-                    boxShadow: selectedColor
-                      ? `0 10px 15px -3px ${selectedColor}4D`
-                      : undefined,
+                    boxShadow: selectedColor ? `0 10px 15px -3px ${selectedColor}4D` : undefined,
                   }
                 : {}
             }

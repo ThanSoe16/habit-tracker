@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { useHabitStore } from "@/store/useHabitStore";
-import { ChevronLeft, Pencil, Trash2 } from "lucide-react";
-import { cn } from "@/utils/cn";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { useHabitStore } from '@/store/useHabitStore';
+import { ChevronLeft, Pencil, Trash2 } from 'lucide-react';
+import { cn } from '@/utils/cn';
 // Assuming we have a Calendar component or we'll build a simplified one for stats
 import {
   addMonths,
@@ -15,8 +15,8 @@ import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
-} from "date-fns";
-import { isHabitRequiredOnDate, getLocalDateString } from "@/utils/dateUtils";
+} from 'date-fns';
+import { isHabitRequiredOnDate, getLocalDateString } from '@/utils/dateUtils';
 
 export default function HabitDetail({ id }: { id: string }) {
   const [viewDate, setViewDate] = React.useState(new Date());
@@ -33,7 +33,7 @@ export default function HabitDetail({ id }: { id: string }) {
   }
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this habit?")) {
+    if (confirm('Are you sure you want to delete this habit?')) {
       removeHabit(habit.id);
       router.back();
     }
@@ -47,15 +47,13 @@ export default function HabitDetail({ id }: { id: string }) {
   const history = habit.history;
   const historyEntries = Object.entries(history);
   const totalCompletions = historyEntries.filter(([, entry]) =>
-    typeof entry === "boolean" ? entry : entry.completed,
+    typeof entry === 'boolean' ? entry : entry.completed,
   ).length;
 
   // Calculate perfect days (days where all required habits were done - for THIS habit, it's just completions)
   // But user asked for "Total perfect days" and "Completion rate"
   // Let's calculate Completion Rate based on required days since habit start
-  const startDate = habit.startDate
-    ? parseISO(habit.startDate)
-    : new Date(habit.createdAt);
+  const startDate = habit.startDate ? parseISO(habit.startDate) : new Date(habit.createdAt);
   const today = startOfDay(new Date());
 
   // Count required days from start until today
@@ -69,9 +67,7 @@ export default function HabitDetail({ id }: { id: string }) {
   }
 
   const completionRate =
-    requiredDaysCount > 0
-      ? Math.round((totalCompletions / requiredDaysCount) * 100)
-      : 0;
+    requiredDaysCount > 0 ? Math.round((totalCompletions / requiredDaysCount) * 100) : 0;
 
   const monthStart = startOfMonth(viewDate);
   const monthEnd = endOfMonth(monthStart);
@@ -109,9 +105,9 @@ export default function HabitDetail({ id }: { id: string }) {
         <div className="flex items-center gap-4">
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-sm"
-            style={{ backgroundColor: habit.color + "20" }}
+            style={{ backgroundColor: habit.color + '20' }}
           >
-            {habit.emoji || "✨"}
+            {habit.emoji || '✨'}
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">{habit.name}</h2>
@@ -122,36 +118,20 @@ export default function HabitDetail({ id }: { id: string }) {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">
-              {habit.streak} days
-            </p>
-            <p className="text-[13px] text-gray-400 font-medium mt-1">
-              Current streak
-            </p>
+            <p className="text-[17px] font-bold text-gray-800">{habit.streak} days</p>
+            <p className="text-[13px] text-gray-400 font-medium mt-1">Current streak</p>
           </div>
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">
-              {completionRate}%
-            </p>
-            <p className="text-[13px] text-gray-400 font-medium mt-1">
-              Completion rate
-            </p>
+            <p className="text-[17px] font-bold text-gray-800">{completionRate}%</p>
+            <p className="text-[13px] text-gray-400 font-medium mt-1">Completion rate</p>
           </div>
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">
-              {totalCompletions}
-            </p>
-            <p className="text-[13px] text-gray-400 font-medium mt-1">
-              Habits completed
-            </p>
+            <p className="text-[17px] font-bold text-gray-800">{totalCompletions}</p>
+            <p className="text-[13px] text-gray-400 font-medium mt-1">Habits completed</p>
           </div>
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">
-              {totalCompletions}
-            </p>
-            <p className="text-[13px] text-gray-400 font-medium mt-1">
-              Total perfect days
-            </p>
+            <p className="text-[17px] font-bold text-gray-800">{totalCompletions}</p>
+            <p className="text-[13px] text-gray-400 font-medium mt-1">Total perfect days</p>
           </div>
         </div>
 
@@ -172,9 +152,7 @@ export default function HabitDetail({ id }: { id: string }) {
               >
                 <ChevronLeft className="w-5 h-5 text-gray-400" />
               </button>
-              <p className="text-[15px] font-bold text-gray-800">
-                {format(viewDate, "MMMM yyyy")}
-              </p>
+              <p className="text-[15px] font-bold text-gray-800">{format(viewDate, 'MMMM yyyy')}</p>
               <button
                 onClick={handleNextMonth}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors rotate-180"
@@ -184,37 +162,30 @@ export default function HabitDetail({ id }: { id: string }) {
             </div>
 
             <div className="w-full grid grid-cols-7 gap-y-4">
-              {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => (
-                <div
-                  key={d}
-                  className="text-center text-[11px] font-bold text-gray-400"
-                >
+              {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((d) => (
+                <div key={d} className="text-center text-[11px] font-bold text-gray-400">
                   {d}
                 </div>
               ))}
               {days.map((day) => {
                 const dateKey = getLocalDateString(day);
                 const entry = habit.history[dateKey];
-                const isDone =
-                  typeof entry === "boolean" ? entry : entry?.completed;
+                const isDone = typeof entry === 'boolean' ? entry : entry?.completed;
                 const isRequired = isHabitRequiredOnDate(habit as any, day);
 
                 return (
-                  <div
-                    key={dateKey}
-                    className="flex items-center justify-center"
-                  >
+                  <div key={dateKey} className="flex items-center justify-center">
                     <div
                       className={cn(
-                        "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                        'w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all',
                         isDone
-                          ? "bg-green-500 text-white shadow-md shadow-green-500/20"
+                          ? 'bg-green-500 text-white shadow-md shadow-green-500/20'
                           : isRequired
-                            ? "bg-blue-500 text-white shadow-md shadow-blue-500/20"
-                            : "text-gray-400",
+                            ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
+                            : 'text-gray-400',
                       )}
                     >
-                      {format(day, "d")}
+                      {format(day, 'd')}
                     </div>
                   </div>
                 );

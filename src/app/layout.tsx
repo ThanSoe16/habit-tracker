@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
-import "../styles/globals.css";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import '../styles/globals.css';
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
@@ -20,10 +20,10 @@ export const metadata: Metadata = {
     template: `%s | ${process.env.NEXT_PUBLIC_APP_NAME}`,
   },
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
-  manifest: "/manifest.json",
+  manifest: '/manifest.json',
 
   openGraph: {
-    type: "website",
+    type: 'website',
     title: process.env.NEXT_PUBLIC_APP_NAME,
     description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
     url: process.env.NEXT_PUBLIC_APP_URL,
@@ -39,25 +39,25 @@ export const metadata: Metadata = {
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: 'summary_large_image',
     title: process.env.NEXT_PUBLIC_APP_NAME,
     description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
     images: [`${process.env.NEXT_PUBLIC_APP_URL}/cover-image.png`],
   },
 
   icons: {
-    icon: "/favicon.ico",
+    icon: '/favicon.ico',
   },
 
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: 'default',
     title: process.env.NEXT_PUBLIC_APP_NAME,
   },
 };
 
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { DailyReminderProvider } from "@/components/providers/DailyReminderProvider";
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { DailyReminderProvider } from '@/components/providers/DailyReminderProvider';
 
 export default function RootLayout({
   children,
@@ -66,9 +66,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NuqsAdapter>
           <DailyReminderProvider>{children}</DailyReminderProvider>
         </NuqsAdapter>

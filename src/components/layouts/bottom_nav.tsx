@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/utils/cn";
-import Image from "next/image";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/utils/cn';
+import Image from 'next/image';
 
 const NAV_ITEMS = [
   {
-    label: "Home",
-    icon: "/side-bar/home-inactive.png",
-    activeIcon: "/side-bar/home-active.png",
-    href: "/home",
+    label: 'Home',
+    icon: '/side-bar/home-inactive.png',
+    activeIcon: '/side-bar/home-active.png',
+    href: '/home',
   },
   {
-    label: "Mood Stat",
-    icon: "/side-bar/mood-inactive.png",
-    activeIcon: "/side-bar/mood-active.png",
-    href: "/mood",
+    label: 'Mood Stat',
+    icon: '/side-bar/mood-inactive.png',
+    activeIcon: '/side-bar/mood-active.png',
+    href: '/mood',
   },
   {
-    label: "Report",
-    icon: "/side-bar/report-inactive.png",
-    activeIcon: "/side-bar/report-active.png",
-    href: "/report",
+    label: 'Report',
+    icon: '/side-bar/report-inactive.png',
+    activeIcon: '/side-bar/report-active.png',
+    href: '/report',
   },
   {
-    label: "My Habits",
-    icon: "/side-bar/habit-inactive.png",
-    activeIcon: "/side-bar/habit-active.png",
-    href: "/habits",
+    label: 'My Habits',
+    icon: '/side-bar/habit-inactive.png',
+    activeIcon: '/side-bar/habit-active.png',
+    href: '/habits',
   },
   {
-    label: "Account",
-    icon: "/side-bar/profile-inactive.png",
-    activeIcon: "/side-bar/profile-active.png",
-    href: "/account",
+    label: 'Account',
+    icon: '/side-bar/profile-inactive.png',
+    activeIcon: '/side-bar/profile-active.png',
+    href: '/account',
   },
 ];
 
@@ -58,7 +58,7 @@ export function BottomNav() {
             >
               <div
                 className={cn(
-                  "w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 relative",
+                  'w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 relative',
                 )}
               >
                 <Image
@@ -66,17 +66,13 @@ export function BottomNav() {
                   alt={item.label}
                   width={24}
                   height={24}
-                  className={cn(
-                    "w-6 h-6 transition-all duration-300 relative z-10",
-                  )}
+                  className={cn('w-6 h-6 transition-all duration-300 relative z-10')}
                 />
               </div>
               <span
                 className={cn(
-                  "text-[10px] tracking-tight transition-colors duration-300 relative z-10",
-                  isActive
-                    ? "text-primary font-bold"
-                    : "text-gray-500 font-medium",
+                  'text-[10px] tracking-tight transition-colors duration-300 relative z-10',
+                  isActive ? 'text-primary font-bold' : 'text-gray-500 font-medium',
                 )}
               >
                 {item.label}

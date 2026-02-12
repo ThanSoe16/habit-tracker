@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { OverallHabitList } from "@/components/pages/home/_components/OverallHabitList";
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import { OverallHabitList } from '@/components/pages/home/_components/OverallHabitList';
 
 export default function OverallProgressPage() {
   const router = useRouter();

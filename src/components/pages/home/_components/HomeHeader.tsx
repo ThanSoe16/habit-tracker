@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 interface HomeHeaderProps {
   greeting: string;
@@ -9,12 +9,7 @@ interface HomeHeaderProps {
   formattedDate: string;
 }
 
-export function HomeHeader({
-  greeting,
-  name,
-  avatarEmoji,
-  formattedDate,
-}: HomeHeaderProps) {
+export function HomeHeader({ greeting, name, avatarEmoji, formattedDate }: HomeHeaderProps) {
   return (
     <header className="flex justify-between items-start px-2">
       <div className="space-y-1.5">

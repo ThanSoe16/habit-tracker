@@ -1,5 +1,5 @@
-import React from "react";
-import { cn } from "@/utils/cn";
+import React from 'react';
+import { cn } from '@/utils/cn';
 
 export const MonthlyDaySelector = ({
   value,
@@ -30,10 +30,10 @@ export const MonthlyDaySelector = ({
             type="button"
             onClick={() => toggleDay(day)}
             className={cn(
-              "w-10 h-10 rounded-lg text-xs font-bold transition-all border flex items-center justify-center",
+              'w-10 h-10 rounded-lg text-xs font-bold transition-all border flex items-center justify-center',
               isSelected
-                ? "border-transparent text-white shadow-md"
-                : "bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100",
+                ? 'border-transparent text-white shadow-md'
+                : 'bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100',
             )}
             style={
               isSelected

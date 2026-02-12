@@ -1,4 +1,4 @@
-import { cn } from "@/utils/cn";
+import { cn } from '@/utils/cn';
 
 export const TabToggle = ({
   value,
@@ -17,10 +17,10 @@ export const TabToggle = ({
           type="button"
           onClick={() => setValue(t.value)}
           className={cn(
-            "flex-1 py-3 text-xs font-bold rounded-lg transition-all capitalize",
+            'flex-1 py-3 text-xs font-bold rounded-lg transition-all capitalize',
             value === t.value
-              ? "bg-background text-primary shadow-md shadow-blue-500/20"
-              : "text-gray-500 hover:text-gray-700",
+              ? 'bg-background text-primary shadow-md shadow-blue-500/20'
+              : 'text-gray-500 hover:text-gray-700',
           )}
         >
           {t.label}

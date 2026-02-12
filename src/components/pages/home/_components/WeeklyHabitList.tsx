@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useMemo } from "react";
-import { useHabitStore } from "@/store/useHabitStore";
-import { WeeklyHabitCard } from "./WeeklyHabitCard";
-import { startOfWeek, addDays } from "date-fns";
+import React, { useMemo } from 'react';
+import { useHabitStore } from '@/store/useHabitStore';
+import { WeeklyHabitCard } from './WeeklyHabitCard';
+import { startOfWeek, addDays } from 'date-fns';
 
 export function WeeklyHabitList({ limit }: { limit?: number }) {
   const { habits, isLoaded } = useHabitStore();
@@ -19,11 +19,7 @@ export function WeeklyHabitList({ limit }: { limit?: number }) {
   }, []);
 
   if (!isLoaded) {
-    return (
-      <div className="p-8 text-center text-muted-foreground">
-        Loading habits...
-      </div>
-    );
+    return <div className="p-8 text-center text-muted-foreground">Loading habits...</div>;
   }
 
   if (habits.length === 0) {

@@ -1,7 +1,7 @@
-import React, { useRef } from "react";
-import { Check, Plus } from "lucide-react";
-import { cn } from "@/utils/cn";
-import { COLORS } from "@/features/habits/data";
+import React, { useRef } from 'react';
+import { Check, Plus } from 'lucide-react';
+import { cn } from '@/utils/cn';
+import { COLORS } from '@/features/habits/data';
 
 export const HabitColorSelector = ({
   value,
@@ -22,8 +22,8 @@ export const HabitColorSelector = ({
           type="button"
           onClick={() => setValue(c)}
           className={cn(
-            "w-10 h-10 rounded-full transition-all flex items-center justify-center border-2 border-transparent",
-            value === c && "border-white shadow-xl scale-110",
+            'w-10 h-10 rounded-full transition-all flex items-center justify-center border-2 border-transparent',
+            value === c && 'border-white shadow-xl scale-110',
           )}
           style={{ backgroundColor: c }}
         >
@@ -37,16 +37,16 @@ export const HabitColorSelector = ({
           ref={colorInputRef}
           className="absolute inset-0 opacity-0 w-10 h-10 cursor-pointer"
           onChange={(e) => setValue(e.target.value)}
-          value={isCustomColor ? value : "#FFFFFF"}
+          value={isCustomColor ? value : '#FFFFFF'}
         />
         <button
           type="button"
           onClick={() => colorInputRef.current?.click()}
           className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center border transition-all overflow-hidden",
+            'w-10 h-10 rounded-full flex items-center justify-center border transition-all overflow-hidden',
             isCustomColor
-              ? "ring-2 ring-primary ring-offset-2 scale-110 shadow-lg"
-              : "bg-gray-50 border-gray-100 hover:bg-gray-100",
+              ? 'ring-2 ring-primary ring-offset-2 scale-110 shadow-lg'
+              : 'bg-gray-50 border-gray-100 hover:bg-gray-100',
           )}
           style={isCustomColor ? { backgroundColor: value } : {}}
         >

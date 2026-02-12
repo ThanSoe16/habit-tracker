@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useHabitStore } from "@/store/useHabitStore";
-import { X } from "lucide-react";
+import { useHabitStore } from '@/store/useHabitStore';
+import { X } from 'lucide-react';
 
 export function ProgressStats() {
   const { habits } = useHabitStore();
@@ -10,31 +10,31 @@ export function ProgressStats() {
   const chartData =
     habits.length > 0
       ? habits.slice(0, 4).map((h) => ({
-          label: h.name.split(" ")[0], // First word
+          label: h.name.split(' ')[0], // First word
           value: Math.min(100, (h.streak / 30) * 100), // Mock percentage based on streak aim 30
           color: h.color,
           displayValue: `${h.streak}d`,
         }))
       : [
           {
-            label: "Walking",
+            label: 'Walking',
             value: 48,
-            color: "#3F2E26",
-            displayValue: "48%",
+            color: '#3F2E26',
+            displayValue: '48%',
           },
           {
-            label: "Running",
+            label: 'Running',
             value: 33,
-            color: "#A0522D",
-            displayValue: "33%",
+            color: '#A0522D',
+            displayValue: '33%',
           },
           {
-            label: "Meditation",
+            label: 'Meditation',
             value: 27,
-            color: "#808000",
-            displayValue: "27%",
+            color: '#808000',
+            displayValue: '27%',
           },
-          { label: "Drink", value: 40, color: "#DA70D6", displayValue: "40%" },
+          { label: 'Drink', value: 40, color: '#DA70D6', displayValue: '40%' },
         ];
 
   return (
@@ -65,9 +65,7 @@ export function ProgressStats() {
                   backgroundColor: item.color,
                 }}
               >
-                <span className="text-white font-bold text-sm">
-                  {item.displayValue}
-                </span>
+                <span className="text-white font-bold text-sm">{item.displayValue}</span>
               </div>
             </div>
             <span className="text-xs font-medium text-muted-foreground truncate max-w-full">
@@ -100,9 +98,7 @@ export function ProgressStats() {
             </p>
             <p className="font-bold text-lg">
               {habits.reduce(
-                (acc, h) =>
-                  acc +
-                  (h.history[new Date().toISOString().split("T")[0]] ? 1 : 0),
+                (acc, h) => acc + (h.history[new Date().toISOString().split('T')[0]] ? 1 : 0),
                 0,
               )}
             </p>
@@ -111,9 +107,7 @@ export function ProgressStats() {
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
               Streak
             </p>
-            <p className="font-bold text-lg">
-              {Math.max(0, ...habits.map((h) => h.streak))}
-            </p>
+            <p className="font-bold text-lg">{Math.max(0, ...habits.map((h) => h.streak))}</p>
           </div>
         </div>
 

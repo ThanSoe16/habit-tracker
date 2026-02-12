@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export type Theme = "light" | "dark";
+export type Theme = 'light' | 'dark';
 
 interface UserStore {
   name: string;
@@ -22,12 +22,12 @@ interface UserStore {
 export const useUserStore = create<UserStore>()(
   persist(
     (set) => ({
-      name: "User",
-      avatarEmoji: "😊",
+      name: 'User',
+      avatarEmoji: '😊',
       joinedAt: new Date().toISOString(),
       remindersEnabled: false,
-      dailyReminderTime: "08:00",
-      theme: "light" as Theme,
+      dailyReminderTime: '08:00',
+      theme: 'light' as Theme,
 
       setName: (name) => set({ name }),
       setAvatarEmoji: (emoji) => set({ avatarEmoji: emoji }),
@@ -36,7 +36,7 @@ export const useUserStore = create<UserStore>()(
       setTheme: (theme) => set({ theme }),
     }),
     {
-      name: "user-profile-storage",
+      name: 'user-profile-storage',
     },
   ),
 );

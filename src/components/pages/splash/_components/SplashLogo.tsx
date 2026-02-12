@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import Image from "next/image";
+import React from 'react';
+import Image from 'next/image';
 
 export function SplashLogo() {
   return (
@@ -20,12 +20,8 @@ export function SplashLogo() {
         </div>
 
         {/* Decorative Sparkles (CSS only version of sparkles) */}
-        <div className="absolute -top-4 -right-4 animate-bounce delay-100 text-2xl">
-          ✨
-        </div>
-        <div className="absolute -bottom-2 -left-4 animate-bounce delay-500 text-xl">
-          🌱
-        </div>
+        <div className="absolute -top-4 -right-4 animate-bounce delay-100 text-2xl">✨</div>
+        <div className="absolute -bottom-2 -left-4 animate-bounce delay-500 text-xl">🌱</div>
       </div>
 
       {/* Text Section */}

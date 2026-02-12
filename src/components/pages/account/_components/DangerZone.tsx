@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useHabitStore } from "@/store/useHabitStore";
-import { Trash2 } from "lucide-react";
+import { useState } from 'react';
+import { useHabitStore } from '@/store/useHabitStore';
+import { Trash2 } from 'lucide-react';
 
 export function DangerZone() {
   const [showConfirm, setShowConfirm] = useState(false);
@@ -16,9 +16,9 @@ export function DangerZone() {
 
     // Clear mood history by setting empty
     // Since there's no clearAll, we'll clear localStorage directly
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("habit-tracker-data");
-      localStorage.removeItem("mood-tracker-storage");
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('habit-tracker-data');
+      localStorage.removeItem('mood-tracker-storage');
       window.location.reload();
     }
   };
@@ -36,8 +36,7 @@ export function DangerZone() {
       ) : (
         <div className="bg-red-50 rounded-2xl p-5 border border-red-100 space-y-3">
           <p className="text-sm font-semibold text-red-700 text-center">
-            Are you sure? This will delete all your habits, completions, and
-            mood data.
+            Are you sure? This will delete all your habits, completions, and mood data.
           </p>
           <div className="flex gap-3">
             <button

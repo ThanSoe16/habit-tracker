@@ -3,7 +3,7 @@
  */
 export function getLocalDateString(date: Date = new Date()): string {
   // Use en-CA as it's the most reliable locale for YYYY-MM-DD
-  return date.toLocaleDateString("en-CA");
+  return date.toLocaleDateString('en-CA');
 }
 
 /**
@@ -16,29 +16,29 @@ export function isHabitRequiredOnDate(
     specificDates?: string[];
     startDate?: string;
     createdAt?: string;
-    type?: "habit" | "task";
+    type?: 'habit' | 'task';
   },
   date: Date,
 ): boolean {
   const dateStr = getLocalDateString(date);
 
   // One-time tasks
-  if (habit.type === "task") {
+  if (habit.type === 'task') {
     const targetDate =
       habit.startDate ||
       (habit.createdAt
-        ? new Date(habit.createdAt).toLocaleDateString("en-CA")
+        ? new Date(habit.createdAt).toLocaleDateString('en-CA')
         : getLocalDateString());
     return dateStr === targetDate;
   }
 
   // Specific dates mode
-  if (habit.frequency === "specific") {
+  if (habit.frequency === 'specific') {
     return habit.specificDates?.includes(dateStr) || false;
   }
 
   // Monthly mode (usually repeatDays contains day of month numbers)
-  if (habit.frequency === "monthly" && habit.repeatDays) {
+  if (habit.frequency === 'monthly' && habit.repeatDays) {
     const dayOfMonth = date.getDate();
     return habit.repeatDays.includes(dayOfMonth);
   }
@@ -50,7 +50,7 @@ export function isHabitRequiredOnDate(
     const targetDate =
       habit.startDate ||
       (habit.createdAt
-        ? new Date(habit.createdAt).toLocaleDateString("en-CA")
+        ? new Date(habit.createdAt).toLocaleDateString('en-CA')
         : getLocalDateString());
     return dateStr === targetDate;
   }

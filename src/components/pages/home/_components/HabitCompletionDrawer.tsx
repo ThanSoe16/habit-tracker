@@ -1,18 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-  DrawerHeader,
-} from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Habit } from "@/store/useHabitStore";
-import { Trash2 } from "lucide-react";
+import { useState } from 'react';
+import { Drawer, DrawerContent, DrawerTitle, DrawerHeader } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Habit } from '@/store/useHabitStore';
+import { Trash2 } from 'lucide-react';
 
 interface HabitCompletionDrawerProps {
   habit: Habit;
@@ -55,7 +50,7 @@ function CompletionForm({
   onRemove: (id: string, date: string) => void;
   onClose: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"time" | "count">("time");
+  const [activeTab, setActiveTab] = useState<'time' | 'count'>('time');
   const [timeTaken, setTimeTaken] = useState(initialTimeTaken);
   const [count, setCount] = useState(initialCount);
   const [notes, setNotes] = useState(initialNotes);
@@ -78,39 +73,27 @@ function CompletionForm({
           <>
             <div className="bg-white rounded-xl p-4 space-y-3">
               <div className="flex justify-between items-center border-b pb-3 border-gray-50">
-                <span className="text-muted-foreground font-medium text-sm">
-                  Completion Stats
-                </span>
+                <span className="text-muted-foreground font-medium text-sm">Completion Stats</span>
               </div>
 
               {initialTimeTaken && (
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">
-                    Time Taken
-                  </span>
-                  <span className="font-bold text-primary">
-                    {initialTimeTaken} mins
-                  </span>
+                  <span className="text-muted-foreground text-sm">Time Taken</span>
+                  <span className="font-bold text-primary">{initialTimeTaken} mins</span>
                 </div>
               )}
 
               {initialCount && (
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground text-sm">Count</span>
-                  <span className="font-bold text-primary">
-                    {initialCount} times
-                  </span>
+                  <span className="font-bold text-primary">{initialCount} times</span>
                 </div>
               )}
 
               {initialNotes && (
                 <div className="pt-2">
-                  <span className="text-muted-foreground font-medium text-sm">
-                    Notes
-                  </span>
-                  <p className="text-sm mt-1 bg-gray-50 p-3 rounded-lg">
-                    {initialNotes}
-                  </p>
+                  <span className="text-muted-foreground font-medium text-sm">Notes</span>
+                  <p className="text-sm mt-1 bg-gray-50 p-3 rounded-lg">{initialNotes}</p>
                 </div>
               )}
             </div>
@@ -135,21 +118,21 @@ function CompletionForm({
       {/* Tab Switcher */}
       <div className="bg-gray-100 p-1 rounded-2xl flex">
         <button
-          onClick={() => setActiveTab("time")}
+          onClick={() => setActiveTab('time')}
           className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
-            activeTab === "time"
-              ? "bg-white text-primary shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+            activeTab === 'time'
+              ? 'bg-white text-primary shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Time Taken
         </button>
         <button
-          onClick={() => setActiveTab("count")}
+          onClick={() => setActiveTab('count')}
           className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
-            activeTab === "count"
-              ? "bg-white text-primary shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+            activeTab === 'count'
+              ? 'bg-white text-primary shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Count
@@ -157,12 +140,9 @@ function CompletionForm({
       </div>
 
       <div className="space-y-4">
-        {activeTab === "time" ? (
+        {activeTab === 'time' ? (
           <div className="space-y-2">
-            <Label
-              htmlFor="timeTaken"
-              className="text-muted-foreground font-medium ml-1"
-            >
+            <Label htmlFor="timeTaken" className="text-muted-foreground font-medium ml-1">
               Time Spent
             </Label>
             <div className="relative">
@@ -182,10 +162,7 @@ function CompletionForm({
           </div>
         ) : (
           <div className="space-y-2">
-            <Label
-              htmlFor="count"
-              className="text-muted-foreground font-medium ml-1"
-            >
+            <Label htmlFor="count" className="text-muted-foreground font-medium ml-1">
               Repeat Count
             </Label>
             <div className="relative">
@@ -206,10 +183,7 @@ function CompletionForm({
         )}
 
         <div className="space-y-2">
-          <Label
-            htmlFor="notes"
-            className="text-muted-foreground font-medium ml-1"
-          >
+          <Label htmlFor="notes" className="text-muted-foreground font-medium ml-1">
             Notes
           </Label>
           <Textarea
@@ -238,7 +212,7 @@ function CompletionForm({
           disabled={!timeTaken.trim() && !count.trim()}
           className="flex-1 h-14 rounded-2xl text-lg font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 disabled:opacity-50"
         >
-          {isCompleted ? "Update" : "Finish"}
+          {isCompleted ? 'Update' : 'Finish'}
         </Button>
       </div>
     </div>
@@ -253,10 +227,9 @@ export function HabitCompletionDrawer({
   onSave,
   onRemove,
 }: HabitCompletionDrawerProps) {
-  const dateString = date.toLocaleDateString("en-CA");
+  const dateString = date.toLocaleDateString('en-CA');
   const historyEntry = habit.history[dateString];
-  const isCompleted =
-    typeof historyEntry === "boolean" ? historyEntry : historyEntry?.completed;
+  const isCompleted = typeof historyEntry === 'boolean' ? historyEntry : historyEntry?.completed;
 
   // Check if date is in the past (not today)
   const today = new Date();
@@ -266,15 +239,12 @@ export function HabitCompletionDrawer({
   const isPastDate = selectedDate < today;
 
   // Get initial values from history
-  const initialTimeTaken =
-    typeof historyEntry === "object" ? historyEntry?.timeTaken || "" : "";
-  const initialCount =
-    typeof historyEntry === "object" ? historyEntry?.count || "" : "";
-  const initialNotes =
-    typeof historyEntry === "object" ? historyEntry?.notes || "" : "";
+  const initialTimeTaken = typeof historyEntry === 'object' ? historyEntry?.timeTaken || '' : '';
+  const initialCount = typeof historyEntry === 'object' ? historyEntry?.count || '' : '';
+  const initialNotes = typeof historyEntry === 'object' ? historyEntry?.notes || '' : '';
 
   // Key changes when drawer opens, causing form to reset with fresh initial values
-  const formKey = isOpen ? `${habit.id}-${dateString}-open` : "closed";
+  const formKey = isOpen ? `${habit.id}-${dateString}-open` : 'closed';
 
   return (
     <>
@@ -288,12 +258,12 @@ export function HabitCompletionDrawer({
                 </DrawerTitle>
                 <p className="text-sm text-muted-foreground mt-1 font-medium">
                   {isPastDate
-                    ? date.toLocaleDateString("en-US", {
-                        weekday: "long",
-                        month: "long",
-                        day: "numeric",
+                    ? date.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
                       })
-                    : "Complete your habit"}
+                    : 'Complete your habit'}
                 </p>
               </div>
             </DrawerHeader>

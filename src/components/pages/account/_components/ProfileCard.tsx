@@ -1,28 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { useUserStore } from "@/store/useUserStore";
-import { Pencil, Check } from "lucide-react";
-import { format } from "date-fns";
+import { useState, useRef, useEffect } from 'react';
+import { useUserStore } from '@/store/useUserStore';
+import { Pencil, Check } from 'lucide-react';
+import { format } from 'date-fns';
 
-const AVATAR_EMOJIS = [
-  "😊",
-  "😎",
-  "🤓",
-  "🦊",
-  "🐱",
-  "🐶",
-  "🌸",
-  "🔥",
-  "⭐",
-  "🎯",
-  "💪",
-  "🧘",
-];
+const AVATAR_EMOJIS = ['😊', '😎', '🤓', '🦊', '🐱', '🐶', '🌸', '🔥', '⭐', '🎯', '💪', '🧘'];
 
 export function ProfileCard() {
-  const { name, avatarEmoji, joinedAt, setName, setAvatarEmoji } =
-    useUserStore();
+  const { name, avatarEmoji, joinedAt, setName, setAvatarEmoji } = useUserStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(name);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -43,8 +29,8 @@ export function ProfileCard() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSave();
-    if (e.key === "Escape") {
+    if (e.key === 'Enter') handleSave();
+    if (e.key === 'Escape') {
       setEditName(name);
       setIsEditing(false);
     }
@@ -74,9 +60,7 @@ export function ProfileCard() {
                 setShowEmojiPicker(false);
               }}
               className={`w-10 h-10 rounded-xl flex items-center justify-center text-2xl hover:bg-gray-100 transition-colors ${
-                avatarEmoji === emoji
-                  ? "bg-indigo-100 ring-2 ring-indigo-300"
-                  : ""
+                avatarEmoji === emoji ? 'bg-indigo-100 ring-2 ring-indigo-300' : ''
               }`}
             >
               {emoji}
@@ -121,7 +105,7 @@ export function ProfileCard() {
 
       {/* Member since */}
       <p className="text-xs text-muted-foreground">
-        Member since {format(new Date(joinedAt), "MMMM yyyy")}
+        Member since {format(new Date(joinedAt), 'MMMM yyyy')}
       </p>
     </div>
   );

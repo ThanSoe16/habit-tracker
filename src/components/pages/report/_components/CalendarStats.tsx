@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useHabitStore } from "@/store/useHabitStore";
+import { useState } from 'react';
+import { useHabitStore } from '@/store/useHabitStore';
 import {
   startOfMonth,
   endOfMonth,
@@ -14,12 +14,12 @@ import {
   addMonths,
   subMonths,
   isFuture,
-} from "date-fns";
-import { isHabitRequiredOnDate } from "@/utils/dateUtils";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { cn } from "@/utils/cn";
+} from 'date-fns';
+import { isHabitRequiredOnDate } from '@/utils/dateUtils';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { cn } from '@/utils/cn';
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export function CalendarStats() {
   const { habits } = useHabitStore();
@@ -32,25 +32,25 @@ export function CalendarStats() {
 
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  const getDayStatus = (day: Date): "perfect" | "partial" | "none" => {
-    if (isFuture(day)) return "none";
+  const getDayStatus = (day: Date): 'perfect' | 'partial' | 'none' => {
+    if (isFuture(day)) return 'none';
 
-    const dateStr = format(day, "yyyy-MM-dd");
+    const dateStr = format(day, 'yyyy-MM-dd');
     const requiredHabits = habits.filter((h) => {
       const createdDate = new Date(h.createdAt);
       return day >= createdDate && isHabitRequiredOnDate(h, day);
     });
 
-    if (requiredHabits.length === 0) return "none";
+    if (requiredHabits.length === 0) return 'none';
 
     const completedCount = requiredHabits.filter((h) => {
       const entry = h.history[dateStr];
-      return typeof entry === "boolean" ? entry : entry?.completed;
+      return typeof entry === 'boolean' ? entry : entry?.completed;
     }).length;
 
-    if (completedCount === requiredHabits.length) return "perfect";
-    if (completedCount > 0) return "partial";
-    return "none";
+    if (completedCount === requiredHabits.length) return 'perfect';
+    if (completedCount > 0) return 'partial';
+    return 'none';
   };
 
   return (
@@ -72,9 +72,7 @@ export function CalendarStats() {
         >
           <ChevronLeft className="w-4 h-4 text-gray-500" />
         </button>
-        <h4 className="text-sm font-bold text-foreground">
-          {format(currentDate, "MMMM yyyy")}
-        </h4>
+        <h4 className="text-sm font-bold text-foreground">{format(currentDate, 'MMMM yyyy')}</h4>
         <button
           onClick={() => setCurrentDate(addMonths(currentDate, 1))}
           className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
@@ -98,7 +96,7 @@ export function CalendarStats() {
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-y-2">
         {days.map((day) => {
-          const dateKey = format(day, "yyyy-MM-dd");
+          const dateKey = format(day, 'yyyy-MM-dd');
           const isCurrentMonth = isSameMonth(day, monthStart);
           const status = getDayStatus(day);
 
@@ -106,17 +104,15 @@ export function CalendarStats() {
             <div key={dateKey} className="flex justify-center">
               <div
                 className={cn(
-                  "w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold transition-all",
-                  !isCurrentMonth && "opacity-20",
-                  status === "perfect" && "bg-indigo-500 text-white",
-                  status === "partial" && "bg-indigo-100 text-indigo-600",
-                  status === "none" &&
-                    isToday(day) &&
-                    "border-2 border-indigo-400 text-indigo-600",
-                  status === "none" && !isToday(day) && "text-gray-600",
+                  'w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold transition-all',
+                  !isCurrentMonth && 'opacity-20',
+                  status === 'perfect' && 'bg-indigo-500 text-white',
+                  status === 'partial' && 'bg-indigo-100 text-indigo-600',
+                  status === 'none' && isToday(day) && 'border-2 border-indigo-400 text-indigo-600',
+                  status === 'none' && !isToday(day) && 'text-gray-600',
                 )}
               >
-                {format(day, "d")}
+                {format(day, 'd')}
               </div>
             </div>
           );

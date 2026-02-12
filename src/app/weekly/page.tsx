@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { WeeklyHabitList } from "@/components/pages/home/_components/WeeklyHabitList";
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import { WeeklyHabitList } from '@/components/pages/home/_components/WeeklyHabitList';
 
 export default function WeeklyProgressPage() {
   const router = useRouter();

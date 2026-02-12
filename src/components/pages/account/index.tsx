@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { ProfileCard } from "./_components/ProfileCard";
-import { QuickStats } from "./_components/QuickStats";
-import { SettingsList } from "./_components/SettingsList";
-import { DangerZone } from "./_components/DangerZone";
+import { ProfileCard } from './_components/ProfileCard';
+import { QuickStats } from './_components/QuickStats';
+import { SettingsList } from './_components/SettingsList';
+import { DangerZone } from './_components/DangerZone';
 
 export default function AccountPage() {
   return (

@@ -1,16 +1,12 @@
-import React, { useState } from "react";
-import { Bell, BellOff, Check, Volume2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useUserStore } from "@/store/useUserStore";
-import { useDailyReminder } from "@/hooks/useDailyReminder";
+import React, { useState } from 'react';
+import { Bell, BellOff, Check, Volume2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useUserStore } from '@/store/useUserStore';
+import { useDailyReminder } from '@/hooks/useDailyReminder';
 
 export function PromoCard() {
-  const {
-    remindersEnabled,
-    dailyReminderTime,
-    setRemindersEnabled,
-    setDailyReminderTime,
-  } = useUserStore();
+  const { remindersEnabled, dailyReminderTime, setRemindersEnabled, setDailyReminderTime } =
+    useUserStore();
   const { requestPermission, playNotificationSound } = useDailyReminder();
   const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -27,9 +23,7 @@ export function PromoCard() {
     if (granted) {
       setShowTimePicker(true);
     } else {
-      alert(
-        "Please allow notifications in your browser settings to use reminders.",
-      );
+      alert('Please allow notifications in your browser settings to use reminders.');
     }
   };
 
@@ -40,10 +34,10 @@ export function PromoCard() {
   };
 
   const formatTime = (time: string) => {
-    const [h, m] = time.split(":").map(Number);
-    const period = h >= 12 ? "PM" : "AM";
+    const [h, m] = time.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
     const hour12 = h % 12 || 12;
-    return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+    return `${hour12}:${m.toString().padStart(2, '0')} ${period}`;
   };
 
   if (remindersEnabled && !showTimePicker) {
@@ -55,10 +49,8 @@ export function PromoCard() {
               Reminder set! ✅
             </h3>
             <p className="text-xs text-muted-foreground max-w-48 leading-relaxed font-medium">
-              {"You'll"} be reminded daily at{" "}
-              <span className="font-bold text-foreground">
-                {formatTime(dailyReminderTime)}
-              </span>
+              {"You'll"} be reminded daily at{' '}
+              <span className="font-bold text-foreground">{formatTime(dailyReminderTime)}</span>
             </p>
           </div>
           <div className="flex gap-2">
@@ -131,9 +123,7 @@ export function PromoCard() {
     <div className="relative overflow-hidden bg-secondary rounded-xl p-5 pr-4 shadow-sm h-40 flex flex-col justify-center">
       <div className="relative z-10 flex flex-col items-start gap-4">
         <div className="space-y-2">
-          <h3 className="font-bold text-xl text-foreground">
-            Set the reminder
-          </h3>
+          <h3 className="font-bold text-xl text-foreground">Set the reminder</h3>
           <p className="text-xs text-muted-foreground max-w-48 leading-relaxed font-medium">
             Never miss your morning routine! Set a reminder to stay on track.
           </p>

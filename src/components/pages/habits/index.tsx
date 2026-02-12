@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useHabitStore } from "@/store/useHabitStore";
-import { MyHabitCard } from "./_components/MyHabitCard";
-import { cn } from "@/utils/cn";
-import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import React, { useState } from 'react';
+import { useHabitStore } from '@/store/useHabitStore';
+import { MyHabitCard } from './_components/MyHabitCard';
+import { cn } from '@/utils/cn';
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import {
   DndContext,
   closestCenter,
@@ -14,20 +14,16 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 
 export default function MyHabitsPage() {
   const router = useRouter();
   const { habits, reorderHabits } = useHabitStore();
-  const [activeTab, setActiveTab] = useState<"habit" | "task">("habit");
+  const [activeTab, setActiveTab] = useState<'habit' | 'task'>('habit');
 
   const filteredHabits = habits.filter((h) => {
-    const type = h.type || "habit";
+    const type = h.type || 'habit';
     return type === activeTab;
   });
 
@@ -69,23 +65,23 @@ export default function MyHabitsPage() {
       <div className="px-6 py-2">
         <div className="bg-gray-100 p-1.5 rounded-2xl flex">
           <button
-            onClick={() => setActiveTab("habit")}
+            onClick={() => setActiveTab('habit')}
             className={cn(
-              "flex-1 py-3 text-[15px] font-bold rounded-xl transition-all",
-              activeTab === "habit"
-                ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
-                : "text-gray-500 hover:text-gray-700",
+              'flex-1 py-3 text-[15px] font-bold rounded-xl transition-all',
+              activeTab === 'habit'
+                ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
+                : 'text-gray-500 hover:text-gray-700',
             )}
           >
             Regular Habit
           </button>
           <button
-            onClick={() => setActiveTab("task")}
+            onClick={() => setActiveTab('task')}
             className={cn(
-              "flex-1 py-3 text-[15px] font-bold rounded-xl transition-all",
-              activeTab === "task"
-                ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20"
-                : "text-gray-500 hover:text-gray-700",
+              'flex-1 py-3 text-[15px] font-bold rounded-xl transition-all',
+              activeTab === 'task'
+                ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
+                : 'text-gray-500 hover:text-gray-700',
             )}
           >
             One-Time Task
@@ -123,9 +119,7 @@ export default function MyHabitsPage() {
             </div>
             <div>
               <p className="text-gray-500 font-bold">No {activeTab}s yet</p>
-              <p className="text-gray-400 text-sm mt-1">
-                Start by adding a new one!
-              </p>
+              <p className="text-gray-400 text-sm mt-1">Start by adding a new one!</p>
             </div>
           </div>
         )}
@@ -134,7 +128,7 @@ export default function MyHabitsPage() {
       {/* Floating Add Button */}
       <div className="fixed bottom-32 right-6">
         <button
-          onClick={() => router.push("/habits/create")}
+          onClick={() => router.push('/habits/create')}
           className="w-14 h-14 rounded-full bg-indigo-500 hover:bg-indigo-600 shadow-xl shadow-indigo-500/30 flex items-center justify-center border-none transition-all active:scale-95 hover:scale-105"
         >
           <Plus className="w-8 h-8 text-white" />

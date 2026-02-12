@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { useHabitStore } from "@/store/useHabitStore";
-import { useUserStore } from "@/store/useUserStore";
-import { isHabitRequiredOnDate, getLocalDateString } from "@/utils/dateUtils";
+import { useEffect, useRef } from 'react';
+import { useHabitStore } from '@/store/useHabitStore';
+import { useUserStore } from '@/store/useUserStore';
+import { isHabitRequiredOnDate, getLocalDateString } from '@/utils/dateUtils';
 
 /**
  * Hook that checks every minute if any habit has a reminder due.
@@ -21,12 +21,12 @@ export function useReminders() {
 
   useEffect(() => {
     if (!remindersEnabled) return;
-    if (typeof window === "undefined") return;
-    if (!("Notification" in window)) return;
+    if (typeof window === 'undefined') return;
+    if (!('Notification' in window)) return;
 
     const checkReminders = () => {
       const now = new Date();
-      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       const todayStr = getLocalDateString(now);
 
       habits.forEach((habit) => {
@@ -42,14 +42,14 @@ export function useReminders() {
 
         // Check if already completed today
         const entry = habit.history[todayStr];
-        const isDone = typeof entry === "boolean" ? entry : entry?.completed;
+        const isDone = typeof entry === 'boolean' ? entry : entry?.completed;
         if (isDone) return;
 
         // Fire notification
-        if (Notification.permission === "granted") {
-          new Notification("Habit Reminder ⏰", {
-            body: `Time for: ${habit.emoji || "📋"} ${habit.name}`,
-            icon: "/favicon.ico",
+        if (Notification.permission === 'granted') {
+          new Notification('Habit Reminder ⏰', {
+            body: `Time for: ${habit.emoji || '📋'} ${habit.name}`,
+            icon: '/favicon.ico',
             tag: notifyKey,
           });
           notifiedRef.current.add(notifyKey);

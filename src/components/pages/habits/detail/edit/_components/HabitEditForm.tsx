@@ -1,10 +1,10 @@
-"use client";
-import { useForm } from "react-hook-form";
-import { HabitData, habitSchema } from "@/features/habits/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useHabitStore, Habit } from "@/store/useHabitStore";
-import { useRouter } from "next/navigation";
-import HabitForm from "../../../_components/form/HabitForm";
+'use client';
+import { useForm } from 'react-hook-form';
+import { HabitData, habitSchema } from '@/features/habits/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useHabitStore, Habit } from '@/store/useHabitStore';
+import { useRouter } from 'next/navigation';
+import HabitForm from '../../../_components/form/HabitForm';
 
 const HabitEditForm = ({ habit }: { habit: Habit }) => {
   const router = useRouter();
@@ -15,23 +15,21 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
     defaultValues: {
       name: habit.name,
       color: habit.color,
-      emoji: habit.emoji || "✨",
-      startDate: habit.startDate || new Date().toISOString().split("T")[0],
-      type: habit.type || "habit",
+      emoji: habit.emoji || '✨',
+      startDate: habit.startDate || new Date().toISOString().split('T')[0],
+      type: habit.type || 'habit',
       frequencyTab: habit.frequency as any,
-      selectedDays:
-        habit.frequency === "daily" ? habit.repeatDays : [1, 2, 3, 4, 5, 6, 0],
-      selectedMonthlyDays:
-        habit.frequency === "monthly" ? habit.repeatDays : [],
+      selectedDays: habit.frequency === 'daily' ? habit.repeatDays : [1, 2, 3, 4, 5, 6, 0],
+      selectedMonthlyDays: habit.frequency === 'monthly' ? habit.repeatDays : [],
       selectedSpecificDates: habit.specificDates || [],
       allDay: !habit.timeOfDay,
-      timeOfDay: habit.timeOfDay || "morning",
+      timeOfDay: habit.timeOfDay || 'morning',
       endHabitEnabled: !!(habit.endHabitDate || habit.endHabitDays),
-      endHabitMode: habit.endHabitDate ? "date" : "days",
-      endHabitDate: habit.endHabitDate || "2026-12-31",
+      endHabitMode: habit.endHabitDate ? 'date' : 'days',
+      endHabitDate: habit.endHabitDate || '2026-12-31',
       endHabitDays: habit.endHabitDays || 365,
       reminders: !!habit.reminderTime,
-      reminderTime: habit.reminderTime || "07:00 AM",
+      reminderTime: habit.reminderTime || '07:00 AM',
     },
   });
 
@@ -41,9 +39,9 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
       color: data.color,
       frequency: data.frequencyTab as any,
       repeatDays:
-        data.frequencyTab === "daily"
+        data.frequencyTab === 'daily'
           ? data.selectedDays
-          : data.frequencyTab === "monthly"
+          : data.frequencyTab === 'monthly'
             ? data.selectedMonthlyDays
             : [],
       emoji: data.emoji,
@@ -52,15 +50,10 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
       timeOfDay: data.allDay ? undefined : data.timeOfDay,
       reminderTime: data.reminders ? data.reminderTime : undefined,
       endHabitDate:
-        data.endHabitEnabled && data.endHabitMode === "date"
-          ? data.endHabitDate
-          : undefined,
+        data.endHabitEnabled && data.endHabitMode === 'date' ? data.endHabitDate : undefined,
       endHabitDays:
-        data.endHabitEnabled && data.endHabitMode === "days"
-          ? data.endHabitDays
-          : undefined,
-      specificDates:
-        data.frequencyTab === "specific" ? data.selectedSpecificDates : [],
+        data.endHabitEnabled && data.endHabitMode === 'days' ? data.endHabitDays : undefined,
+      specificDates: data.frequencyTab === 'specific' ? data.selectedSpecificDates : [],
     });
     router.back();
   };

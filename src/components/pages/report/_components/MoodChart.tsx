@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useMoodStore, MOODS } from "@/store/useMoodStore";
-import { startOfWeek, addDays, format } from "date-fns";
-import { ChevronDown } from "lucide-react";
+import { useMoodStore, MOODS } from '@/store/useMoodStore';
+import { startOfWeek, addDays, format } from 'date-fns';
+import { ChevronDown } from 'lucide-react';
 
 export function MoodChart() {
   const { history } = useMoodStore();
@@ -12,7 +12,7 @@ export function MoodChart() {
 
   const weekData = Array.from({ length: 7 }, (_, i) => {
     const day = addDays(weekStart, i);
-    const dateStr = format(day, "yyyy-MM-dd");
+    const dateStr = format(day, 'yyyy-MM-dd');
     const entry = history[dateStr];
 
     // Map mood to a numeric value for the chart (1-5 scale)
@@ -24,11 +24,11 @@ export function MoodChart() {
     }
 
     return {
-      day: format(day, "d"),
-      emoji: entry?.emoji || "",
+      day: format(day, 'd'),
+      emoji: entry?.emoji || '',
       moodValue,
       hasEntry: !!entry,
-      label: entry?.label || "",
+      label: entry?.label || '',
     };
   });
 
@@ -47,8 +47,8 @@ export function MoodChart() {
     return { x, y, ...d };
   });
 
-  const smoothLine = points.map((p) => `${p.x},${p.y}`).join(" ");
-  const areaPath = `M ${points[0].x},${svgHeight - paddingBottom} ${points.map((p) => `L ${p.x},${p.y}`).join(" ")} L ${points[points.length - 1].x},${svgHeight - paddingBottom} Z`;
+  const smoothLine = points.map((p) => `${p.x},${p.y}`).join(' ');
+  const areaPath = `M ${points[0].x},${svgHeight - paddingBottom} ${points.map((p) => `L ${p.x},${p.y}`).join(' ')} L ${points[points.length - 1].x},${svgHeight - paddingBottom} Z`;
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
@@ -65,7 +65,7 @@ export function MoodChart() {
       <div className="flex justify-between px-1 mb-2">
         {weekData.map((d, i) => (
           <div key={i} className="flex flex-col items-center">
-            <span className="text-xl">{d.emoji || "·"}</span>
+            <span className="text-xl">{d.emoji || '·'}</span>
           </div>
         ))}
       </div>
@@ -96,10 +96,7 @@ export function MoodChart() {
       {/* X-axis labels */}
       <div className="flex justify-between px-1 mt-1">
         {weekData.map((d, i) => (
-          <span
-            key={i}
-            className="text-[11px] text-muted-foreground font-medium"
-          >
+          <span key={i} className="text-[11px] text-muted-foreground font-medium">
             {d.day}
           </span>
         ))}

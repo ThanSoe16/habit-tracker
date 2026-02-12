@@ -1,14 +1,9 @@
-"use client";
+'use client';
 
-import React, { useMemo } from "react";
-import { useHabitStore } from "@/store/useHabitStore";
-import { OverallHabitCard } from "./OverallHabitCard";
-import {
-  startOfMonth,
-  endOfMonth,
-  eachWeekOfInterval,
-  addDays,
-} from "date-fns";
+import React, { useMemo } from 'react';
+import { useHabitStore } from '@/store/useHabitStore';
+import { OverallHabitCard } from './OverallHabitCard';
+import { startOfMonth, endOfMonth, eachWeekOfInterval, addDays } from 'date-fns';
 
 export function OverallHabitList({ limit }: { limit?: number }) {
   const { habits, isLoaded } = useHabitStore();
@@ -26,10 +21,7 @@ export function OverallHabitList({ limit }: { limit?: number }) {
     const monthEnd = endOfMonth(today);
 
     // Get the start of each week that overlaps with the current month
-    const weeks = eachWeekOfInterval(
-      { start: monthStart, end: monthEnd },
-      { weekStartsOn: 1 },
-    );
+    const weeks = eachWeekOfInterval({ start: monthStart, end: monthEnd }, { weekStartsOn: 1 });
 
     const fullGrid: Date[][] = weeks.map((mondayOfThatWeek) => {
       return Array.from({ length: 7 }, (_, d) => addDays(mondayOfThatWeek, d));
@@ -39,11 +31,7 @@ export function OverallHabitList({ limit }: { limit?: number }) {
   }, []);
 
   if (!isLoaded) {
-    return (
-      <div className="p-8 text-center text-muted-foreground">
-        Loading habits...
-      </div>
-    );
+    return <div className="p-8 text-center text-muted-foreground">Loading habits...</div>;
   }
 
   if (habits.length === 0) {

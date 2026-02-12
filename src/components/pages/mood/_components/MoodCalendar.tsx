@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 import {
   startOfMonth,
   endOfMonth,
@@ -10,17 +10,17 @@ import {
   format,
   isSameMonth,
   isToday,
-} from "date-fns";
-import { useMoodStore } from "@/store/useMoodStore";
-import { cn } from "@/utils/cn";
-import { Plus, Smile } from "lucide-react";
+} from 'date-fns';
+import { useMoodStore } from '@/store/useMoodStore';
+import { cn } from '@/utils/cn';
+import { Plus, Smile } from 'lucide-react';
 
 interface MoodCalendarProps {
   currentDate: Date;
   onDayClick: (date: Date) => void;
 }
 
-const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
 export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
   const { history } = useMoodStore();
@@ -51,25 +51,20 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
 
       <div className="grid grid-cols-7 gap-y-6">
         {days.map((day) => {
-          const dateKey = format(day, "yyyy-MM-dd");
+          const dateKey = format(day, 'yyyy-MM-dd');
           const moodEntry = history[dateKey];
           const isCurrentMonth = isSameMonth(day, monthStart);
 
           return (
             <div
               key={dateKey}
-              className={cn(
-                "flex flex-col items-center gap-2",
-                !isCurrentMonth && "opacity-20",
-              )}
+              className={cn('flex flex-col items-center gap-2', !isCurrentMonth && 'opacity-20')}
             >
               <div className="relative w-full flex flex-col items-center">
                 <div
                   className={cn(
-                    "w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all",
-                    moodEntry
-                      ? "bg-transparent scale-110"
-                      : "bg-white border-2 border-gray-100",
+                    'w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all',
+                    moodEntry ? 'bg-transparent scale-110' : 'bg-white border-2 border-gray-100',
                   )}
                   onClick={() => onDayClick(day)}
                 >
@@ -86,11 +81,11 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
                 <div className="flex flex-col items-center gap-0.5 mt-2">
                   <span
                     className={cn(
-                      "text-xs md:text-sm font-bold",
-                      isToday(day) ? "text-indigo-600" : "text-gray-900",
+                      'text-xs md:text-sm font-bold',
+                      isToday(day) ? 'text-indigo-600' : 'text-gray-900',
                     )}
                   >
-                    {format(day, "d")}
+                    {format(day, 'd')}
                   </span>
                   {moodEntry && (
                     <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate max-w-full px-1">

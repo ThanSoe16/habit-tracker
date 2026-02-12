@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useReminders } from "@/hooks/useReminders";
+import { useReminders } from '@/hooks/useReminders';
 
 export function ReminderProvider({ children }: { children: React.ReactNode }) {
   useReminders();

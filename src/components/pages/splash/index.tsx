@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { cn } from "@/utils/cn";
-import { SplashLogo } from "./_components/SplashLogo";
-import { SplashProgress } from "./_components/SplashProgress";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/utils/cn';
+import { SplashLogo } from './_components/SplashLogo';
+import { SplashProgress } from './_components/SplashProgress';
 
 const Splash = () => {
   const router = useRouter();
@@ -16,7 +16,7 @@ const Splash = () => {
       setIsExiting(true);
       // Wait for exit animation, then redirect
       setTimeout(() => {
-        router.push("/home");
+        router.push('/home');
       }, 500); // Duration of fade-out
     }, 2500); // Splash duration
 
@@ -26,10 +26,8 @@ const Splash = () => {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-100 flex flex-col items-center justify-center bg-background transition-all duration-700 ease-in-out",
-        isExiting
-          ? "opacity-0 scale-105 pointer-events-none"
-          : "opacity-100 scale-100",
+        'fixed inset-0 z-100 flex flex-col items-center justify-center bg-background transition-all duration-700 ease-in-out',
+        isExiting ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100',
       )}
     >
       <div className="relative flex flex-col items-center">

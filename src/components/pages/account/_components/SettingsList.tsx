@@ -1,19 +1,18 @@
-"use client";
+'use client';
 
-import { useUserStore } from "@/store/useUserStore";
-import { useRouter } from "next/navigation";
+import { useUserStore } from '@/store/useUserStore';
+import { useRouter } from 'next/navigation';
 import {
   Bell,
   Clock,
-  Palette,
-  Star,
+  Star, // Star is still used for "Rate App"
   Shield,
   Info,
   ChevronRight,
   Moon,
   Sun,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface SettingItem {
   icon: LucideIcon;
@@ -32,23 +31,22 @@ interface SettingGroup {
 }
 
 export function SettingsList() {
-  const { remindersEnabled, setRemindersEnabled, theme, setTheme } =
-    useUserStore();
+  const { remindersEnabled, setRemindersEnabled, theme, setTheme } = useUserStore();
   const router = useRouter();
 
   const handleNotificationToggle = async () => {
     if (!remindersEnabled) {
-      if (typeof window !== "undefined" && "Notification" in window) {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
         const permission = await Notification.requestPermission();
-        if (permission === "granted") {
+        if (permission === 'granted') {
           setRemindersEnabled(true);
         } else {
           alert(
-            "Notification permission was denied. Please allow notifications in your browser settings.",
+            'Notification permission was denied. Please allow notifications in your browser settings.',
           );
         }
       } else {
-        alert("Your browser does not support notifications.");
+        alert('Your browser does not support notifications.');
       }
     } else {
       setRemindersEnabled(false);
@@ -56,71 +54,71 @@ export function SettingsList() {
   };
 
   const handleThemeToggle = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
+    const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    if (typeof document !== "undefined") {
-      document.documentElement.classList.toggle("dark", newTheme === "dark");
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', newTheme === 'dark');
     }
   };
 
   const handleRemindersClick = () => {
-    router.push("/habits");
+    router.push('/habits');
   };
 
   const SETTING_GROUPS: SettingGroup[] = [
     {
-      title: "General",
+      title: 'General',
       items: [
         {
           icon: Bell,
-          label: "Notifications",
-          color: "text-indigo-500",
-          bg: "bg-indigo-50",
+          label: 'Notifications',
+          color: 'text-indigo-500',
+          bg: 'bg-indigo-50',
           isToggle: true,
           toggled: remindersEnabled,
           onClick: handleNotificationToggle,
         },
         {
           icon: Clock,
-          label: "Reminders",
-          value: "Per habit",
-          color: "text-blue-500",
-          bg: "bg-blue-50",
+          label: 'Reminders',
+          value: 'Per habit',
+          color: 'text-blue-500',
+          bg: 'bg-blue-50',
           onClick: handleRemindersClick,
         },
         {
-          icon: theme === "dark" ? Moon : Sun,
-          label: "Theme",
-          color: "text-purple-500",
-          bg: "bg-purple-50",
+          icon: theme === 'dark' ? Moon : Sun,
+          label: 'Theme',
+          color: 'text-purple-500',
+          bg: 'bg-purple-50',
           isToggle: true,
-          toggled: theme === "dark",
+          toggled: theme === 'dark',
           onClick: handleThemeToggle,
         },
       ],
     },
     {
-      title: "About",
+      title: 'About',
       items: [
         {
           icon: Star,
-          label: "Rate App",
-          value: "⭐️",
-          color: "text-amber-500",
-          bg: "bg-amber-50",
+          label: 'Rate App',
+          value: '⭐️',
+          color: 'text-amber-500',
+          bg: 'bg-amber-50',
         },
         {
           icon: Shield,
-          label: "Privacy Policy",
-          color: "text-emerald-500",
-          bg: "bg-emerald-50",
+          label: 'Privacy Policy',
+          color: 'text-emerald-500',
+          bg: 'bg-emerald-50',
         },
         {
           icon: Info,
-          label: "Version",
-          value: "1.0.0",
-          color: "text-gray-500",
-          bg: "bg-gray-100",
+          label: 'Version',
+          value: '1.0.0',
+          color: 'text-gray-500',
+          bg: 'bg-gray-100',
         },
       ],
     },
@@ -151,12 +149,12 @@ export function SettingsList() {
                 {item.isToggle ? (
                   <div
                     className={`w-11 h-6 rounded-full flex items-center transition-colors ${
-                      item.toggled ? "bg-indigo-500" : "bg-gray-200"
+                      item.toggled ? 'bg-indigo-500' : 'bg-gray-200'
                     }`}
                   >
                     <div
                       className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
-                        item.toggled ? "translate-x-5.5" : "translate-x-0.5"
+                        item.toggled ? 'translate-x-5.5' : 'translate-x-0.5'
                       }`}
                     />
                   </div>

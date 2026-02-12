@@ -1,15 +1,9 @@
-"use client";
+'use client';
 
-import { useHabitStore } from "@/store/useHabitStore";
-import {
-  subMonths,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  format,
-} from "date-fns";
-import { isHabitRequiredOnDate } from "@/utils/dateUtils";
-import { ChevronDown } from "lucide-react";
+import { useHabitStore } from '@/store/useHabitStore';
+import { subMonths, startOfMonth, endOfMonth, eachDayOfInterval, format } from 'date-fns';
+import { isHabitRequiredOnDate } from '@/utils/dateUtils';
+import { ChevronDown } from 'lucide-react';
 
 export function CompletionRateChart() {
   const { habits } = useHabitStore();
@@ -36,9 +30,9 @@ export function CompletionRateChart() {
 
         if (isHabitRequiredOnDate(habit, day)) {
           required++;
-          const dateStr = format(day, "yyyy-MM-dd");
+          const dateStr = format(day, 'yyyy-MM-dd');
           const entry = habit.history[dateStr];
-          const isDone = typeof entry === "boolean" ? entry : entry?.completed;
+          const isDone = typeof entry === 'boolean' ? entry : entry?.completed;
           if (isDone) completed++;
         }
       });
@@ -47,7 +41,7 @@ export function CompletionRateChart() {
     const rate = required > 0 ? Math.round((completed / required) * 100) : 0;
 
     return {
-      month: format(monthDate, "MMM"),
+      month: format(monthDate, 'MMM'),
       rate,
       isCurrent: i === 5,
     };
@@ -68,10 +62,10 @@ export function CompletionRateChart() {
     return { x, y, ...d };
   });
 
-  const polylinePoints = points.map((p) => `${p.x},${p.y}`).join(" ");
+  const polylinePoints = points.map((p) => `${p.x},${p.y}`).join(' ');
 
   // Area fill path
-  const areaPath = `M ${points[0].x},${svgHeight - paddingBottom} ${points.map((p) => `L ${p.x},${p.y}`).join(" ")} L ${points[points.length - 1].x},${svgHeight - paddingBottom} Z`;
+  const areaPath = `M ${points[0].x},${svgHeight - paddingBottom} ${points.map((p) => `L ${p.x},${p.y}`).join(' ')} L ${points[points.length - 1].x},${svgHeight - paddingBottom} Z`;
 
   const yLabels = [100, 80, 60, 40, 20, 0];
 
@@ -79,9 +73,7 @@ export function CompletionRateChart() {
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-bold text-foreground">
-          Habit Completion Rate
-        </h3>
+        <h3 className="text-base font-bold text-foreground">Habit Completion Rate</h3>
         <button className="flex items-center gap-1 text-xs font-medium text-muted-foreground bg-gray-100 px-3 py-1.5 rounded-full">
           Last 6 Months
           <ChevronDown className="w-3.5 h-3.5" />
@@ -93,10 +85,7 @@ export function CompletionRateChart() {
         {/* Y-axis */}
         <div className="flex flex-col justify-between pr-1 shrink-0">
           {yLabels.map((label) => (
-            <span
-              key={label}
-              className="text-[10px] text-muted-foreground text-right leading-none"
-            >
+            <span key={label} className="text-[10px] text-muted-foreground text-right leading-none">
               {label}%
             </span>
           ))}
@@ -144,24 +133,10 @@ export function CompletionRateChart() {
             {/* Data points */}
             {points.map((p, i) => (
               <g key={i}>
-                <circle
-                  cx={p.x}
-                  cy={p.y}
-                  r="4"
-                  fill="white"
-                  stroke="#818CF8"
-                  strokeWidth="2"
-                />
+                <circle cx={p.x} cy={p.y} r="4" fill="white" stroke="#818CF8" strokeWidth="2" />
                 {p.isCurrent && (
                   <>
-                    <rect
-                      x={p.x - 18}
-                      y={p.y - 24}
-                      width="36"
-                      height="18"
-                      rx="9"
-                      fill="#818CF8"
-                    />
+                    <rect x={p.x - 18} y={p.y - 24} width="36" height="18" rx="9" fill="#818CF8" />
                     <text
                       x={p.x}
                       y={p.y - 12}
@@ -180,10 +155,7 @@ export function CompletionRateChart() {
           {/* X-axis labels */}
           <div className="flex justify-between px-1 mt-1">
             {monthlyData.map((d, i) => (
-              <span
-                key={i}
-                className="text-[10px] text-muted-foreground font-medium"
-              >
+              <span key={i} className="text-[10px] text-muted-foreground font-medium">
                 {d.month}
               </span>
             ))}

@@ -1,24 +1,19 @@
-import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { HabitColorSelector } from "./HabitColorSelector";
-import { Controller } from "react-hook-form";
-import { HabitIconSelector } from "./HabitIconSelector";
-import { DatePicker } from "@/components/ui/date-picker";
-import { format, parseISO } from "date-fns";
-import { TabToggle } from "./TabToggle";
-import { WeekdaySelector } from "./WeekdaySelector";
-import { MonthlyDaySelector } from "./MonthlyDaySelector";
-import { SpecificDateSelector } from "./SpecificDateSelector";
-import { Switch } from "@/components/ui/switch";
-import { HabitEndCondition } from "./HabitEndCondition";
-import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { HabitColorSelector } from './HabitColorSelector';
+import { Controller } from 'react-hook-form';
+import { HabitIconSelector } from './HabitIconSelector';
+import { DatePicker } from '@/components/ui/date-picker';
+import { format, parseISO } from 'date-fns';
+import { TabToggle } from './TabToggle';
+import { WeekdaySelector } from './WeekdaySelector';
+import { MonthlyDaySelector } from './MonthlyDaySelector';
+import { SpecificDateSelector } from './SpecificDateSelector';
+import { Switch } from '@/components/ui/switch';
+import { HabitEndCondition } from './HabitEndCondition';
+import { useRouter } from 'next/navigation';
+import { X } from 'lucide-react';
 
 const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const router = useRouter();
@@ -27,19 +22,19 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
     watch,
   } = form;
 
-  const selectedColor = watch("color");
-  const habitName = watch("name");
-  const frequencyTab = watch("frequencyTab");
-  const allDay = watch("allDay");
-  const reminders = watch("reminders");
-  const type = watch("type");
+  const selectedColor = watch('color');
+  const habitName = watch('name');
+  const frequencyTab = watch('frequencyTab');
+  const allDay = watch('allDay');
+  const reminders = watch('reminders');
+  const type = watch('type');
 
   return (
     <div className="flex flex-col p-6 space-y-8 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">
-          {isEdit ? "Edit Habit" : "Create Habit"}
+          {isEdit ? 'Edit Habit' : 'Create Habit'}
         </h1>
         <button
           type="button"
@@ -60,8 +55,8 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                 value={field.value}
                 setValue={field.onChange}
                 options={[
-                  { value: "habit", label: "Regular Habit" },
-                  { value: "task", label: "One-Time Task" },
+                  { value: 'habit', label: 'Regular Habit' },
+                  { value: 'task', label: 'One-Time Task' },
                 ]}
               />
             )}
@@ -109,10 +104,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
             name="color"
             control={form.control}
             render={({ field }) => (
-              <HabitColorSelector
-                value={field.value}
-                setValue={field.onChange}
-              />
+              <HabitColorSelector value={field.value} setValue={field.onChange} />
             )}
           />
           <FieldError errors={[errors.color]} />
@@ -120,7 +112,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
 
         <Field data-invalid={!!errors.startDate}>
           <FieldLabel htmlFor="form-startDate">
-            {type === "task" ? "Date" : "Start Date"}
+            {type === 'task' ? 'Date' : 'Start Date'}
           </FieldLabel>
           <Controller
             name="startDate"
@@ -130,7 +122,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                 date={field.value ? parseISO(field.value) : undefined}
                 onChange={(newDate) => {
                   if (newDate) {
-                    field.onChange(format(newDate, "yyyy-MM-dd"));
+                    field.onChange(format(newDate, 'yyyy-MM-dd'));
                   }
                 }}
               />
@@ -139,7 +131,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
           <FieldError errors={[errors.startDate]} />
         </Field>
 
-        {type !== "task" && (
+        {type !== 'task' && (
           <div className="space-y-4">
             <Field data-invalid={!!errors.frequencyTab}>
               <FieldLabel htmlFor="form-frequencyTab">Repeat</FieldLabel>
@@ -151,32 +143,29 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                     value={field.value}
                     setValue={field.onChange}
                     options={[
-                      { value: "daily", label: "Daily" },
-                      { value: "monthly", label: "Monthly" },
-                      { value: "specific", label: "Specific Dates" },
+                      { value: 'daily', label: 'Daily' },
+                      { value: 'monthly', label: 'Monthly' },
+                      { value: 'specific', label: 'Specific Dates' },
                     ]}
                   />
                 )}
               />
             </Field>
 
-            {frequencyTab === "daily" && (
+            {frequencyTab === 'daily' && (
               <Field data-invalid={!!errors.selectedDays}>
                 <Controller
                   name="selectedDays"
                   control={form.control}
                   render={({ field }) => (
-                    <WeekdaySelector
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
+                    <WeekdaySelector value={field.value} onChange={field.onChange} />
                   )}
                 />
                 <FieldError errors={[errors.selectedDays]} />
               </Field>
             )}
 
-            {frequencyTab === "monthly" && (
+            {frequencyTab === 'monthly' && (
               <Field data-invalid={!!errors.selectedMonthlyDays}>
                 <Controller
                   name="selectedMonthlyDays"
@@ -193,7 +182,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
               </Field>
             )}
 
-            {frequencyTab === "specific" && (
+            {frequencyTab === 'specific' && (
               <Field data-invalid={!!errors.selectedSpecificDates}>
                 <Controller
                   name="selectedSpecificDates"
@@ -213,10 +202,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
         )}
 
         <div className="space-y-4 pt-2 border-t border-gray-100">
-          <Field
-            orientation="horizontal"
-            className="flex items-center justify-between"
-          >
+          <Field orientation="horizontal" className="flex items-center justify-between">
             <FieldLabel className="mb-0 cursor-pointer" htmlFor="form-allDay">
               All Day
             </FieldLabel>
@@ -224,11 +210,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
               name="allDay"
               control={form.control}
               render={({ field }) => (
-                <Switch
-                  id="form-allDay"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Switch id="form-allDay" checked={field.value} onCheckedChange={field.onChange} />
               )}
             />
           </Field>
@@ -243,9 +225,9 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                     value={field.value}
                     setValue={field.onChange}
                     options={[
-                      { value: "morning", label: "Morning" },
-                      { value: "afternoon", label: "Afternoon" },
-                      { value: "evening", label: "Evening" },
+                      { value: 'morning', label: 'Morning' },
+                      { value: 'afternoon', label: 'Afternoon' },
+                      { value: 'evening', label: 'Evening' },
                     ]}
                   />
                 )}
@@ -255,17 +237,11 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
           )}
         </div>
 
-        {type !== "task" && <HabitEndCondition form={form} />}
+        {type !== 'task' && <HabitEndCondition form={form} />}
 
         <div className="space-y-4 pt-2 border-t border-gray-100">
-          <Field
-            orientation="horizontal"
-            className="flex items-center justify-between"
-          >
-            <FieldLabel
-              className="mb-0 cursor-pointer"
-              htmlFor="form-reminders"
-            >
+          <Field orientation="horizontal" className="flex items-center justify-between">
+            <FieldLabel className="mb-0 cursor-pointer" htmlFor="form-reminders">
               Reminders
             </FieldLabel>
             <Controller
@@ -312,7 +288,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
             Cancel
           </Button>
           <Button type="submit" className="h-12 rounded-xl shadow-lg font-bold">
-            {isEdit ? "Update Habit" : "Create Habit"}
+            {isEdit ? 'Update Habit' : 'Create Habit'}
           </Button>
         </div>
       </FieldGroup>

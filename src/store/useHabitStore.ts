@@ -1,30 +1,29 @@
-"use client";
+'use client';
 
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { getLocalDateString, isHabitRequiredOnDate } from "@/utils/dateUtils";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/dateUtils';
 
-export type HabitFrequency = "daily" | "weekly" | "monthly" | "specific";
+export type HabitFrequency = 'daily' | 'weekly' | 'monthly' | 'specific';
 
 export interface Habit {
   id: string;
   name: string;
-  type?: "habit" | "task"; // Default to "habit"
+  type?: 'habit' | 'task'; // Default to "habit"
   frequency: HabitFrequency;
   repeatDays: number[]; // JS day: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
   color: string;
   emoji?: string;
   startDate?: string; // ISO date string
   endDate?: string; // ISO date string
-  timeOfDay?: "morning" | "afternoon" | "evening";
+  timeOfDay?: 'morning' | 'afternoon' | 'evening';
   reminderTime?: string;
   endHabitDate?: string;
   endHabitDays?: number;
   specificDates?: string[]; // YYYY-MM-DD
   history: Record<
     string,
-    | { completed: boolean; timeTaken?: string; count?: string; notes?: string }
-    | boolean
+    { completed: boolean; timeTaken?: string; count?: string; notes?: string } | boolean
   >; // key is YYYY-MM-DD
   streak: number;
   createdAt: string;
@@ -41,8 +40,8 @@ interface HabitStore {
     emoji?: string,
     startDate?: string,
     endDate?: string,
-    type?: "habit" | "task",
-    timeOfDay?: "morning" | "afternoon" | "evening",
+    type?: 'habit' | 'task',
+    timeOfDay?: 'morning' | 'afternoon' | 'evening',
     reminderTime?: string,
     endHabitDate?: string,
     endHabitDays?: number,
@@ -60,8 +59,8 @@ interface HabitStore {
       createdAt?: string;
       startDate?: string;
       endDate?: string;
-      type?: "habit" | "task";
-      timeOfDay?: "morning" | "afternoon" | "evening";
+      type?: 'habit' | 'task';
+      timeOfDay?: 'morning' | 'afternoon' | 'evening';
       reminderTime?: string;
       endHabitDate?: string;
       endHabitDays?: number;
@@ -77,7 +76,7 @@ interface HabitStore {
   removeCompletion: (id: string, date: string) => void;
 }
 
-const calculateStreak = (habit: Habit, history: Habit["history"]): number => {
+const calculateStreak = (habit: Habit, history: Habit['history']): number => {
   let streak = 0;
   const todayStr = getLocalDateString();
   const currentDate = new Date(); // Start from today locally
@@ -86,7 +85,7 @@ const calculateStreak = (habit: Habit, history: Habit["history"]): number => {
   while (true) {
     const dateStr = getLocalDateString(currentDate);
     const entry = history[dateStr];
-    const isDone = typeof entry === "boolean" ? entry : entry?.completed;
+    const isDone = typeof entry === 'boolean' ? entry : entry?.completed;
 
     const isRequired = isHabitRequiredOnDate(habit, currentDate);
 
@@ -135,7 +134,7 @@ export const useHabitStore = create<HabitStore>()(
         emoji,
         startDate,
         endDate,
-        type = "habit",
+        type = 'habit',
         timeOfDay,
         reminderTime,
         endHabitDate,
@@ -170,9 +169,7 @@ export const useHabitStore = create<HabitStore>()(
 
       updateHabit: (id, updates) => {
         set((state) => ({
-          habits: state.habits.map((h) =>
-            h.id === id ? { ...h, ...updates } : h,
-          ),
+          habits: state.habits.map((h) => (h.id === id ? { ...h, ...updates } : h)),
         }));
       },
 
@@ -224,7 +221,7 @@ export const useHabitStore = create<HabitStore>()(
       },
     }),
     {
-      name: "habit-tracker-data",
+      name: 'habit-tracker-data',
     },
   ),
 );

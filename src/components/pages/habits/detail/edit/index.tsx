@@ -1,6 +1,6 @@
-"use client";
-import HabitEditForm from "./_components/HabitEditForm";
-import { useHabitStore, Habit } from "@/store/useHabitStore";
+'use client';
+import HabitEditForm from './_components/HabitEditForm';
+import { useHabitStore } from '@/store/useHabitStore';
 
 const EditHabit = ({ id }: { id: string }) => {
   const { habits } = useHabitStore();
