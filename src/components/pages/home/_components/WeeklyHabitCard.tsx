@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Check } from "lucide-react";
+import { Ban, Check } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Habit } from "@/store/useHabitStore";
-import { getLocalDateString } from "@/utils/dateUtils";
+import { getLocalDateString, isHabitRequiredOnDate } from "@/utils/dateUtils";
 
 interface WeeklyHabitCardProps {
   habit: Habit;
@@ -52,6 +52,8 @@ export function WeeklyHabitCard({ habit, weekDates }: WeeklyHabitCardProps) {
               : historyEntry?.completed;
           const isToday = getLocalDateString() === dateStr;
 
+          const isRequired = isHabitRequiredOnDate(habit, date);
+
           return (
             <div key={index} className="flex flex-col items-center gap-2">
               <span
@@ -67,11 +69,19 @@ export function WeeklyHabitCard({ habit, weekDates }: WeeklyHabitCardProps) {
                   "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all",
                   isCompleted
                     ? "border-transparent text-white shadow-sm"
-                    : "border-gray-100 text-transparent bg-gray-50/50",
+                    : isRequired
+                      ? "border-gray-100 text-transparent bg-gray-50/50"
+                      : "border-transparent text-gray-200 bg-gray-50/30",
                 )}
                 style={isCompleted ? { backgroundColor: habit.color } : {}}
               >
-                <Check className="w-4 h-4" strokeWidth={3} />
+                {isCompleted ? (
+                  <Check className="w-4 h-4" strokeWidth={3} />
+                ) : !isRequired ? (
+                  <Ban className="w-4 h-4 opacity-40" />
+                ) : (
+                  <Check className="w-4 h-4" strokeWidth={3} />
+                )}
               </div>
             </div>
           );

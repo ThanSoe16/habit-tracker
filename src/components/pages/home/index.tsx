@@ -18,9 +18,11 @@ import { WeeklyHabitList } from "./_components/WeeklyHabitList";
 import { OverallHabitList } from "./_components/OverallHabitList";
 import { PromoCard } from "./_components/PromoCard";
 import { useQueryState, parseAsStringLiteral } from "nuqs";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function Home() {
   const router = useRouter();
+  const { name: userName } = useUserStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -96,7 +98,7 @@ export default function Home() {
         <div className="shrink-0 space-y-4 mb-4">
           <HomeHeader
             greeting={getGreeting()}
-            name="Budi"
+            name={userName}
             formattedDate={formattedDate}
           />
 

@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
+import { Ban } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Habit } from "@/store/useHabitStore";
-import { getLocalDateString } from "@/utils/dateUtils";
+import { getLocalDateString, isHabitRequiredOnDate } from "@/utils/dateUtils";
 
 interface OverallHabitCardProps {
   habit: Habit;
@@ -74,16 +75,20 @@ export function OverallHabitCard({
             date.getMonth() === currentMonth &&
             date.getFullYear() === currentYear;
 
+          const isRequired = isHabitRequiredOnDate(habit, date);
+
           return (
             <div key={dateStr} className="flex justify-center">
               <div
                 className={cn(
-                  "w-[12px] h-[12px] rounded-full transition-colors",
+                  "w-[12px] h-[12px] rounded-full transition-colors flex items-center justify-center",
                   !isCurrentMonth
                     ? "opacity-0"
                     : isCompleted
                       ? ""
-                      : "bg-gray-100",
+                      : isRequired
+                        ? "bg-gray-100"
+                        : "bg-transparent",
                 )}
                 style={
                   isCurrentMonth && isCompleted
@@ -91,7 +96,11 @@ export function OverallHabitCard({
                     : {}
                 }
                 title={dateStr}
-              />
+              >
+                {isCurrentMonth && !isCompleted && !isRequired && (
+                  <Ban className="w-[10px] h-[10px] text-gray-300" />
+                )}
+              </div>
             </div>
           );
         })}
