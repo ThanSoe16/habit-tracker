@@ -23,7 +23,8 @@ export interface Habit {
   specificDates?: string[]; // YYYY-MM-DD
   history: Record<
     string,
-    { completed: boolean; timeTaken?: string; notes?: string } | boolean
+    | { completed: boolean; timeTaken?: string; count?: string; notes?: string }
+    | boolean
   >; // key is YYYY-MM-DD
   streak: number;
   createdAt: string;
@@ -71,7 +72,7 @@ interface HabitStore {
   toggleHabit: (
     id: string,
     date: string,
-    details?: { timeTaken?: string; notes?: string },
+    details?: { timeTaken?: string; count?: string; notes?: string },
   ) => void;
   removeCompletion: (id: string, date: string) => void;
 }

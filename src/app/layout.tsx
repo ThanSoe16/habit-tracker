@@ -56,6 +56,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -66,7 +68,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <NuqsAdapter>{children}</NuqsAdapter>
       </body>
     </html>
   );

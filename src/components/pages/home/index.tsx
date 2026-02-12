@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { Plus } from "lucide-react";
+import { cn } from "@/utils/cn";
 
 import { HabitList } from "@/components/pages/home/_components/HabitList";
 import {
@@ -13,7 +14,10 @@ import {
 import { HomeHeader } from "./_components/HomeHeader";
 import { useRouter } from "next/navigation";
 import { CalendarStrip } from "./_components/CalendarStrip";
+import { WeeklyHabitList } from "./_components/WeeklyHabitList";
+import { OverallHabitList } from "./_components/OverallHabitList";
 import { PromoCard } from "./_components/PromoCard";
+import { useQueryState, parseAsStringLiteral } from "nuqs";
 
 export default function Home() {
   const router = useRouter();
@@ -48,6 +52,11 @@ export default function Home() {
       id: `date-${format(d, "yyyy-MM-dd")}`,
     };
   });
+
+  const [viewMode, setViewMode] = useQueryState(
+    "view",
+    parseAsStringLiteral(["today", "weekly", "overall"]).withDefault("today"),
+  );
 
   const isToday = selectedDate.toDateString() === today.toDateString();
   const formattedDate = isToday
@@ -91,11 +100,31 @@ export default function Home() {
             formattedDate={formattedDate}
           />
 
-          <CalendarStrip
-            scrollContainerRef={scrollContainerRef}
-            weekDays={allMonthDays}
-            onSelectDate={setSelectedDate}
-          />
+          {/* Tab Switcher */}
+          <div className="flex bg-gray-100 p-1 rounded-xl mx-2">
+            {(["today", "weekly", "overall"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={cn(
+                  "flex-1 py-2 text-sm font-bold rounded-lg transition-all capitalize",
+                  viewMode === mode
+                    ? "bg-indigo-500 text-white shadow-sm"
+                    : "text-gray-500 hover:bg-gray-200",
+                )}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+
+          {viewMode === "today" && (
+            <CalendarStrip
+              scrollContainerRef={scrollContainerRef}
+              weekDays={allMonthDays}
+              onSelectDate={setSelectedDate}
+            />
+          )}
 
           <PromoCard />
         </div>
@@ -103,12 +132,33 @@ export default function Home() {
         {/* Scrollable Daily Routine */}
         <section className="flex-1 space-y-2 pb-24">
           <div className="flex items-center justify-between sticky top-0 bg-background z-10 py-1">
-            <h2 className="text-xl font-semibold">Daily routine</h2>
-            <button className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
-              See all
-            </button>
+            <h2 className="text-xl font-semibold">
+              {viewMode === "today"
+                ? "Daily routine"
+                : viewMode === "weekly"
+                  ? "Weekly routine"
+                  : "Overall progress"}
+            </h2>
+            {viewMode !== "today" && (
+              <button
+                onClick={() => router.push(`/${viewMode}`)}
+                className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 transition-colors"
+              >
+                See all
+              </button>
+            )}
           </div>
-          <HabitList selectedDate={selectedDate} />
+          {viewMode === "today" ? (
+            <HabitList selectedDate={selectedDate} />
+          ) : viewMode === "weekly" ? (
+            <WeeklyHabitList limit={5} />
+          ) : viewMode === "overall" ? (
+            <OverallHabitList limit={5} />
+          ) : (
+            <div className="text-center py-10 text-muted-foreground">
+              Coming soon...
+            </div>
+          )}
         </section>
       </div>
 

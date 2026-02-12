@@ -17,8 +17,10 @@ import { MonthlyDaySelector } from "./MonthlyDaySelector";
 import { SpecificDateSelector } from "./SpecificDateSelector";
 import { Switch } from "@/components/ui/switch";
 import { HabitEndCondition } from "./HabitEndCondition";
+import { useRouter } from "next/navigation";
 
 const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
+  const router = useRouter();
   const {
     formState: { errors },
     watch,
@@ -287,6 +289,10 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
             type="button"
             variant="outline"
             className="h-12 rounded-xl border-gray-200 text-gray-500 font-bold"
+            onClick={() => {
+              form.reset();
+              router.back();
+            }}
           >
             Cancel
           </Button>

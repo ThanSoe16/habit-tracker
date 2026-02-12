@@ -33,6 +33,8 @@ export function HabitCard({
     typeof historyEntry === "boolean" ? historyEntry : historyEntry?.completed;
   const timeTaken =
     typeof historyEntry === "object" ? historyEntry?.timeTaken : undefined;
+  const count =
+    typeof historyEntry === "object" ? historyEntry?.count : undefined;
 
   const handleTouchStart = useCallback(() => {
     isLongPressRef.current = false;
@@ -120,13 +122,17 @@ export function HabitCard({
           </div>
         </div>
 
-        {isCompleted && timeTaken && (
+        {isCompleted && (timeTaken || count) && (
           <div className="flex flex-col items-end gap-0.5">
             <div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-              <Clock className="w-3 h-3" />
+              {timeTaken ? (
+                <Clock className="w-3 h-3" />
+              ) : (
+                <Check className="w-3 h-3" />
+              )}
             </div>
             <span className="text-[10px] font-bold text-green-600">
-              {timeTaken} mins
+              {timeTaken ? `${timeTaken} mins` : `${count} times`}
             </span>
           </div>
         )}

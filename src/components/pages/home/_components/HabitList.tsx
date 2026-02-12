@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useHabitStore } from "@/store/useHabitStore";
 import { HabitCard } from "./HabitCard";
 import { HabitCompletionDrawer } from "./HabitCompletionDrawer";
-import { EditHabitDialog } from "./EditHabitDialog";
 import { isHabitRequiredOnDate } from "@/utils/dateUtils";
 
 interface HabitListProps {
@@ -14,15 +13,10 @@ interface HabitListProps {
 export function HabitList({ selectedDate = new Date() }: HabitListProps) {
   const { habits, toggleHabit, removeCompletion, isLoaded } = useHabitStore();
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
-  const [editHabitId, setEditHabitId] = useState<string | null>(null);
 
   // Get fresh habit data from store (not stale copy)
   const selectedHabit = selectedHabitId
     ? habits.find((h) => h.id === selectedHabitId) || null
-    : null;
-
-  const editHabit = editHabitId
-    ? habits.find((h) => h.id === editHabitId) || null
     : null;
 
   if (!isLoaded) {
@@ -68,7 +62,6 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
             date={selectedDate}
             isLast={index === filteredHabits.length - 1}
             onClick={() => setSelectedHabitId(habit.id)}
-            onLongPress={() => setEditHabitId(habit.id)}
           />
         ))}
       </div>
@@ -81,14 +74,6 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
           onClose={() => setSelectedHabitId(null)}
           onSave={toggleHabit}
           onRemove={removeCompletion}
-        />
-      )}
-
-      {editHabit && (
-        <EditHabitDialog
-          habit={editHabit}
-          isOpen={!!editHabit}
-          onClose={() => setEditHabitId(null)}
         />
       )}
     </>
