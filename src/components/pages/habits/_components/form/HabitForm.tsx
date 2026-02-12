@@ -18,6 +18,7 @@ import { SpecificDateSelector } from "./SpecificDateSelector";
 import { Switch } from "@/components/ui/switch";
 import { HabitEndCondition } from "./HabitEndCondition";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 
 const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const router = useRouter();
@@ -35,6 +36,20 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
 
   return (
     <div className="flex flex-col p-6 space-y-8 pb-24">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-foreground">
+          {isEdit ? "Edit Habit" : "Create Habit"}
+        </h1>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+        >
+          <X className="w-5 h-5 text-gray-500" />
+        </button>
+      </div>
+
       <FieldGroup className="space-y-6">
         <Field data-invalid={!!errors.type}>
           <Controller

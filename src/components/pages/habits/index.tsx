@@ -4,18 +4,59 @@ import React, { useState } from "react";
 import { useHabitStore } from "@/store/useHabitStore";
 import { MyHabitCard } from "./_components/MyHabitCard";
 import { cn } from "@/utils/cn";
-import { Plus, MoreVertical, ChevronLeft } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 
 export default function MyHabitsPage() {
   const router = useRouter();
-  const { habits } = useHabitStore();
+  const { habits, reorderHabits } = useHabitStore();
   const [activeTab, setActiveTab] = useState<"habit" | "task">("habit");
 
   const filteredHabits = habits.filter((h) => {
     const type = h.type || "habit";
     return type === activeTab;
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = habits.findIndex((h) => h.id === active.id);
+    const newIndex = habits.findIndex((h) => h.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reordered = arrayMove(habits, oldIndex, newIndex);
+      reorderHabits(reordered);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -55,13 +96,26 @@ export default function MyHabitsPage() {
       {/* Habit List */}
       <div className="flex-1 px-6 py-4 space-y-3 overflow-y-auto no-scrollbar pb-32">
         {filteredHabits.length > 0 ? (
-          filteredHabits.map((habit) => (
-            <MyHabitCard
-              key={habit.id}
-              habit={habit}
-              onClick={() => router.push(`/habits/${habit.id}`)}
-            />
-          ))
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={filteredHabits.map((h) => h.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-3">
+                {filteredHabits.map((habit) => (
+                  <MyHabitCard
+                    key={habit.id}
+                    habit={habit}
+                    onClick={() => router.push(`/habits/${habit.id}`)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-3xl">
@@ -78,10 +132,6 @@ export default function MyHabitsPage() {
       </div>
 
       {/* Floating Add Button */}
-      {/* 
-        NOTE: This is just a placeholder, 
-        actual implementation might need to open AddHabitDialog 
-      */}
       <div className="fixed bottom-32 right-6">
         <button
           onClick={() => router.push("/habits/create")}
