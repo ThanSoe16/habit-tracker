@@ -21,16 +21,7 @@ export default function MyHabitsPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4">
-        <button
-          onClick={() => router.back()}
-          className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
-        >
-          <ChevronLeft className="w-6 h-6 text-gray-400" />
-        </button>
         <h1 className="text-xl font-bold text-foreground">My Habits</h1>
-        <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
-          <MoreVertical className="w-5 h-5 text-gray-400" />
-        </button>
       </header>
 
       {/* Segmented Control */}

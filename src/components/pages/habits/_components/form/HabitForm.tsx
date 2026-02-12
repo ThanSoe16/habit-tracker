@@ -274,7 +274,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                 render={({ field }) => (
                   <Input
                     type="time"
-                    className="h-12 rounded-xl bg-white border-transparent shadow-sm"
+                    className="h-12 rounded-xl border-transparent shadow-sm"
                     {...field}
                   />
                 )}

@@ -9,7 +9,7 @@ import { MoodChart } from "./_components/MoodChart";
 
 export default function ReportPage() {
   return (
-    <div className="min-h-screen bg-gray-50 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-lg mx-auto p-4 pb-24 space-y-5">
         <ReportHeader />
         <StatsCards />

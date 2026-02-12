@@ -1,15 +1,20 @@
 "use client";
 
 import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface HomeHeaderProps {
   greeting: string;
   name: string;
+  avatarEmoji: string;
   formattedDate: string;
 }
 
-export function HomeHeader({ greeting, name, formattedDate }: HomeHeaderProps) {
+export function HomeHeader({
+  greeting,
+  name,
+  avatarEmoji,
+  formattedDate,
+}: HomeHeaderProps) {
   return (
     <header className="flex justify-between items-start px-2">
       <div className="space-y-1.5">
@@ -18,15 +23,9 @@ export function HomeHeader({ greeting, name, formattedDate }: HomeHeaderProps) {
         </h1>
         <p className="text-gray-500 text-sm font-medium">{formattedDate}</p>
       </div>
-      <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
-        <AvatarImage
-          src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${name}&backgroundColor=transparent`}
-          alt={name}
-        />
-        <AvatarFallback className="bg-secondary text-primary font-bold">
-          {name.charAt(0)}
-        </AvatarFallback>
-      </Avatar>
+      <div className="w-12 h-12 rounded-full bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-2xl border-2 border-white shadow-sm">
+        {avatarEmoji}
+      </div>
     </header>
   );
 }

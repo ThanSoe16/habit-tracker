@@ -145,3 +145,114 @@
     @apply bg-background text-foreground tracking-tight;
   }
 }
+
+/* Dark mode overrides for hardcoded utility classes */
+.dark {
+  /* Background overrides */
+  .bg-white {
+    background-color: var(--card) !important;
+  }
+  .bg-gray-50,
+  .bg-gray-100\/50 {
+    background-color: var(--background) !important;
+  }
+  .bg-gray-100 {
+    background-color: oklch(0.22 0.02 260) !important;
+  }
+  .bg-gray-200 {
+    background-color: oklch(0.3 0.02 260) !important;
+  }
+
+  /* Border overrides */
+  .border-gray-50,
+  .border-gray-100,
+  .border-gray-200 {
+    border-color: var(--border) !important;
+  }
+  .divide-gray-50 > * + *,
+  .divide-gray-100 > * + * {
+    border-color: var(--border) !important;
+  }
+
+  /* Text overrides */
+  .text-gray-300 {
+    color: oklch(0.5 0.02 260) !important;
+  }
+  .text-gray-400 {
+    color: oklch(0.55 0.02 260) !important;
+  }
+  .text-gray-500 {
+    color: oklch(0.6 0.02 260) !important;
+  }
+  .text-gray-600 {
+    color: oklch(0.65 0.02 260) !important;
+  }
+  .text-gray-700 {
+    color: oklch(0.75 0.02 260) !important;
+  }
+  .text-gray-800 {
+    color: oklch(0.85 0.02 260) !important;
+  }
+
+  /* Hover state overrides */
+  .hover\:bg-gray-50\/50:hover,
+  .hover\:bg-gray-50:hover,
+  .hover\:bg-gray-100:hover {
+    background-color: oklch(0.25 0.02 260) !important;
+  }
+  .active\:bg-gray-100\/50:active {
+    background-color: oklch(0.28 0.02 260) !important;
+  }
+
+  /* Shadow overrides - soften for dark mode */
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg {
+    --tw-shadow-color: rgba(0, 0, 0, 0.3);
+  }
+
+  /* Input / form overrides */
+  input,
+  textarea,
+  select {
+    background-color: var(--card);
+    color: var(--card-foreground);
+    border-color: var(--border);
+  }
+
+  /* Red/destructive overrides */
+  .bg-red-50 {
+    background-color: oklch(0.25 0.05 20) !important;
+  }
+  .border-red-100 {
+    border-color: oklch(0.35 0.1 20) !important;
+  }
+  .text-red-700 {
+    color: oklch(0.7 0.15 20) !important;
+  }
+
+  /* Indigo overrides for softened tints */
+  .bg-indigo-50 {
+    background-color: oklch(0.25 0.06 270) !important;
+  }
+  .bg-blue-50 {
+    background-color: oklch(0.25 0.06 250) !important;
+  }
+  .bg-purple-50 {
+    background-color: oklch(0.25 0.06 300) !important;
+  }
+  .bg-amber-50 {
+    background-color: oklch(0.25 0.06 80) !important;
+  }
+  .bg-emerald-50 {
+    background-color: oklch(0.25 0.06 160) !important;
+  }
+  .bg-orange-50 {
+    background-color: oklch(0.25 0.06 50) !important;
+  }
+
+  /* Shadow color adjustments */
+  .shadow-indigo-100\/50 {
+    --tw-shadow-color: rgba(99, 102, 241, 0.15);
+  }
+}

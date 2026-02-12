@@ -67,17 +67,26 @@ export function HabitsCompletedChart() {
               d.completed > 0 && d.completed === highestDay.completed;
 
             return (
-              <div key={i} className="flex flex-col items-center gap-1 flex-1">
+              <div
+                key={i}
+                className="flex flex-col items-center gap-1 flex-1 group/bar"
+              >
                 <div className="relative w-full flex justify-center">
-                  {/* Tooltip */}
-                  {isHighest && d.completed > 0 && (
-                    <div className="absolute -top-7 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                  {/* Tooltip - always visible for highest, hover for others */}
+                  {d.completed > 0 && (
+                    <div
+                      className={`absolute -top-7 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap transition-opacity duration-150 ${
+                        isHighest
+                          ? "opacity-100"
+                          : "opacity-0 group-hover/bar:opacity-100"
+                      }`}
+                    >
                       {d.completed}
                     </div>
                   )}
                   {/* Bar */}
                   <div
-                    className="w-full max-w-[32px] rounded-t-lg transition-all duration-500"
+                    className="w-full max-w-[32px] rounded-t-lg transition-all duration-500 cursor-pointer"
                     style={{
                       height: `${Math.max(height, 4)}px`,
                       minHeight: "4px",

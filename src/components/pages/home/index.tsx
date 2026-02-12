@@ -22,7 +22,7 @@ import { useUserStore } from "@/store/useUserStore";
 
 export default function Home() {
   const router = useRouter();
-  const { name: userName } = useUserStore();
+  const { name: userName, avatarEmoji } = useUserStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -99,6 +99,7 @@ export default function Home() {
           <HomeHeader
             greeting={getGreeting()}
             name={userName}
+            avatarEmoji={avatarEmoji}
             formattedDate={formattedDate}
           />
 

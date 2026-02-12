@@ -42,7 +42,7 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
       </Field>
 
       {endHabitEnabled && (
-        <div className="space-y-4 rounded-xl bg-gray-50/50">
+        <div className="space-y-4 rounded-xl">
           <Field>
             <Controller
               name="endHabitMode"
