@@ -22,7 +22,7 @@ export default function MoodPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-foreground selection:bg-indigo-500/10">
-      <div className="max-w-md mx-auto h-full flex flex-col p-4">
+      <div className="max-w-4xl mx-auto h-full flex flex-col p-4">
         <MoodHeader />
         <div className="flex-1 rounded-xl overflow-y-auto shadow bg-white">
           <MonthNavigator

@@ -38,11 +38,11 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
 
   return (
     <div className="px-4 pb-20">
-      <div className="grid grid-cols-7 mb-4">
+      <div className="grid grid-cols-7 mb-6">
         {WEEKDAYS.map((day) => (
           <div
             key={day}
-            className="text-center text-sm font-bold text-gray-400 py-2"
+            className="text-center text-xs md:text-sm font-bold text-gray-400 uppercase tracking-wider"
           >
             {day}
           </div>
@@ -59,48 +59,45 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
             <div
               key={dateKey}
               className={cn(
-                "flex flex-col items-center gap-1 min-h-[80px]",
+                "flex flex-col items-center gap-2",
                 !isCurrentMonth && "opacity-20",
               )}
             >
               <div className="relative w-full flex flex-col items-center">
-                <div className="flex flex-col items-center gap-1">
-                  <div
-                    className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center transition-all",
-                      moodEntry
-                        ? "bg-transparent scale-110"
-                        : "bg-gray-50 border border-gray-100",
-                    )}
-                    onClick={() => onDayClick(day)}
-                  >
-                    {moodEntry ? (
-                      <span className="text-3xl drop-shadow-sm cursor-pointer">
-                        {moodEntry.emoji}
-                      </span>
-                    ) : isToday(day) ? (
-                      <Plus className="w-6 h-6 text-indigo-400" />
-                    ) : (
-                      <Smile className="w-6 h-6 text-gray-200" />
-                    )}
-                  </div>
+                <div
+                  className={cn(
+                    "w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all",
+                    moodEntry
+                      ? "bg-transparent scale-110"
+                      : "bg-white border-2 border-gray-100",
+                  )}
+                  onClick={() => onDayClick(day)}
+                >
+                  {moodEntry ? (
+                    <span className="text-3xl md:text-4xl drop-shadow-sm cursor-pointer">
+                      {moodEntry.emoji}
+                    </span>
+                  ) : isToday(day) ? (
+                    <Plus className="w-6 h-6 text-indigo-400" />
+                  ) : (
+                    <Smile className="w-6 h-6 text-gray-200" />
+                  )}
+                </div>
+                <div className="flex flex-col items-center gap-0.5 mt-2">
                   <span
                     className={cn(
-                      "text-[10px] font-bold tracking-tight",
-                      moodEntry ? "text-gray-500" : "text-gray-400",
+                      "text-xs md:text-sm font-bold",
+                      isToday(day) ? "text-indigo-600" : "text-gray-900",
                     )}
                   >
-                    {moodEntry ? moodEntry.tag || moodEntry.label : "Mood"}
+                    {format(day, "d")}
                   </span>
-                </div>
-                <span
-                  className={cn(
-                    "text-xs mt-2 font-bold",
-                    isToday(day) ? "text-primary" : "text-gray-400",
+                  {moodEntry && (
+                    <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate max-w-full px-1">
+                      {moodEntry.tag || moodEntry.label}
+                    </span>
                   )}
-                >
-                  {format(day, "d")}
-                </span>
+                </div>
               </div>
             </div>
           );
