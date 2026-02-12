@@ -7,7 +7,7 @@ import { useDailyReminder } from '@/hooks/useDailyReminder';
 export function PromoCard() {
   const { remindersEnabled, dailyReminderTime, setRemindersEnabled, setDailyReminderTime } =
     useUserStore();
-  const { requestPermission, playNotificationSound } = useDailyReminder();
+  const { requestPermission, playNotificationSound, sendTestNotification } = useDailyReminder();
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleSetReminder = async () => {
@@ -87,12 +87,20 @@ export function PromoCard() {
         <div className="relative z-10 flex flex-col items-start gap-4">
           <div className="space-y-1">
             <h3 className="font-bold text-lg text-foreground">What time?</h3>
-            <button
-              onClick={playNotificationSound}
-              className="text-[10px] flex items-center gap-1 text-indigo-500 font-bold hover:underline"
-            >
-              <Volume2 className="w-3 h-3" /> Test Sound
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={playNotificationSound}
+                className="text-[10px] flex items-center gap-1 text-indigo-500 font-bold hover:underline"
+              >
+                <Volume2 className="w-3 h-3" /> Test Sound
+              </button>
+              <button
+                onClick={sendTestNotification}
+                className="text-[10px] flex items-center gap-1 text-indigo-500 font-bold hover:underline"
+              >
+                <Bell className="w-3 h-3" /> Test Notification
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <input

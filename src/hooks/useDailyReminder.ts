@@ -20,28 +20,12 @@ export function useDailyReminder() {
 
   const playNotificationSound = useCallback(() => {
     try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContext) return;
-
-      const ctx = new AudioContext();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      // "Ding" sound parameters
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
-
-      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
-
-      oscillator.start();
-      oscillator.stop(ctx.currentTime + 1.5);
+      const audio = new Audio('/noti-sound.mp3');
+      audio.play().catch((error) => {
+        console.error('Error playing notification sound:', error);
+      });
     } catch (error) {
-      console.error('Error playing notification sound:', error);
+      console.error('Error initializing audio:', error);
     }
   }, []);
 
@@ -62,6 +46,20 @@ export function useDailyReminder() {
     playNotificationSound();
 
     localStorage.setItem(NOTIFICATION_KEY, today);
+  }, [name, playNotificationSound]);
+
+  const sendTestNotification = useCallback(() => {
+    if (Notification.permission !== 'granted') {
+      alert('Please enable notifications first!');
+      return;
+    }
+
+    new Notification('Test Notification 🔔', {
+      body: `This is a test notification for ${name}!`,
+      icon: '/icon-192x192.png',
+      tag: 'test-notification',
+    });
+    playNotificationSound();
   }, [name, playNotificationSound]);
 
   const checkAndNotify = useCallback(() => {
@@ -101,5 +99,5 @@ export function useDailyReminder() {
     };
   }, [remindersEnabled, checkAndNotify]);
 
-  return { requestPermission, playNotificationSound };
+  return { requestPermission, playNotificationSound, sendTestNotification };
 }

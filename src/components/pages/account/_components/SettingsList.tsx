@@ -2,6 +2,7 @@
 
 import { useUserStore } from '@/store/useUserStore';
 import { useRouter } from 'next/navigation';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import {
   Bell,
   Clock,
@@ -32,7 +33,17 @@ interface SettingGroup {
 
 export function SettingsList() {
   const { remindersEnabled, setRemindersEnabled, theme, setTheme } = useUserStore();
+  const { isSubscribed, subscribeToPush, unsubscribeFromPush, sendTestPush } =
+    usePushNotifications();
   const router = useRouter();
+
+  const handlePushToggle = async () => {
+    if (isSubscribed) {
+      await unsubscribeFromPush();
+    } else {
+      await subscribeToPush();
+    }
+  };
 
   const handleNotificationToggle = async () => {
     if (!remindersEnabled) {
@@ -78,6 +89,28 @@ export function SettingsList() {
           toggled: remindersEnabled,
           onClick: handleNotificationToggle,
         },
+        {
+          icon: Bell,
+          label: 'Push Notifications',
+          value: isSubscribed ? 'On' : 'Off',
+          color: isSubscribed ? 'text-pink-500' : 'text-gray-400',
+          bg: isSubscribed ? 'bg-pink-50' : 'bg-gray-100',
+          isToggle: true,
+          toggled: isSubscribed,
+          onClick: handlePushToggle,
+        },
+        ...(isSubscribed
+          ? [
+              {
+                icon: Bell,
+                label: 'Test Push Notification',
+                value: 'Send',
+                color: 'text-green-500',
+                bg: 'bg-green-50',
+                onClick: sendTestPush,
+              },
+            ]
+          : []),
         {
           icon: Clock,
           label: 'Reminders',
