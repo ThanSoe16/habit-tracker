@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import webpush from 'web-push';
 
 webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@example.com',
+  process.env.NEXT_PUBLIC_VAPID_SUBJECT || 'mailto:admin@example.com',
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '',
-  process.env.VAPID_PRIVATE_KEY || '',
+  process.env.NEXT_PUBLIC_VAPID_PRIVATE_KEY || '',
 );
 
 export async function POST(request: Request) {
