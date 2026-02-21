@@ -40,7 +40,19 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
     return isHabitRequiredOnDate(habit as any, selectedDate);
   });
 
-  if (filteredHabits.length === 0) {
+  // Sort: incomplete habits first (original order), completed habits last
+  const dateString = selectedDate.toLocaleDateString('en-CA');
+  const sortedHabits = [...filteredHabits].sort((a, b) => {
+    const aEntry = a.history[dateString];
+    const bEntry = b.history[dateString];
+    const aDone = typeof aEntry === 'boolean' ? aEntry : !!aEntry?.completed;
+    const bDone = typeof bEntry === 'boolean' ? bEntry : !!bEntry?.completed;
+
+    if (aDone === bDone) return 0; // preserve original order
+    return aDone ? 1 : -1; // completed → bottom
+  });
+
+  if (sortedHabits.length === 0) {
     return (
       <div className="text-center p-10 mt-4 bg-white rounded-[2rem] border border-dashed">
         <p className="text-muted-foreground">No habits for this day.</p>
@@ -51,12 +63,12 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
   return (
     <>
       <div className="flex flex-col gap-2.5 no-scrollbar">
-        {filteredHabits.map((habit, index) => (
+        {sortedHabits.map((habit, index) => (
           <HabitCard
             key={habit.id}
             habit={habit}
             date={selectedDate}
-            isLast={index === filteredHabits.length - 1}
+            isLast={index === sortedHabits.length - 1}
             onClick={() => setSelectedHabitId(habit.id)}
           />
         ))}
