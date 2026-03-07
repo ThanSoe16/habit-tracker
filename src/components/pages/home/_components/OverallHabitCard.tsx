@@ -35,15 +35,15 @@ export function OverallHabitCard({
   const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-4">
+    <div className="bg-card rounded-2xl p-4 shadow-sm border border-border flex flex-col gap-4">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <span className="text-xl">{habit.emoji || '🎯'}</span>
-          <h3 className="font-bold text-gray-800 text-sm whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+          <h3 className="font-bold text-foreground text-sm whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
             {habit.name}
           </h3>
         </div>
-        <span className="text-[10px] text-gray-400 font-medium">{getFrequencyText()}</span>
+        <span className="text-[10px] text-muted-foreground font-medium">{getFrequencyText()}</span>
       </div>
 
       <div className="grid grid-cols-7 gap-x-0 gap-y-[6px] px-2">
@@ -51,7 +51,7 @@ export function OverallHabitCard({
         {dayLabels.map((label, i) => (
           <span
             key={label + i}
-            className="text-[9px] text-gray-400 font-bold w-full flex justify-center mb-1"
+            className="text-[9px] text-muted-foreground font-bold w-full flex justify-center mb-1"
           >
             {label}
           </span>
@@ -79,14 +79,14 @@ export function OverallHabitCard({
                     : isCompleted
                       ? ''
                       : isRequired
-                        ? 'bg-gray-100'
+                        ? 'bg-muted'
                         : 'bg-transparent',
                 )}
                 style={isCurrentMonth && isCompleted ? { backgroundColor: habit.color } : {}}
                 title={dateStr}
               >
                 {isCurrentMonth && !isCompleted && !isRequired && (
-                  <Ban className="w-[10px] h-[10px] text-gray-300" />
+                  <Ban className="w-[10px] h-[10px] text-muted-foreground/50" />
                 )}
               </div>
             </div>

@@ -121,7 +121,7 @@ export function SettingsList() {
         },
         {
           icon: theme === 'dark' ? Moon : Sun,
-          label: 'Theme',
+          label: 'Dark Mode',
           color: 'text-purple-500',
           bg: 'bg-purple-50',
           isToggle: true,

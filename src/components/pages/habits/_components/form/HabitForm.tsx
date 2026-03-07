@@ -72,7 +72,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
               <Input
                 id="form-name"
                 type="text"
-                placeholder="Evil Rabbit"
+                placeholder="Drink water"
                 isError={!!errors.name}
                 {...field}
               />

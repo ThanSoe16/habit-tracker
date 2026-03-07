@@ -17,8 +17,8 @@ export default function MoodHistoryPage() {
     .map(([date, entry]) => ({ date, ...entry }));
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="flex items-center gap-4 px-4 py-6 sticky top-0 bg-gray-50/80 backdrop-blur-md z-10">
+    <div className="pb-20">
+      <header className="flex items-center gap-4 px-4 py-6 sticky top-0 bg-background/80 backdrop-blur-md z-10">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
           <ChevronLeft className="w-6 h-6" />
         </Button>
@@ -30,9 +30,9 @@ export default function MoodHistoryPage() {
           entries.map((entry) => (
             <div
               key={entry.date}
-              className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-gray-100"
+              className="bg-card rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-border"
             >
-              <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-3xl shrink-0">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-3xl shrink-0">
                 {entry.emoji}
               </div>
               <div className="flex-1 min-w-0">
@@ -41,15 +41,26 @@ export default function MoodHistoryPage() {
                     {entry.label} {entry.tag && `• ${entry.tag}`}
                   </h3>
                 </div>
-                <p className="text-xs text-gray-400 font-medium">
+                <p className="text-xs text-muted-foreground font-medium">
                   {format(parseISO(entry.timestamp), 'eeee, MMM d, yyyy • hh:mm a')}
                 </p>
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center py-20">
-            <p className="text-gray-400 font-medium">No mood history yet</p>
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center text-4xl">
+              😶‍🌫️
+            </div>
+            <div>
+              <p className="text-muted-foreground font-bold">No mood history yet</p>
+              <p className="text-muted-foreground/70 text-sm mt-1">
+                Start tracking how you feel each day
+              </p>
+            </div>
+            <Button onClick={() => router.push('/mood')} className="rounded-xl px-6">
+              Log your first mood
+            </Button>
           </div>
         )}
       </div>

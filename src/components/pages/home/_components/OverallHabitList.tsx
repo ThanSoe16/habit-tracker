@@ -36,7 +36,7 @@ export function OverallHabitList({ limit }: { limit?: number }) {
 
   if (habits.length === 0) {
     return (
-      <div className="text-center p-10 mt-4 bg-white rounded-[2rem] border border-dashed box-border">
+      <div className="text-center p-10 mt-4 bg-card rounded-[2rem] border border-dashed box-border">
         <p className="text-muted-foreground">No habits created yet.</p>
       </div>
     );

@@ -31,7 +31,7 @@ export const HabitColorSelector = ({
         </button>
       ))}
 
-      <div className="relative">
+      <div className="relative flex flex-col items-center gap-1">
         <input
           type="color"
           ref={colorInputRef}
@@ -42,6 +42,7 @@ export const HabitColorSelector = ({
         <button
           type="button"
           onClick={() => colorInputRef.current?.click()}
+          aria-label="Custom color"
           className={cn(
             'w-10 h-10 rounded-full flex items-center justify-center border transition-all overflow-hidden',
             isCustomColor
@@ -58,6 +59,7 @@ export const HabitColorSelector = ({
             </div>
           )}
         </button>
+        <span className="text-[10px] text-muted-foreground font-medium">Custom</span>
       </div>
     </div>
   );

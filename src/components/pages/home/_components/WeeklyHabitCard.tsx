@@ -28,13 +28,13 @@ export function WeeklyHabitCard({ habit, weekDates }: WeeklyHabitCardProps) {
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-4">
+    <div className="bg-card rounded-2xl p-4 shadow-sm border border-border flex flex-col gap-4">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <span className="text-xl">{habit.emoji || '🎯'}</span>
-          <h3 className="font-bold text-gray-800">{habit.name}</h3>
+          <h3 className="font-bold text-foreground">{habit.name}</h3>
         </div>
-        <span className="text-xs text-gray-400 font-medium">{getFrequencyText()}</span>
+        <span className="text-xs text-muted-foreground font-medium">{getFrequencyText()}</span>
       </div>
 
       <div className="flex justify-between items-center">
@@ -52,7 +52,7 @@ export function WeeklyHabitCard({ habit, weekDates }: WeeklyHabitCardProps) {
               <span
                 className={cn(
                   'text-[10px] font-bold',
-                  isToday ? 'text-indigo-500' : 'text-gray-400',
+                  isToday ? 'text-indigo-500' : 'text-muted-foreground',
                 )}
               >
                 {dayNames[index]}
@@ -63,8 +63,8 @@ export function WeeklyHabitCard({ habit, weekDates }: WeeklyHabitCardProps) {
                   isCompleted
                     ? 'border-transparent text-white shadow-sm'
                     : isRequired
-                      ? 'border-gray-100 text-transparent bg-gray-50/50'
-                      : 'border-transparent text-gray-200 bg-gray-50/30',
+                      ? 'border-border text-transparent bg-muted/50'
+                      : 'border-transparent text-muted-foreground/40 bg-muted/30',
                 )}
                 style={isCompleted ? { backgroundColor: habit.color } : {}}
               >

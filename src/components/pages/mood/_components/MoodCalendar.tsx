@@ -14,6 +14,7 @@ import {
 import { useMoodStore } from '@/store/useMoodStore';
 import { cn } from '@/utils/cn';
 import { Plus, Smile } from 'lucide-react';
+import { isBefore, startOfDay } from 'date-fns';
 
 interface MoodCalendarProps {
   currentDate: Date;
@@ -54,6 +55,7 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
           const dateKey = format(day, 'yyyy-MM-dd');
           const moodEntry = history[dateKey];
           const isCurrentMonth = isSameMonth(day, monthStart);
+          const isPast = isBefore(startOfDay(day), startOfDay(new Date()));
 
           return (
             <div
@@ -63,26 +65,32 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
               <div className="relative w-full flex flex-col items-center">
                 <div
                   className={cn(
-                    'w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all',
-                    moodEntry ? 'bg-transparent scale-110' : 'bg-white border-2 border-gray-100',
+                    'w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all cursor-pointer',
+                    moodEntry
+                      ? 'bg-transparent scale-110'
+                      : isToday(day)
+                        ? 'bg-indigo-500/10 border-2 border-indigo-400'
+                        : isPast
+                          ? 'border-2 border-dashed border-muted-foreground/20'
+                          : 'border-2 border-border',
                   )}
                   onClick={() => onDayClick(day)}
                 >
                   {moodEntry ? (
-                    <span className="text-3xl md:text-4xl drop-shadow-sm cursor-pointer">
-                      {moodEntry.emoji}
-                    </span>
+                    <span className="text-3xl md:text-4xl drop-shadow-sm">{moodEntry.emoji}</span>
                   ) : isToday(day) ? (
                     <Plus className="w-6 h-6 text-indigo-400" />
+                  ) : isPast ? (
+                    <Smile className="w-5 h-5 text-muted-foreground/30" />
                   ) : (
-                    <Smile className="w-6 h-6 text-gray-200" />
+                    <Smile className="w-5 h-5 text-muted-foreground/15" />
                   )}
                 </div>
                 <div className="flex flex-col items-center gap-0.5 mt-2">
                   <span
                     className={cn(
                       'text-xs md:text-sm font-bold',
-                      isToday(day) ? 'text-indigo-600' : 'text-gray-900',
+                      isToday(day) ? 'text-indigo-600' : 'text-foreground',
                     )}
                   >
                     {format(day, 'd')}

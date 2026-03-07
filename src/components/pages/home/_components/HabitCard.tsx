@@ -97,7 +97,9 @@ export function HabitCard({ habit, date, isLast, onClick, onLongPress }: HabitCa
             <h3 className="font-bold text-foreground text-sm">{habit.name}</h3>
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-0.5">
               <Flame className="w-3 h-3 text-orange-500 fill-orange-500" />
-              <span className="font-medium text-gray-500">Streak {habit.streak} days</span>
+              <span className="font-medium text-gray-500">
+                Streak {habit.streak} {habit.streak === 1 ? 'day' : 'days'}
+              </span>
             </div>
           </div>
         </div>

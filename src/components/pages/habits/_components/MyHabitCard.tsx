@@ -45,9 +45,9 @@ export function MyHabitCard({ habit, onClick }: MyHabitCardProps) {
 
       <div className="flex-1 min-w-0">
         <h3 className="font-bold text-gray-800 truncate text-[17px]">{habit.name}</h3>
-        {habit.type === 'habit' && (
-          <p className="text-gray-500 text-[13px] font-medium mt-0.5">Regular Habit</p>
-        )}
+        <p className="text-gray-500 text-[13px] font-medium mt-0.5">
+          {habit.type === 'task' ? 'One-Time Task' : 'Regular Habit'}
+        </p>
       </div>
 
       <div className="flex items-center gap-2">
