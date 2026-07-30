@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
-import { Check, Clock, Flame } from 'lucide-react';
+import { Check, Clock, Flame, Plus } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Habit } from '@/store/useHabitStore';
 import { getContrastColor } from '@/utils/colorUtils';
@@ -12,11 +12,21 @@ interface HabitCardProps {
   isLast?: boolean;
   onClick?: () => void;
   onLongPress?: () => void;
+  onQuickAdd?: (e: React.MouseEvent) => void;
+  onQuickComplete?: (e: React.MouseEvent) => void;
 }
 
 const LONG_PRESS_DURATION = 500; // ms
 
-export function HabitCard({ habit, date, isLast, onClick, onLongPress }: HabitCardProps) {
+export function HabitCard({
+  habit,
+  date,
+  isLast,
+  onClick,
+  onLongPress,
+  onQuickAdd,
+  onQuickComplete,
+}: HabitCardProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
@@ -26,6 +36,18 @@ export function HabitCard({ habit, date, isLast, onClick, onLongPress }: HabitCa
   const isCompleted = typeof historyEntry === 'boolean' ? historyEntry : historyEntry?.completed;
   const timeTaken = typeof historyEntry === 'object' ? historyEntry?.timeTaken : undefined;
   const count = typeof historyEntry === 'object' ? historyEntry?.count : undefined;
+
+  const currentProgress = () => {
+    if (habit.unitType === 'count') {
+      const current = parseInt(String(count) || '0', 10);
+      return `${current} / ${habit.goalValue || 1}`;
+    }
+    if (habit.unitType === 'time') {
+      const current = parseInt(String(timeTaken) || '0', 10);
+      return `${current} / ${habit.goalValue || 1}m`;
+    }
+    return null;
+  };
 
   const handleTouchStart = useCallback(() => {
     isLongPressRef.current = false;
@@ -104,7 +126,7 @@ export function HabitCard({ habit, date, isLast, onClick, onLongPress }: HabitCa
           </div>
         </div>
 
-        {isCompleted && (timeTaken || count) && (
+        {isCompleted && (timeTaken || count) ? (
           <div className="flex flex-col items-end gap-0.5">
             <div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
               {timeTaken ? <Clock className="w-3 h-3" /> : <Check className="w-3 h-3" />}
@@ -113,7 +135,37 @@ export function HabitCard({ habit, date, isLast, onClick, onLongPress }: HabitCa
               {timeTaken ? `${timeTaken} mins` : `${count} times`}
             </span>
           </div>
-        )}
+        ) : !isCompleted ? (
+          <div className="flex flex-col items-end gap-1.5 min-w-[60px]">
+            {currentProgress() && (
+              <span className="text-xs font-bold text-gray-500">{currentProgress()}</span>
+            )}
+            <div className="flex items-center gap-1.5">
+              {habit.unitType && habit.unitType !== 'simple' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onQuickAdd?.(e);
+                  }}
+                  className="w-7 h-7 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                >
+                  <Plus className="w-4 h-4" strokeWidth={2.5} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onQuickComplete?.(e);
+                }}
+                className="w-7 h-7 rounded-full border-2 border-gray-200 text-gray-400 flex items-center justify-center hover:border-green-500 hover:text-green-500 transition-colors"
+              >
+                <Check className="w-4 h-4" strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

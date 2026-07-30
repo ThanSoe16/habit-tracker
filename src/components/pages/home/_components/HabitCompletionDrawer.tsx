@@ -31,6 +31,8 @@ function CompletionForm({
   initialNotes,
   isCompleted,
   readOnly,
+  unitType,
+  goalValue,
   onSave,
   onRemove,
   onClose,
@@ -42,6 +44,8 @@ function CompletionForm({
   initialNotes: string;
   isCompleted: boolean;
   readOnly: boolean;
+  unitType?: 'simple' | 'time' | 'count';
+  goalValue?: number;
   onSave: (
     id: string,
     date: string,
@@ -50,9 +54,12 @@ function CompletionForm({
   onRemove: (id: string, date: string) => void;
   onClose: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'time' | 'count'>('time');
-  const [timeTaken, setTimeTaken] = useState(initialTimeTaken);
-  const [count, setCount] = useState(initialCount);
+  const [timeTaken, setTimeTaken] = useState(
+    initialTimeTaken || (unitType === 'time' && goalValue ? String(goalValue) : ''),
+  );
+  const [count, setCount] = useState(
+    initialCount || (unitType === 'count' && goalValue ? String(goalValue) : ''),
+  );
   const [notes, setNotes] = useState(initialNotes);
 
   const handleSave = () => {
@@ -115,32 +122,8 @@ function CompletionForm({
 
   return (
     <div className="px-4 pb-8 space-y-6">
-      {/* Tab Switcher */}
-      <div className="bg-gray-100 p-1 rounded-2xl flex">
-        <button
-          onClick={() => setActiveTab('time')}
-          className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'time'
-              ? 'bg-white text-primary shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Time Taken
-        </button>
-        <button
-          onClick={() => setActiveTab('count')}
-          className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'count'
-              ? 'bg-white text-primary shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Count
-        </button>
-      </div>
-
       <div className="space-y-4">
-        {activeTab === 'time' ? (
+        {unitType === 'time' && (
           <div className="space-y-2">
             <Label htmlFor="timeTaken" className="text-muted-foreground font-medium ml-1">
               Time Spent
@@ -159,8 +142,13 @@ function CompletionForm({
                 mins
               </span>
             </div>
+            {goalValue && (
+              <p className="text-xs text-muted-foreground px-2">Goal: {goalValue} mins</p>
+            )}
           </div>
-        ) : (
+        )}
+
+        {unitType === 'count' && (
           <div className="space-y-2">
             <Label htmlFor="count" className="text-muted-foreground font-medium ml-1">
               Repeat Count
@@ -179,6 +167,15 @@ function CompletionForm({
                 times
               </span>
             </div>
+            {goalValue && (
+              <p className="text-xs text-muted-foreground px-2">Goal: {goalValue} times</p>
+            )}
+          </div>
+        )}
+
+        {(unitType === 'simple' || !unitType) && (
+          <div className="py-2 text-center bg-gray-50 rounded-xl">
+            <p className="text-gray-500 font-medium">Mark this habit as completed for the day.</p>
           </div>
         )}
 
@@ -209,7 +206,9 @@ function CompletionForm({
         )}
         <Button
           onClick={handleSave}
-          disabled={!timeTaken.trim() && !count.trim()}
+          disabled={
+            unitType === 'time' ? !timeTaken.trim() : unitType === 'count' ? !count.trim() : false
+          }
           className="flex-1 h-14 rounded-2xl text-lg font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 disabled:opacity-50"
         >
           {isCompleted ? 'Update' : 'Finish'}
@@ -277,6 +276,8 @@ export function HabitCompletionDrawer({
               initialNotes={initialNotes}
               isCompleted={!!isCompleted}
               readOnly={isPastDate}
+              unitType={habit.unitType}
+              goalValue={habit.goalValue}
               onSave={onSave}
               onRemove={onRemove}
               onClose={onClose}

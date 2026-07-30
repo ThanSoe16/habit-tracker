@@ -18,6 +18,7 @@ export default function Home() {
   const router = useRouter();
   const { name: userName, avatarEmoji } = useUserStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const today = new Date();
@@ -84,7 +85,7 @@ export default function Home() {
   }, [selectedDate]);
 
   return (
-    <div className="overflow-hidden">
+    <div className="w-full max-w-lg mx-auto overflow-hidden">
       <div className="px-4 pt-6 flex flex-col h-full">
         {/* Fixed Header & Calendar Section */}
         <div className="shrink-0 space-y-4 mb-4">
@@ -144,7 +145,25 @@ export default function Home() {
             )}
           </div>
           {viewMode === 'today' ? (
-            <HabitList selectedDate={selectedDate} />
+            <>
+              <div className="flex gap-2 mb-3">
+                {(['all', 'pending', 'completed'] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={cn(
+                      'px-4 py-1.5 rounded-full text-xs font-bold capitalize transition-all border',
+                      filter === f
+                        ? 'bg-gray-800 text-white border-gray-800'
+                        : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50',
+                    )}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+              <HabitList selectedDate={selectedDate} filter={filter} />
+            </>
           ) : viewMode === 'weekly' ? (
             <WeeklyHabitList limit={5} />
           ) : viewMode === 'overall' ? (

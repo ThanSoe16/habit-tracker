@@ -8,9 +8,10 @@ import { isHabitRequiredOnDate } from '@/utils/dateUtils';
 
 interface HabitListProps {
   selectedDate?: Date;
+  filter?: 'all' | 'pending' | 'completed';
 }
 
-export function HabitList({ selectedDate = new Date() }: HabitListProps) {
+export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitListProps) {
   const { habits, toggleHabit, removeCompletion, isLoaded } = useHabitStore();
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
 
@@ -42,7 +43,17 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
 
   // Sort: incomplete habits first (original order), completed habits last
   const dateString = selectedDate.toLocaleDateString('en-CA');
-  const sortedHabits = [...filteredHabits].sort((a, b) => {
+
+  // Apply filter
+  const finalFilteredHabits = filteredHabits.filter((habit) => {
+    const entry = habit.history[dateString];
+    const isDone = typeof entry === 'boolean' ? entry : !!entry?.completed;
+    if (filter === 'pending') return !isDone;
+    if (filter === 'completed') return isDone;
+    return true; // 'all'
+  });
+
+  const sortedHabits = [...finalFilteredHabits].sort((a, b) => {
     const aEntry = a.history[dateString];
     const bEntry = b.history[dateString];
     const aDone = typeof aEntry === 'boolean' ? aEntry : !!aEntry?.completed;
@@ -60,6 +71,42 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
     );
   }
 
+  const handleQuickAdd = (habit: any) => {
+    const dateStr = selectedDate.toLocaleDateString('en-CA');
+    const entry = habit.history[dateStr];
+
+    if (habit.unitType === 'count') {
+      const current = typeof entry === 'object' ? parseInt(entry.count || '0', 10) : 0;
+      const next = current + 1;
+      const isDone = next >= (habit.goalValue || 1);
+      toggleHabit(habit.id, dateStr, {
+        completed: isDone,
+        count: String(next),
+        timeTaken: typeof entry === 'object' ? entry.timeTaken : undefined,
+        notes: typeof entry === 'object' ? entry.notes : undefined,
+      });
+    } else if (habit.unitType === 'time') {
+      const current = typeof entry === 'object' ? parseInt(entry.timeTaken || '0', 10) : 0;
+      const next = current + 5; // increment by 5 mins
+      const isDone = next >= (habit.goalValue || 1);
+      toggleHabit(habit.id, dateStr, {
+        completed: isDone,
+        timeTaken: String(next),
+        count: typeof entry === 'object' ? entry.count : undefined,
+        notes: typeof entry === 'object' ? entry.notes : undefined,
+      });
+    }
+  };
+
+  const handleQuickComplete = (habit: any) => {
+    const dateStr = selectedDate.toLocaleDateString('en-CA');
+    toggleHabit(habit.id, dateStr, {
+      completed: true,
+      count: habit.unitType === 'count' ? String(habit.goalValue || 1) : undefined,
+      timeTaken: habit.unitType === 'time' ? String(habit.goalValue || 1) : undefined,
+    });
+  };
+
   return (
     <>
       <div className="flex flex-col gap-2.5 no-scrollbar">
@@ -70,6 +117,8 @@ export function HabitList({ selectedDate = new Date() }: HabitListProps) {
             date={selectedDate}
             isLast={index === sortedHabits.length - 1}
             onClick={() => setSelectedHabitId(habit.id)}
+            onQuickAdd={() => handleQuickAdd(habit)}
+            onQuickComplete={() => handleQuickComplete(habit)}
           />
         ))}
       </div>

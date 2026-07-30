@@ -31,6 +31,8 @@ const CreateHabitPage = () => {
       endHabitDays: 365,
       reminders: false,
       reminderTime: '07:00 AM',
+      unitType: 'simple',
+      goalValue: 1,
     },
   });
 
@@ -53,6 +55,8 @@ const CreateHabitPage = () => {
       data.endHabitEnabled && data.endHabitMode === 'date' ? data.endHabitDate : undefined,
       data.endHabitEnabled && data.endHabitMode === 'days' ? data.endHabitDays : undefined,
       data.frequencyTab === 'specific' ? data.selectedSpecificDates : [],
+      data.unitType,
+      data.goalValue,
     );
     router.back();
   };

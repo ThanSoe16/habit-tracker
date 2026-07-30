@@ -74,7 +74,7 @@ export default function HabitDetail({ id }: { id: string }) {
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col w-full max-w-lg mx-auto">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4">
         <button

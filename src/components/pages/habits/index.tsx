@@ -55,7 +55,7 @@ export default function MyHabitsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col w-full max-w-lg mx-auto">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4">
         <h1 className="text-xl font-bold text-foreground">My Habits</h1>

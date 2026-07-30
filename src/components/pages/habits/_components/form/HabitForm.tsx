@@ -28,9 +28,10 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const allDay = watch('allDay');
   const reminders = watch('reminders');
   const type = watch('type');
+  const unitType = watch('unitType');
 
   return (
-    <div className="flex flex-col p-6 space-y-8 pb-24">
+    <div className="flex flex-col p-6 space-y-8 pb-24 w-full max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">
@@ -110,6 +111,62 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
           <FieldError errors={[errors.color]} />
         </Field>
 
+        {type !== 'task' && (
+          <div className="space-y-4 pt-2 border-t border-gray-100">
+            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+              Goal & Unit
+            </h3>
+
+            <Field data-invalid={!!errors.unitType}>
+              <FieldLabel htmlFor="form-unitType">How will you measure it?</FieldLabel>
+              <Controller
+                name="unitType"
+                control={form.control}
+                render={({ field }) => (
+                  <TabToggle
+                    value={field.value}
+                    setValue={field.onChange}
+                    options={[
+                      { value: 'simple', label: 'Yes/No' },
+                      { value: 'time', label: 'Time' },
+                      { value: 'count', label: 'Count' },
+                    ]}
+                  />
+                )}
+              />
+            </Field>
+
+            {unitType !== 'simple' && (
+              <Field data-invalid={!!errors.goalValue}>
+                <FieldLabel htmlFor="form-goalValue">Daily Goal</FieldLabel>
+                <div className="relative">
+                  <Controller
+                    name="goalValue"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        id="form-goalValue"
+                        type="number"
+                        min="1"
+                        placeholder={unitType === 'time' ? 'e.g., 30' : 'e.g., 5'}
+                        isError={!!errors.goalValue}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        className="pr-16"
+                      />
+                    )}
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-bold pointer-events-none">
+                    {unitType === 'time' ? 'mins' : 'times'}
+                  </span>
+                </div>
+                <FieldError errors={[errors.goalValue]} />
+              </Field>
+            )}
+          </div>
+        )}
+
+        <div className="pt-2 border-t border-gray-100" />
         <Field data-invalid={!!errors.startDate}>
           <FieldLabel htmlFor="form-startDate">
             {type === 'task' ? 'Date' : 'Start Date'}

@@ -18,6 +18,8 @@ export const habitSchema = z.object({
   endHabitDays: z.number(),
   reminders: z.boolean(),
   reminderTime: z.string(),
+  unitType: z.enum(['simple', 'time', 'count']),
+  goalValue: z.number().min(1, 'Goal value must be at least 1'),
 });
 
 export type HabitData = z.infer<typeof habitSchema>;

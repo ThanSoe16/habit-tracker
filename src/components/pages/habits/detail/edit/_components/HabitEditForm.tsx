@@ -30,6 +30,8 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
       endHabitDays: habit.endHabitDays || 365,
       reminders: !!habit.reminderTime,
       reminderTime: habit.reminderTime || '07:00 AM',
+      unitType: habit.unitType || 'simple',
+      goalValue: habit.goalValue || 1,
     },
   });
 
@@ -54,6 +56,8 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
       endHabitDays:
         data.endHabitEnabled && data.endHabitMode === 'days' ? data.endHabitDays : undefined,
       specificDates: data.frequencyTab === 'specific' ? data.selectedSpecificDates : [],
+      unitType: data.unitType,
+      goalValue: data.goalValue,
     });
     router.back();
   };

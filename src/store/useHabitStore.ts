@@ -21,6 +21,8 @@ export interface Habit {
   endHabitDate?: string;
   endHabitDays?: number;
   specificDates?: string[]; // YYYY-MM-DD
+  unitType?: 'simple' | 'time' | 'count';
+  goalValue?: number;
   history: Record<
     string,
     { completed: boolean; timeTaken?: string; count?: string; notes?: string } | boolean
@@ -46,6 +48,8 @@ interface HabitStore {
     endHabitDate?: string,
     endHabitDays?: number,
     specificDates?: string[],
+    unitType?: 'simple' | 'time' | 'count',
+    goalValue?: number,
   ) => void;
   removeHabit: (id: string) => void;
   updateHabit: (
@@ -65,13 +69,15 @@ interface HabitStore {
       endHabitDate?: string;
       endHabitDays?: number;
       specificDates?: string[];
+      unitType?: 'simple' | 'time' | 'count';
+      goalValue?: number;
     },
   ) => void;
   reorderHabits: (habits: Habit[]) => void;
   toggleHabit: (
     id: string,
     date: string,
-    details?: { timeTaken?: string; count?: string; notes?: string },
+    details?: { completed?: boolean; timeTaken?: string; count?: string; notes?: string },
   ) => void;
   removeCompletion: (id: string, date: string) => void;
 }
@@ -140,6 +146,8 @@ export const useHabitStore = create<HabitStore>()(
         endHabitDate,
         endHabitDays,
         specificDates,
+        unitType = 'simple',
+        goalValue,
       ) => {
         const newHabit: Habit = {
           id: crypto.randomUUID(),
@@ -156,6 +164,8 @@ export const useHabitStore = create<HabitStore>()(
           endHabitDate,
           endHabitDays,
           specificDates,
+          unitType,
+          goalValue,
           history: {},
           streak: 0,
           createdAt: new Date().toISOString(),
@@ -186,7 +196,17 @@ export const useHabitStore = create<HabitStore>()(
 
             // If details are provided, we are "finishing" or updating a completed habit
             if (details) {
-              newHistory[date] = { completed: true, ...details };
+              const prevCompleted =
+                typeof newHistory[date] === 'boolean'
+                  ? newHistory[date]
+                  : typeof newHistory[date] === 'object'
+                    ? (newHistory[date] as any).completed
+                    : false;
+
+              newHistory[date] = {
+                completed: details.completed !== undefined ? details.completed : prevCompleted,
+                ...details,
+              };
             } else {
               // Simple toggle (legacy behavior)
               if (newHistory[date]) {

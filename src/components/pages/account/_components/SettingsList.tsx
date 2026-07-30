@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Moon,
   Sun,
+  BarChart3,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -76,7 +77,24 @@ export function SettingsList() {
     router.push('/habits');
   };
 
+  const handleReportClick = () => {
+    router.push('/report');
+  };
+
   const SETTING_GROUPS: SettingGroup[] = [
+    {
+      title: 'Analytics & Reports',
+      items: [
+        {
+          icon: BarChart3,
+          label: 'Analytics & Report',
+          value: 'View Detailed Stats',
+          color: 'text-indigo-600',
+          bg: 'bg-indigo-50 dark:bg-indigo-950/30',
+          onClick: handleReportClick,
+        },
+      ],
+    },
     {
       title: 'General',
       items: [

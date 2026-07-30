@@ -12,7 +12,7 @@ export default function WeeklyProgressPage() {
     <PageLayout>
       <div className="min-h-screen bg-background pb-12">
         <div className="sticky top-0 z-20 bg-card border-b border-border px-4 py-4 mb-6">
-          <div className="flex items-center gap-4 max-w-2xl mx-auto">
+          <div className="flex items-center gap-4 max-w-lg mx-auto">
             <button
               onClick={() => router.back()}
               className="p-2 hover:bg-muted rounded-full transition-colors"
@@ -23,7 +23,7 @@ export default function WeeklyProgressPage() {
           </div>
         </div>
 
-        <div className="px-4 max-w-2xl mx-auto">
+        <div className="px-4 max-w-lg mx-auto">
           <WeeklyHabitList />
         </div>
       </div>
