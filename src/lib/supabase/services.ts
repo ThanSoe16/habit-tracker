@@ -143,6 +143,7 @@ export const userService = {
     remindersEnabled: boolean;
     dailyReminderTime: string;
     theme: 'light' | 'dark';
+    homeSettings?: Record<string, any>;
   }) {
     const payload = {
       id: 'default_user',
@@ -152,6 +153,7 @@ export const userService = {
       reminders_enabled: profile.remindersEnabled,
       daily_reminder_time: profile.dailyReminderTime,
       theme: profile.theme,
+      home_settings: profile.homeSettings,
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'id' });
@@ -289,5 +291,85 @@ export const gymService = {
   async deleteWorkoutLog(dateKey: string): Promise<void> {
     const { error } = await supabase.from('workout_logs').delete().eq('date_key', dateKey);
     if (error) console.warn('Error deleting workout log from Supabase:', error.message);
+  },
+
+  async fetchGymSettings(): Promise<Record<string, any> | null> {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('gym_settings')
+      .eq('id', 'default_user')
+      .single();
+
+    if (error) return null;
+    return data?.gym_settings || null;
+  },
+
+  async saveGymSettings(settings: Record<string, any>): Promise<void> {
+    const { error } = await supabase
+      .from('user_profiles')
+      .upsert({ id: 'default_user', gym_settings: settings }, { onConflict: 'id' });
+
+    if (error) console.warn('Error saving gym settings to Supabase:', error.message);
+  },
+};
+
+export interface BodyMetricRow {
+  id?: string;
+  user_id?: string;
+  logged_at: string; // YYYY-MM-DD
+  height_cm?: number;
+  weight_kg: number;
+  target_weight_kg?: number;
+  body_fat_pct?: number;
+  muscle_mass_kg?: number;
+  fitness_goal?: string;
+  activity_level?: string;
+  notes?: string;
+}
+
+export const gymBodyMetricsService = {
+  async fetchLogs(): Promise<BodyMetricRow[]> {
+    const { data, error } = await supabase
+      .from('gym_body_metrics')
+      .select('*')
+      .eq('user_id', 'default_user')
+      .order('logged_at', { ascending: true });
+
+    if (error) {
+      console.warn('Error fetching gym_body_metrics from Supabase:', error.message);
+      return [];
+    }
+    return data || [];
+  },
+
+  async insertLog(row: BodyMetricRow): Promise<BodyMetricRow | null> {
+    const payload = {
+      user_id: 'default_user',
+      logged_at: row.logged_at,
+      height_cm: row.height_cm,
+      weight_kg: row.weight_kg,
+      target_weight_kg: row.target_weight_kg,
+      body_fat_pct: row.body_fat_pct,
+      muscle_mass_kg: row.muscle_mass_kg,
+      fitness_goal: row.fitness_goal,
+      activity_level: row.activity_level,
+      notes: row.notes,
+    };
+    const { data, error } = await supabase
+      .from('gym_body_metrics')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.warn('Error inserting body metric log:', error.message);
+      return null;
+    }
+    return data;
+  },
+
+  async deleteLog(id: string): Promise<void> {
+    const { error } = await supabase.from('gym_body_metrics').delete().eq('id', id);
+    if (error) console.warn('Error deleting body metric log:', error.message);
   },
 };

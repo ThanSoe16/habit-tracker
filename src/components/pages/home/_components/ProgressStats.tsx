@@ -1,117 +1,117 @@
 'use client';
 
 import { useHabitStore } from '@/store/useHabitStore';
-import { X } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export function ProgressStats() {
+interface ProgressStatsProps {
+  onBack?: () => void;
+}
+
+export function ProgressStats({ onBack }: ProgressStatsProps) {
+  const router = useRouter();
   const { habits } = useHabitStore();
 
-  // Mock data logic for visualization if no habits, else use habits
-  const chartData =
-    habits.length > 0
-      ? habits.slice(0, 4).map((h) => ({
-          label: h.name.split(' ')[0], // First word
-          value: Math.min(100, (h.streak / 30) * 100), // Mock percentage based on streak aim 30
-          color: h.color,
-          displayValue: `${h.streak}d`,
+  const todayStr = new Date().toLocaleDateString('en-CA');
+
+  const finishedCount = habits.reduce((acc, h) => {
+    const entry = h.history[todayStr];
+    const isDone = typeof entry === 'boolean' ? entry : !!entry?.completed;
+    return acc + (isDone ? 1 : 0);
+  }, 0);
+
+  const maxStreak = Math.max(1, ...habits.map((h) => h.streak || 1));
+
+  const items = habits.length > 0 ? habits.slice(0, 4) : [];
+
+  const defaultPillColors = ['#d946ef', '#ec4899', '#f97316', '#8b5cf6'];
+
+  const pillItems =
+    items.length > 0
+      ? items.map((h, idx) => ({
+          name: h.name.split(' ')[0],
+          streak: `${h.streak || 1}d`,
+          color: h.color || defaultPillColors[idx % defaultPillColors.length],
         }))
       : [
-          {
-            label: 'Walking',
-            value: 48,
-            color: '#3F2E26',
-            displayValue: '48%',
-          },
-          {
-            label: 'Running',
-            value: 33,
-            color: '#A0522D',
-            displayValue: '33%',
-          },
-          {
-            label: 'Meditation',
-            value: 27,
-            color: '#808000',
-            displayValue: '27%',
-          },
-          { label: 'Drink', value: 40, color: '#DA70D6', displayValue: '40%' },
+          { name: 'Everyday', streak: '6d', color: '#d946ef' },
+          { name: 'Second', streak: '4d', color: '#ec4899' },
+          { name: 'TIME', streak: '1d', color: '#f97316' },
+          { name: 'Monday', streak: '5d', color: '#8b5cf6' },
         ];
 
   return (
-    <div className="bg-secondary rounded-[2.5rem] p-8 relative overflow-hidden">
+    <div className="bg-[#181d24] rounded-[2.5rem] p-6 text-white relative shadow-2xl space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start mb-8">
-        <h2 className="text-3xl font-bold leading-tight text-foreground max-w-48">
+      <div className="flex justify-between items-start pt-1">
+        <h1 className="text-2xl font-black leading-tight max-w-[200px] text-white">
           Your progress and insights
-        </h2>
-        <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm hover:bg-white/80 transition-colors">
-          <X className="w-5 h-5 text-gray-500" />
+        </h1>
+        <button
+          type="button"
+          onClick={() => (onBack ? onBack() : router.push('/home'))}
+          className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+        >
+          <X className="w-5 h-5 text-gray-300" />
         </button>
       </div>
 
-      {/* Bar Chart */}
-      <div className="flex items-end justify-between gap-2 h-64 mb-8">
-        {chartData.map((item, index) => (
-          <div key={index} className="flex flex-col items-center gap-3 w-full">
-            <div className="relative w-full h-full flex items-end">
-              {/* Background Bar (Hatched pattern) */}
-              <div className="absolute inset-x-0 bottom-0 top-0 bg-[url('/hatch-pattern.png')] opacity-10 rounded-t-[2rem] bg-gray-200" />
-
-              {/* Foreground Bar */}
+      {/* Pill Arch Bar Chart */}
+      <div className="pt-8 pb-2">
+        <div className="grid grid-cols-4 gap-2.5 items-end">
+          {pillItems.map((item, idx) => (
+            <div key={idx} className="flex flex-col items-center gap-2">
               <div
-                className="w-full rounded-t-[2rem] relative flex items-end justify-center pb-4 transition-all duration-1000 ease-out"
-                style={{
-                  height: `${Math.max(15, item.value)}%`,
-                  backgroundColor: item.color,
-                }}
+                className="w-full h-16 rounded-t-full flex items-center justify-center transition-all hover:scale-105"
+                style={{ backgroundColor: item.color }}
               >
-                <span className="text-white font-bold text-sm">{item.displayValue}</span>
+                <span className="text-xs font-black text-white drop-shadow-xs">{item.streak}</span>
               </div>
+              <span className="text-[11px] font-bold text-gray-400 truncate max-w-full text-center">
+                {item.name}
+              </span>
             </div>
-            <span className="text-xs font-medium text-muted-foreground truncate max-w-full">
-              {item.label}
-            </span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Points Section */}
-      <div className="bg-white rounded-[2rem] p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-6">
+      {/* Points & Stats Card */}
+      <div className="bg-[#10141a] rounded-[2rem] p-5 space-y-5 border border-white/5 shadow-inner">
+        <div className="flex justify-between items-center">
           <div>
-            <h3 className="font-bold text-lg">Points Earned</h3>
-            <p className="text-muted-foreground text-xs">For this week</p>
+            <h2 className="font-extrabold text-base text-white">Points Earned</h2>
+            <p className="text-gray-400 text-xs font-medium">For this week</p>
           </div>
-          <span className="text-2xl font-bold text-primary">842 Points</span>
+          <span className="text-xl font-black text-[#ff3d00]">842 Points</span>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 border-t pt-6">
-          <div className="text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Habits
-            </p>
-            <p className="font-bold text-lg">{habits.length}</p>
+        <div className="grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-center">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Habits</p>
+            <p className="text-lg font-black text-white">{habits.length || 4}</p>
           </div>
-          <div className="text-center border-l border-r">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Finished
-            </p>
-            <p className="font-bold text-lg">
-              {habits.reduce(
-                (acc, h) => acc + (h.history[new Date().toISOString().split('T')[0]] ? 1 : 0),
-                0,
-              )}
-            </p>
+          <div className="border-x border-white/10">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Finished</p>
+            <p className="text-lg font-black text-white">{finishedCount || 4}</p>
           </div>
-          <div className="text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
-              Streak
-            </p>
-            <p className="font-bold text-lg">{Math.max(0, ...habits.map((h) => h.streak))}</p>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Streak</p>
+            <p className="text-lg font-black text-white">{maxStreak || 6}</p>
           </div>
         </div>
 
-        <button className="w-full bg-primary text-white font-bold py-4 rounded-full mt-6 hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+        <button
+          type="button"
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({
+                title: 'My Habit Progress',
+                text: `I've completed ${finishedCount} habits today with a ${maxStreak} day streak!`,
+              });
+            }
+          }}
+          className="w-full bg-[#ff3d00] hover:bg-[#e63600] active:scale-98 text-white font-black py-3.5 rounded-full text-sm transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2"
+        >
           Share Progress
         </button>
       </div>

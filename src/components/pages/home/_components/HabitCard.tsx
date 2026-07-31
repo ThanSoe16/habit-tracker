@@ -1,15 +1,16 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
-import { Check, Clock, Flame, Plus, Minus } from 'lucide-react';
+import { Check, Flame, Plus, Minus } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Habit } from '@/store/useHabitStore';
-import { getContrastColor } from '@/utils/colorUtils';
 
 interface HabitCardProps {
   habit: Habit;
   date: Date;
   isLast?: boolean;
+  cardStyle?: 'compact' | 'detailed';
+  showStreakBadges?: boolean;
   onClick?: () => void;
   onLongPress?: () => void;
   onQuickAdd?: (e: React.MouseEvent) => void;
@@ -23,6 +24,8 @@ export function HabitCard({
   habit,
   date,
   isLast,
+  cardStyle = 'detailed',
+  showStreakBadges = true,
   onClick,
   onLongPress,
   onQuickAdd,
@@ -32,7 +35,6 @@ export function HabitCard({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
-  // Use local time date string to avoid timezone issues
   const dateString = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
   const historyEntry = habit.history[dateString];
   const isCompleted = typeof historyEntry === 'boolean' ? historyEntry : historyEntry?.completed;
@@ -73,7 +75,6 @@ export function HabitCard({
   }, []);
 
   const handleClick = useCallback(() => {
-    // Only trigger click if it wasn't a long press
     if (!isLongPressRef.current) {
       onClick?.();
     }
@@ -82,7 +83,6 @@ export function HabitCard({
 
   const habitColor = habit.color || '#2563eb';
 
-  // Calculate percentage completion for background progress fill
   let pct = 0;
   if (isCompleted) {
     pct = 100;
@@ -93,6 +93,8 @@ export function HabitCard({
     const current = parseInt(String(timeTaken) || '0', 10);
     pct = Math.min(100, Math.max(0, (current / (habit.goalValue || 1)) * 100));
   }
+
+  const isCompact = cardStyle === 'compact';
 
   return (
     <div
@@ -105,9 +107,12 @@ export function HabitCard({
       onMouseUp={handleTouchEnd}
       onMouseLeave={handleTouchEnd}
     >
-      {/* Card Body Container with Dual-Tone Fill */}
+      {/* Card Body Container */}
       <div
-        className="relative flex-1 rounded-2xl p-3 flex items-center justify-between overflow-hidden shadow-xs hover:shadow-md transition-all border border-black/5"
+        className={cn(
+          'relative flex-1 flex items-center justify-between overflow-hidden shadow-xs hover:shadow-md transition-all border border-black/5',
+          isCompact ? 'rounded-xl p-2.5' : 'rounded-2xl p-3.5',
+        )}
         style={{
           backgroundColor: isCompleted ? habitColor : `${habitColor}22`,
         }}
@@ -115,7 +120,10 @@ export function HabitCard({
         {/* Progress Overlay Fill */}
         {!isCompleted && pct > 0 && (
           <div
-            className="absolute left-0 top-0 bottom-0 transition-all duration-300 rounded-2xl"
+            className={cn(
+              'absolute left-0 top-0 bottom-0 transition-all duration-300',
+              isCompact ? 'rounded-xl' : 'rounded-2xl',
+            )}
             style={{
               width: `${pct}%`,
               backgroundColor: habitColor,
@@ -124,10 +132,13 @@ export function HabitCard({
         )}
 
         {/* Content Container */}
-        <div className="relative z-10 flex items-center gap-3.5">
+        <div className="relative z-10 flex items-center gap-3">
           {/* Icon Box */}
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 shadow-xs"
+            className={cn(
+              'rounded-xl flex items-center justify-center shrink-0 shadow-xs',
+              isCompact ? 'w-8 h-8 text-base' : 'w-10 h-10 text-xl',
+            )}
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.25)',
               color: '#FFFFFF',
@@ -139,35 +150,40 @@ export function HabitCard({
           <div className="space-y-0.5">
             <h3
               className={cn(
-                'font-black text-sm leading-snug',
-                pct > 50 || isCompleted ? 'text-white' : 'text-gray-900 dark:text-white'
+                'font-black leading-snug',
+                isCompact ? 'text-xs' : 'text-sm',
+                pct > 50 || isCompleted ? 'text-white' : 'text-gray-900 dark:text-white',
               )}
             >
               {habit.name}
             </h3>
-            <p
-              className={cn(
-                'text-xs font-semibold',
-                pct > 50 || isCompleted ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
-              )}
-            >
-              {currentProgress() || (habit.timeOfDay ? `${habit.timeOfDay} routine` : 'Every day')}
-            </p>
+            {!isCompact && (
+              <p
+                className={cn(
+                  'text-xs font-semibold',
+                  pct > 50 || isCompleted ? 'text-white/80' : 'text-gray-500 dark:text-gray-400',
+                )}
+              >
+                {currentProgress() || (habit.timeOfDay ? `${habit.timeOfDay} routine` : 'Every day')}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Action Controls & Streak Badge */}
         <div className="relative z-10 flex items-center gap-2">
           {/* Streak Counter */}
-          <div
-            className={cn(
-              'flex items-center gap-0.5 text-[11px] font-black',
-              pct > 50 || isCompleted ? 'text-white/90' : 'text-gray-600 dark:text-gray-300'
-            )}
-          >
-            <Flame className="w-3.5 h-3.5 fill-current" />
-            <span>{habit.streak || 1}</span>
-          </div>
+          {showStreakBadges && (
+            <div
+              className={cn(
+                'flex items-center gap-0.5 text-[11px] font-black',
+                pct > 50 || isCompleted ? 'text-white/90' : 'text-gray-600 dark:text-gray-300',
+              )}
+            >
+              <Flame className="w-3.5 h-3.5 fill-current" />
+              <span>{habit.streak || 1}</span>
+            </div>
+          )}
 
           {/* Action Buttons */}
           {!isCompleted && habit.unitType === 'count' && (
@@ -177,10 +193,13 @@ export function HabitCard({
                 e.stopPropagation();
                 onQuickSubtract?.(e);
               }}
-              className="w-9 h-9 rounded-full bg-white/90 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs"
+              className={cn(
+                'rounded-full bg-white/90 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs',
+                isCompact ? 'w-7 h-7' : 'w-9 h-9',
+              )}
               title="Subtract count"
             >
-              <Minus className="w-4 h-4" strokeWidth={3} />
+              <Minus className={isCompact ? 'w-3.5 h-3.5' : 'w-4 h-4'} strokeWidth={3} />
             </button>
           )}
 
@@ -191,10 +210,13 @@ export function HabitCard({
                 e.stopPropagation();
                 onQuickAdd?.(e);
               }}
-              className="w-9 h-9 rounded-full bg-white text-blue-600 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md"
+              className={cn(
+                'rounded-full bg-white text-blue-600 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md',
+                isCompact ? 'w-7 h-7' : 'w-9 h-9',
+              )}
               title="Add progress"
             >
-              <Plus className="w-5 h-5" strokeWidth={3} />
+              <Plus className={isCompact ? 'w-4 h-4' : 'w-5 h-5'} strokeWidth={3} />
             </button>
           )}
 
@@ -205,13 +227,14 @@ export function HabitCard({
               onQuickComplete?.(e);
             }}
             className={cn(
-              'w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-md hover:scale-105 active:scale-95',
+              'rounded-full flex items-center justify-center transition-all shadow-md hover:scale-105 active:scale-95',
+              isCompact ? 'w-7 h-7' : 'w-9 h-9',
               isCompleted
                 ? 'bg-white text-emerald-600'
-                : 'bg-white/80 dark:bg-zinc-800 text-gray-500 hover:bg-white'
+                : 'bg-white/80 dark:bg-zinc-800 text-gray-500 hover:bg-white',
             )}
           >
-            <Check className="w-5 h-5" strokeWidth={3} />
+            <Check className={isCompact ? 'w-4 h-4' : 'w-5 h-5'} strokeWidth={3} />
           </button>
         </div>
       </div>

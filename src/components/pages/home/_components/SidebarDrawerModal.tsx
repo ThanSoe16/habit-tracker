@@ -3,7 +3,6 @@
 import {
   Drawer,
   DrawerContent,
-  DrawerHeader,
   DrawerTitle,
   DrawerDescription,
 } from '@/components/ui/drawer';
@@ -12,94 +11,112 @@ import {
   BarChart2,
   TrendingUp,
   Settings,
-  Grid,
-  Bell,
-  Sparkles,
   ChevronRight,
-  LogOut,
+  Sparkles,
+  ListTodo,
+  CheckSquare,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/useUserStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 interface SidebarDrawerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentViewMode: 'today' | 'weekly' | 'overall';
-  onSelectViewMode: (mode: 'today' | 'weekly' | 'overall') => void;
+  currentViewMode?: 'today' | 'weekly' | 'overall';
+  onSelectViewMode?: (mode: 'today' | 'weekly' | 'overall') => void;
 }
 
 export function SidebarDrawerModal({
   isOpen,
   onClose,
-  currentViewMode,
   onSelectViewMode,
 }: SidebarDrawerModalProps) {
   const { name, avatarEmoji } = useUserStore();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
+  const isTodayActive = pathname === '/home/today' || pathname === '/home' || pathname === '/';
+  const isWeeklyActive = pathname === '/home/weekly';
+  const isOverallActive = pathname === '/home/overall';
+  const isRegularHabitActive = pathname === '/habits' && tabParam !== 'task';
+  const isOneTimeTaskActive = pathname === '/habits' && tabParam === 'task';
+  const isReportPage = pathname === '/report';
+  const isSettingsPage = pathname === '/settings';
 
   const menuSections = [
     {
-      title: 'View Mode',
+      title: 'HABIT',
       items: [
         {
           id: 'today',
           label: 'Today',
           icon: Calendar,
-          action: () => onSelectViewMode('today'),
-          isActive: currentViewMode === 'today',
+          action: () => {
+            if (onSelectViewMode) onSelectViewMode('today');
+            router.push('/home/today');
+          },
+          isActive: isTodayActive,
         },
         {
           id: 'weekly',
           label: 'Weekly',
           icon: BarChart2,
-          action: () => onSelectViewMode('weekly'),
-          isActive: currentViewMode === 'weekly',
+          action: () => {
+            if (onSelectViewMode) onSelectViewMode('weekly');
+            router.push('/home/weekly');
+          },
+          isActive: isWeeklyActive,
         },
         {
           id: 'overall',
           label: 'Overall',
           icon: TrendingUp,
-          action: () => onSelectViewMode('overall'),
-          isActive: currentViewMode === 'overall',
+          action: () => {
+            if (onSelectViewMode) onSelectViewMode('overall');
+            router.push('/home/overall');
+          },
+          isActive: isOverallActive,
         },
       ],
     },
     {
-      title: 'Management',
+      title: 'HABIT MANAGEMENT',
       items: [
         {
-          id: 'units',
-          label: 'Units & Measurements',
-          icon: Grid,
-          action: () => router.push('/design-guide/units'),
-          isActive: false,
+          id: 'regular-habit',
+          label: 'Regular Habit',
+          icon: Sparkles,
+          action: () => router.push('/habits?tab=habit'),
+          isActive: isRegularHabitActive,
         },
         {
-          id: 'create',
-          label: 'Create New Habit',
-          icon: Sparkles,
-          action: () => router.push('/habits/create'),
-          isActive: false,
+          id: 'one-time-task',
+          label: 'One-Time Task',
+          icon: CheckSquare,
+          action: () => router.push('/habits?tab=task'),
+          isActive: isOneTimeTaskActive,
         },
+      ],
+    },
+    {
+      title: 'GENERAL',
+      items: [
         {
           id: 'reports',
-          label: 'Reports & Analytics',
+          label: 'Progress & Insights',
           icon: BarChart2,
           action: () => router.push('/report'),
-          isActive: false,
+          isActive: isReportPage,
         },
-      ],
-    },
-    {
-      title: 'Preferences',
-      items: [
         {
           id: 'settings',
           label: 'Settings',
           icon: Settings,
           action: () => router.push('/settings'),
-          isActive: false,
+          isActive: isSettingsPage,
         },
       ],
     },
@@ -148,7 +165,7 @@ export function SidebarDrawerModal({
                           'w-full px-3.5 py-3 rounded-2xl flex items-center justify-between text-xs font-bold transition-all',
                           item.isActive
                             ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/25'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/80'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/80',
                         )}
                       >
                         <div className="flex items-center gap-3">

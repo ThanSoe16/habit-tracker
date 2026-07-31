@@ -1,23 +1,52 @@
 'use client';
 
-import { ReportHeader } from './_components/ReportHeader';
-import { StatsCards } from './_components/StatsCards';
+import { useState } from 'react';
+import { Menu } from 'lucide-react';
+import { ProgressStats } from '@/components/pages/home/_components/ProgressStats';
 import { HabitsCompletedChart } from './_components/HabitsCompletedChart';
 import { CompletionRateChart } from './_components/CompletionRateChart';
 import { CalendarStats } from './_components/CalendarStats';
 import { MoodChart } from './_components/MoodChart';
+import { SidebarDrawerModal } from '@/components/pages/home/_components/SidebarDrawerModal';
 
 export default function ReportPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-lg mx-auto p-4 pb-24 space-y-5">
-        <ReportHeader />
-        <StatsCards />
+    <div className="min-h-screen bg-gray-900 dark:bg-zinc-950 text-white">
+      <div className="max-w-lg mx-auto p-4 pb-28 space-y-4">
+        {/* Header matching HomeHeader layout with Menu Button */}
+        <header className="flex justify-between items-center py-1">
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(true)}
+            className="w-10 h-10 rounded-full bg-white/10 dark:bg-zinc-800 shadow-xs border border-white/10 dark:border-zinc-700 flex items-center justify-center text-white dark:text-gray-200 hover:bg-white/20 transition-colors"
+            title="Open Habit Sidebar"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          <h1 className="text-lg font-black text-white tracking-tight">
+            Progress & Insights
+          </h1>
+
+          <div className="w-10 h-10" />
+        </header>
+
+        <ProgressStats />
         <HabitsCompletedChart />
         <CompletionRateChart />
         <CalendarStats />
         <MoodChart />
       </div>
+
+      {/* Habit Sidebar Drawer Modal */}
+      <SidebarDrawerModal
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        currentViewMode="today"
+        onSelectViewMode={() => {}}
+      />
     </div>
   );
 }

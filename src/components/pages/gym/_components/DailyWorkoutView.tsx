@@ -20,6 +20,7 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
     updateCompletedSet,
     toggleExerciseDone,
     finishWorkout,
+    gymSettings,
   } = useGymStore();
 
   const [notes, setNotes] = useState('');
@@ -144,25 +145,35 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
                   </button>
 
                   <div className="flex-1 min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedGuideName(ex.name)}
-                      className="text-left group inline-flex items-center gap-1 flex-wrap"
-                    >
-                      <span
-                        className={cn(
-                          'font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors leading-tight',
-                          ex.completed && 'line-through text-gray-400 dark:text-gray-500'
-                        )}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedGuideName(ex.name)}
+                        className="text-left group inline-flex items-center gap-1 flex-wrap"
                       >
-                        {ex.name}
-                      </span>
-                      <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover:text-blue-600 shrink-0 transition-colors inline-block" />
-                    </button>
+                        <span
+                          className={cn(
+                            'font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors leading-tight',
+                            ex.completed && 'line-through text-gray-400 dark:text-gray-500'
+                          )}
+                        >
+                          {ex.name}
+                        </span>
+                        <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover:text-blue-600 shrink-0 transition-colors inline-block" />
+                      </button>
+
+                      {gymSettings?.showCategoryBadges && ex.category && (
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40 shrink-0">
+                          {ex.category}
+                        </span>
+                      )}
+                    </div>
 
                     <span className="text-xs text-gray-500 block mt-0.5">
                       Target: {ex.targetSets} sets × {ex.targetReps} reps
-                      {ex.weight ? ` • ${ex.weight}` : ''}
+                      {ex.weight
+                        ? ` • ${ex.weight}${!ex.weight.includes('kg') && !ex.weight.includes('lbs') ? gymSettings?.weightUnit || 'kg' : ''}`
+                        : ''}
                     </span>
                   </div>
                 </div>

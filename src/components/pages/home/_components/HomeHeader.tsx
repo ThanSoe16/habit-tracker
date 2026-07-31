@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, Plus, Flame } from 'lucide-react';
+import { Menu, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface HomeHeaderProps {
@@ -30,12 +30,13 @@ export function HomeHeader({ formattedDate, onOpenSidebar }: HomeHeaderProps) {
         {formattedDate || 'Today'}
       </h1>
 
-      {/* Right Actions: Streak + Plus Button */}
+      {/* Right Actions: Plus Button */}
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => router.push('/habits/create')}
-          className="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 shadow-xs border border-gray-100 dark:border-zinc-700 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition-colors"
+          title="Create Habit"
+          className="w-10 h-10 rounded-full bg-blue-600 text-white shadow-xs flex items-center justify-center hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-5 h-5" strokeWidth={2.5} />
         </button>

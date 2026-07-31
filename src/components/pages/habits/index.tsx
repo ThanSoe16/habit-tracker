@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHabitStore } from '@/store/useHabitStore';
 import { MyHabitCard } from './_components/MyHabitCard';
 import { cn } from '@/utils/cn';
-import { Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Menu, Plus } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { SidebarDrawerModal } from '@/components/pages/home/_components/SidebarDrawerModal';
 import {
   DndContext,
   closestCenter,
@@ -19,8 +20,23 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-ki
 
 export default function MyHabitsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
   const { habits, reorderHabits } = useHabitStore();
-  const [activeTab, setActiveTab] = useState<'habit' | 'task'>('habit');
+  const [activeTab, setActiveTab] = useState<'habit' | 'task'>(tabParam === 'task' ? 'task' : 'habit');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (tabParam === 'task' || tabParam === 'habit') {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (tab: 'habit' | 'task') => {
+    setActiveTab(tab);
+    router.push(`/habits?tab=${tab}`);
+  };
 
   const filteredHabits = habits.filter((h) => {
     const type = h.type || 'habit';
@@ -56,41 +72,26 @@ export default function MyHabitsPage() {
 
   return (
     <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 flex flex-col w-full max-w-lg mx-auto pb-28">
-      {/* Header */}
-      <header className="flex justify-between items-center px-6 pt-6 pb-2">
-        <h1 className="text-2xl font-black text-gray-900 dark:text-white">My Habits</h1>
+      {/* Header matching HomeHeader layout */}
+      <header className="flex justify-between items-center px-4 py-3">
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+          className="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 shadow-xs border border-gray-100 dark:border-zinc-700 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition-colors"
+          title="Open Habit Sidebar"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <h1 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">
+          {activeTab === 'task' ? 'One-Time Tasks' : 'Regular Habits'}
+        </h1>
+
+        <div className="w-10 h-10" />
       </header>
 
-      {/* Segmented Control */}
-      <div className="px-6 py-2">
-        <div className="bg-gray-200/70 dark:bg-zinc-800 p-1.5 rounded-2xl flex">
-          <button
-            onClick={() => setActiveTab('habit')}
-            className={cn(
-              'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all',
-              activeTab === 'habit'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/25'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-800',
-            )}
-          >
-            Regular Habit
-          </button>
-          <button
-            onClick={() => setActiveTab('task')}
-            className={cn(
-              'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all',
-              activeTab === 'task'
-                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/25'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-800',
-            )}
-          >
-            One-Time Task
-          </button>
-        </div>
-      </div>
-
       {/* Habit List */}
-      <div className="flex-1 px-6 py-4 space-y-3 overflow-y-auto no-scrollbar pb-32">
+      <div className="flex-1 px-4 py-3 space-y-3 overflow-y-auto no-scrollbar pb-32">
         {filteredHabits.length > 0 ? (
           <DndContext
             sensors={sensors}
@@ -114,7 +115,7 @@ export default function MyHabitsPage() {
           </DndContext>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-3xl">
+            <div className="w-20 h-20 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-3xl">
               🍃
             </div>
             <div>
@@ -128,6 +129,7 @@ export default function MyHabitsPage() {
       {/* Floating Add Button */}
       <div className="fixed bottom-24 right-6 z-40">
         <button
+          type="button"
           onClick={() => router.push('/habits/create')}
           className="w-14 h-14 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] shadow-xl shadow-blue-500/30 flex items-center justify-center border-2 border-white dark:border-zinc-900 transition-all active:scale-95 hover:scale-105 text-white"
           title="Create habit"
@@ -135,6 +137,12 @@ export default function MyHabitsPage() {
           <Plus className="w-7 h-7" strokeWidth={2.5} />
         </button>
       </div>
+
+      {/* Navigation Sidebar Drawer */}
+      <SidebarDrawerModal
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
     </div>
   );
 }

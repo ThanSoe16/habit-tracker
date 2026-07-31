@@ -10,96 +10,115 @@ import {
   Sparkles,
   Calendar,
   History,
-  Dumbbell,
-  ChevronRight,
-  Settings,
-  Grid,
+  User,
+  Activity,
   BarChart2,
+  Settings,
+  ChevronRight,
+  Scale,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/useUserStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export type GymTab = 'today' | 'plan' | 'history';
 
 interface GymSidebarDrawerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  activeTab: GymTab;
-  onSelectTab: (tab: GymTab) => void;
+  activeTab?: GymTab;
+  onSelectTab?: (tab: GymTab) => void;
 }
 
 export function GymSidebarDrawerModal({
   isOpen,
   onClose,
-  activeTab,
+  activeTab = 'today',
   onSelectTab,
 }: GymSidebarDrawerModalProps) {
   const { name, avatarEmoji } = useUserStore();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isWorkoutToday = pathname === '/gym/today' || pathname === '/gym';
+  const isWorkoutPlan = pathname === '/gym/plan';
+  const isWorkoutHistory = pathname === '/gym/history';
+  const isProfilePage = pathname === '/gym/profile';
+  const isProfileHistoryPage = pathname === '/gym/profile/history';
+  const isReportPage = pathname === '/gym/reports' || pathname === '/report';
+  const isSettingsPage = pathname === '/gym/settings';
 
   const menuSections = [
     {
-      title: 'Workout Views',
+      title: 'WORKOUT',
       items: [
         {
           id: 'today',
           label: 'Today',
           icon: Sparkles,
-          action: () => onSelectTab('today'),
-          isActive: activeTab === 'today',
+          action: () => {
+            if (onSelectTab) onSelectTab('today');
+            router.push('/gym/today');
+          },
+          isActive: isWorkoutToday,
         },
         {
           id: 'plan',
           label: '7-Day Plan',
           icon: Calendar,
-          action: () => onSelectTab('plan'),
-          isActive: activeTab === 'plan',
+          action: () => {
+            if (onSelectTab) onSelectTab('plan');
+            router.push('/gym/plan');
+          },
+          isActive: isWorkoutPlan,
         },
         {
           id: 'history',
           label: 'History',
           icon: History,
-          action: () => onSelectTab('history'),
-          isActive: activeTab === 'history',
+          action: () => {
+            if (onSelectTab) onSelectTab('history');
+            router.push('/gym/history');
+          },
+          isActive: isWorkoutHistory,
         },
       ],
     },
     {
-      title: 'Workout Management',
+      title: 'PERSONAL INFO',
       items: [
         {
-          id: 'edit-plan',
-          label: 'Edit Workout Plan',
-          icon: Dumbbell,
-          action: () => onSelectTab('plan'),
-          isActive: false,
+          id: 'info-progress',
+          label: 'Info & Progress',
+          icon: Activity,
+          action: () => router.push('/gym/profile'),
+          isActive: isProfilePage,
         },
         {
-          id: 'units',
-          label: 'Units & Measurements',
-          icon: Grid,
-          action: () => router.push('/design-guide/units'),
-          isActive: false,
+          id: 'metrics-history',
+          label: 'History',
+          icon: Scale,
+          action: () => router.push('/gym/profile/history'),
+          isActive: isProfileHistoryPage,
         },
+      ],
+    },
+    {
+      title: 'GENERAL',
+      items: [
         {
           id: 'reports',
-          label: 'Reports & Analytics',
+          label: 'Reports',
           icon: BarChart2,
-          action: () => router.push('/report'),
-          isActive: false,
+          action: () => router.push('/gym/reports'),
+          isActive: isReportPage,
         },
-      ],
-    },
-    {
-      title: 'Preferences',
-      items: [
         {
           id: 'settings',
           label: 'Settings',
           icon: Settings,
-          action: () => router.push('/settings'),
-          isActive: false,
+          action: () => router.push('/gym/settings'),
+          isActive: isSettingsPage,
         },
       ],
     },
@@ -110,7 +129,7 @@ export function GymSidebarDrawerModal({
       <DrawerContent className="bg-white dark:bg-zinc-900 h-full w-[280px] max-w-[85vw] rounded-r-3xl border-r border-gray-100 dark:border-zinc-800 p-0 overflow-hidden flex flex-col justify-between">
         <div className="flex flex-col h-full overflow-y-auto no-scrollbar">
           {/* User Profile Header */}
-          <div className="p-6 bg-linear-to-b from-blue-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
+          <div className="p-6 bg-gradient-to-b from-blue-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/30 shrink-0">
                 {avatarEmoji || '🏋️'}
@@ -148,7 +167,7 @@ export function GymSidebarDrawerModal({
                           'w-full px-3.5 py-3 rounded-2xl flex items-center justify-between text-xs font-bold transition-all',
                           item.isActive
                             ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/80'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/80',
                         )}
                       >
                         <div className="flex items-center gap-3">

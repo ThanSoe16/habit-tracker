@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useHabitStore } from '@/store/useHabitStore';
+import { useUserStore } from '@/store/useUserStore';
 import { HabitCard } from './HabitCard';
 import { HabitCompletionDrawer } from './HabitCompletionDrawer';
 import { HabitTimerModal } from './HabitTimerModal';
@@ -15,11 +16,12 @@ interface HabitListProps {
 
 export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitListProps) {
   const { habits, toggleHabit, removeCompletion, isLoaded } = useHabitStore();
+  const { homeSettings } = useUserStore();
+
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
   const [timerHabitId, setTimerHabitId] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
-  // Get fresh habit data from store (not stale copy)
   const selectedHabit = selectedHabitId
     ? habits.find((h) => h.id === selectedHabitId) || null
     : null;
@@ -32,47 +34,57 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
 
   // Filter habits based on selected date
   const filteredHabits = habits.filter((habit) => {
-    // 1. Date Range Check
     const selectedDateStr = selectedDate.toLocaleDateString('en-CA');
-
-    if (habit.startDate) {
-      if (selectedDateStr < habit.startDate) return false;
-    }
-
-    if (habit.endDate) {
-      if (selectedDateStr > habit.endDate) return false;
-    }
-
-    // 2. Repeat Logic Check
+    if (habit.startDate && selectedDateStr < habit.startDate) return false;
+    if (habit.endDate && selectedDateStr > habit.endDate) return false;
     return isHabitRequiredOnDate(habit as any, selectedDate);
   });
 
-  // Sort: incomplete habits first (original order), completed habits last
   const dateString = selectedDate.toLocaleDateString('en-CA');
 
-  // Apply filter
+  // Apply filter & hide completed setting
   const finalFilteredHabits = filteredHabits.filter((habit) => {
     const entry = habit.history[dateString];
     const isDone = typeof entry === 'boolean' ? entry : !!entry?.completed;
+
+    if (homeSettings.hideCompleted && isDone) return false;
     if (filter === 'pending') return !isDone;
     if (filter === 'completed') return isDone;
-    return true; // 'all'
+    return true;
   });
 
+  // Apply sorting preference
   const sortedHabits = [...finalFilteredHabits].sort((a, b) => {
     const aEntry = a.history[dateString];
     const bEntry = b.history[dateString];
     const aDone = typeof aEntry === 'boolean' ? aEntry : !!aEntry?.completed;
     const bDone = typeof bEntry === 'boolean' ? bEntry : !!bEntry?.completed;
 
-    if (aDone === bDone) return 0; // preserve original order
-    return aDone ? 1 : -1; // completed → bottom
+    if (homeSettings.sortBy === 'alphabetical') {
+      return a.name.localeCompare(b.name);
+    }
+    if (homeSettings.sortBy === 'streak') {
+      return (b.streak || 0) - (a.streak || 0);
+    }
+    if (homeSettings.sortBy === 'status') {
+      if (aDone !== bDone) return aDone ? 1 : -1;
+    }
+    if (homeSettings.sortBy === 'timeOfDay') {
+      const order: Record<string, number> = { morning: 1, afternoon: 2, evening: 3 };
+      const aVal = order[a.timeOfDay || 'morning'] || 4;
+      const bVal = order[b.timeOfDay || 'morning'] || 4;
+      if (aVal !== bVal) return aVal - bVal;
+    }
+
+    // Default / manual order (incomplete first)
+    if (aDone === bDone) return 0;
+    return aDone ? 1 : -1;
   });
 
   if (sortedHabits.length === 0) {
     return (
-      <div className="text-center p-10 mt-4 bg-white rounded-[2rem] border border-dashed">
-        <p className="text-muted-foreground">No habits for this day.</p>
+      <div className="text-center p-10 mt-4 bg-white dark:bg-zinc-900 rounded-[2rem] border border-dashed border-gray-200 dark:border-zinc-800">
+        <p className="text-muted-foreground text-sm font-semibold">No habits for this day.</p>
       </div>
     );
   }
@@ -93,7 +105,7 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
       });
     } else if (habit.unitType === 'time') {
       const current = typeof entry === 'object' ? parseInt(entry.timeTaken || '0', 10) : 0;
-      const next = current + 5; // increment by 5 mins
+      const next = current + 5;
       const isDone = next >= (habit.goalValue || 1);
       toggleHabit(habit.id, dateStr, {
         completed: isDone,
@@ -127,12 +139,8 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
     const isCurrentlyCompleted = typeof entry === 'boolean' ? entry : entry?.completed;
 
     if (isCurrentlyCompleted) {
-      // Toggle off completion, preserving existing logged time/count
-      toggleHabit(habit.id, dateStr, {
-        completed: false,
-      });
+      toggleHabit(habit.id, dateStr, { completed: false });
     } else {
-      // Toggle on completion
       const prevTime = typeof entry === 'object' ? entry.timeTaken : undefined;
       const prevCount = typeof entry === 'object' ? entry.count : undefined;
 
@@ -174,63 +182,94 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
 
   return (
     <>
-      <div className="space-y-4">
-        {groupedHabits.map((group) => {
-          const isCollapsed = collapsedGroups[group.id];
-          return (
-            <div
-              key={group.id}
-              className="bg-white/90 dark:bg-zinc-900 rounded-lg p-2 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-3"
-            >
-              {/* Accordion Group Header */}
+      <div className="space-y-3">
+        {homeSettings.groupByTimeOfDay ? (
+          groupedHabits.map((group) => {
+            const isCollapsed = collapsedGroups[group.id];
+            return (
               <div
-                className="flex items-center justify-between cursor-pointer px-1 py-0.5"
-                onClick={() => toggleGroupCollapse(group.id)}
+                key={group.id}
+                className="bg-white/90 dark:bg-zinc-900 rounded-2xl p-2.5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-2.5"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{group.icon}</span>
-                  <h2 className="text-sm font-black text-gray-900 dark:text-white">
-                    {group.label}
-                  </h2>
+                <div
+                  className="flex items-center justify-between cursor-pointer px-1 py-0.5"
+                  onClick={() => toggleGroupCollapse(group.id)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{group.icon}</span>
+                    <h2 className="text-sm font-black text-gray-900 dark:text-white">
+                      {group.label}
+                    </h2>
+                  </div>
+
+                  <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 flex items-center justify-center text-xs font-bold transition-transform">
+                    {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                  </div>
                 </div>
 
-                <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 flex items-center justify-center text-xs font-bold transition-transform">
-                  {isCollapsed ? <ChevronDown /> : <ChevronUp />}
-                </div>
+                {!isCollapsed && (
+                  <div className="space-y-2.5 pt-0.5">
+                    {group.items.map((habit, index) => (
+                      <HabitCard
+                        key={habit.id}
+                        habit={habit}
+                        date={selectedDate}
+                        isLast={index === group.items.length - 1}
+                        cardStyle={homeSettings.cardStyle}
+                        showStreakBadges={homeSettings.showStreakBadges}
+                        onClick={() => {
+                          if (habit.unitType === 'duration' || habit.unitType === 'time') {
+                            setTimerHabitId(habit.id);
+                          } else {
+                            setSelectedHabitId(habit.id);
+                          }
+                        }}
+                        onQuickAdd={() => {
+                          if (habit.unitType === 'duration' || habit.unitType === 'time') {
+                            setTimerHabitId(habit.id);
+                          } else {
+                            handleQuickAdd(habit);
+                          }
+                        }}
+                        onQuickSubtract={() => handleQuickSubtract(habit)}
+                        onQuickComplete={() => handleQuickComplete(habit)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {/* Habit Cards List */}
-              {!isCollapsed && (
-                <div className="space-y-2.5 pt-1">
-                  {group.items.map((habit, index) => (
-                    <HabitCard
-                      key={habit.id}
-                      habit={habit}
-                      date={selectedDate}
-                      isLast={index === group.items.length - 1}
-                      onClick={() => {
-                        if (habit.unitType === 'duration' || habit.unitType === 'time') {
-                          setTimerHabitId(habit.id);
-                        } else {
-                          setSelectedHabitId(habit.id);
-                        }
-                      }}
-                      onQuickAdd={() => {
-                        if (habit.unitType === 'duration' || habit.unitType === 'time') {
-                          setTimerHabitId(habit.id);
-                        } else {
-                          handleQuickAdd(habit);
-                        }
-                      }}
-                      onQuickSubtract={() => handleQuickSubtract(habit)}
-                      onQuickComplete={() => handleQuickComplete(habit)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <div className="space-y-2.5">
+            {sortedHabits.map((habit, index) => (
+              <HabitCard
+                key={habit.id}
+                habit={habit}
+                date={selectedDate}
+                isLast={index === sortedHabits.length - 1}
+                cardStyle={homeSettings.cardStyle}
+                showStreakBadges={homeSettings.showStreakBadges}
+                onClick={() => {
+                  if (habit.unitType === 'duration' || habit.unitType === 'time') {
+                    setTimerHabitId(habit.id);
+                  } else {
+                    setSelectedHabitId(habit.id);
+                  }
+                }}
+                onQuickAdd={() => {
+                  if (habit.unitType === 'duration' || habit.unitType === 'time') {
+                    setTimerHabitId(habit.id);
+                  } else {
+                    handleQuickAdd(habit);
+                  }
+                }}
+                onQuickSubtract={() => handleQuickSubtract(habit)}
+                onQuickComplete={() => handleQuickComplete(habit)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {selectedHabit && (

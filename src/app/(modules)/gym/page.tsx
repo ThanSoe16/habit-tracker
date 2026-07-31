@@ -1,5 +1,5 @@
 import GymPage from '@/components/pages/gym';
 
 export default function GymPageRoute() {
-  return <GymPage />;
+  return <GymPage initialTab="today" />;
 }

@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { cn } from '@/utils/cn';
@@ -11,16 +12,22 @@ import { CalendarStrip } from './_components/CalendarStrip';
 import { WeeklyHabitList } from './_components/WeeklyHabitList';
 import { OverallHabitList } from './_components/OverallHabitList';
 import { SidebarDrawerModal } from './_components/SidebarDrawerModal';
-import { useQueryState, parseAsStringLiteral } from 'nuqs';
+import { ProgressStats } from './_components/ProgressStats';
 import { useUserStore } from '@/store/useUserStore';
 
-export default function Home() {
+interface HomePageProps {
+  initialViewMode?: 'today' | 'weekly' | 'overall';
+}
+
+export default function Home({ initialViewMode = 'today' }: HomePageProps) {
   const router = useRouter();
-  const { name: userName, avatarEmoji } = useUserStore();
+  const { name: userName, avatarEmoji, homeSettings } = useUserStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const viewMode = initialViewMode;
 
   const today = new Date();
 
@@ -51,10 +58,9 @@ export default function Home() {
     };
   });
 
-  const [viewMode, setViewMode] = useQueryState(
-    'view',
-    parseAsStringLiteral(['today', 'weekly', 'overall']).withDefault('today'),
-  );
+  const handleSelectViewMode = (mode: 'today' | 'weekly' | 'overall') => {
+    router.push(`/home/${mode}`);
+  };
 
   const isToday = selectedDate.toDateString() === today.toDateString();
   const formattedDate = isToday
@@ -87,9 +93,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <div className="w-full max-w-lg mx-auto p-4 pb-32 flex flex-col min-h-screen space-y-0">
+      <div className="w-full max-w-lg mx-auto p-4 pb-32 flex flex-col min-h-screen space-y-3">
         {/* Fixed Header & Calendar Section */}
-        <div className="shrink-0 space-y-0">
+        <div className="shrink-0 space-y-1">
           <HomeHeader
             greeting={getGreeting()}
             name={userName}
@@ -106,6 +112,13 @@ export default function Home() {
             />
           )}
         </div>
+
+        {/* Optional Progress Stats Banner */}
+        {homeSettings?.showProgressBanner && viewMode === 'today' && (
+          <div className="my-1">
+            <ProgressStats />
+          </div>
+        )}
 
         {/* Scrollable Daily Routine */}
         <section className="flex-1 space-y-3">
@@ -157,7 +170,7 @@ export default function Home() {
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         currentViewMode={viewMode}
-        onSelectViewMode={(mode) => setViewMode(mode)}
+        onSelectViewMode={handleSelectViewMode}
       />
     </div>
   );

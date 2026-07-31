@@ -5,6 +5,26 @@ import { userService } from '@/lib/supabase/services';
 
 export type Theme = 'light' | 'dark';
 
+export interface HomeSettings {
+  homeDefaultView: 'today' | 'weekly' | 'overall';
+  cardStyle: 'compact' | 'detailed';
+  hideCompleted: boolean;
+  sortBy: 'manual' | 'timeOfDay' | 'status' | 'streak' | 'alphabetical';
+  groupByTimeOfDay: boolean;
+  showProgressBanner: boolean;
+  showStreakBadges: boolean;
+}
+
+export const DEFAULT_HOME_SETTINGS: HomeSettings = {
+  homeDefaultView: 'today',
+  cardStyle: 'detailed',
+  hideCompleted: false,
+  sortBy: 'manual',
+  groupByTimeOfDay: false,
+  showProgressBanner: true,
+  showStreakBadges: true,
+};
+
 interface UserStore {
   name: string;
   avatarEmoji: string;
@@ -12,6 +32,7 @@ interface UserStore {
   remindersEnabled: boolean;
   dailyReminderTime: string; // HH:mm format
   theme: Theme;
+  homeSettings: HomeSettings;
   isLoaded: boolean;
   fetchFromSupabase: () => Promise<void>;
   setName: (name: string) => void;
@@ -19,6 +40,7 @@ interface UserStore {
   setRemindersEnabled: (enabled: boolean) => void;
   setDailyReminderTime: (time: string) => void;
   setTheme: (theme: Theme) => void;
+  updateHomeSettings: (updates: Partial<HomeSettings>) => void;
 }
 
 export const useUserStore = create<UserStore>()((set, get) => ({
@@ -28,6 +50,7 @@ export const useUserStore = create<UserStore>()((set, get) => ({
   remindersEnabled: false,
   dailyReminderTime: '08:00',
   theme: 'light' as Theme,
+  homeSettings: DEFAULT_HOME_SETTINGS,
   isLoaded: false,
 
   fetchFromSupabase: async () => {
@@ -41,6 +64,10 @@ export const useUserStore = create<UserStore>()((set, get) => ({
           remindersEnabled: profile.reminders_enabled ?? false,
           dailyReminderTime: profile.daily_reminder_time || '08:00',
           theme: (profile.theme as Theme) || 'light',
+          homeSettings: {
+            ...DEFAULT_HOME_SETTINGS,
+            ...(profile.home_settings || {}),
+          },
           isLoaded: true,
         });
       } else {
@@ -53,6 +80,7 @@ export const useUserStore = create<UserStore>()((set, get) => ({
           remindersEnabled: state.remindersEnabled,
           dailyReminderTime: state.dailyReminderTime,
           theme: state.theme,
+          homeSettings: state.homeSettings,
         });
       }
     } catch (e) {
@@ -71,6 +99,7 @@ export const useUserStore = create<UserStore>()((set, get) => ({
       remindersEnabled: state.remindersEnabled,
       dailyReminderTime: state.dailyReminderTime,
       theme: state.theme,
+      homeSettings: state.homeSettings,
     });
   },
 
@@ -84,6 +113,7 @@ export const useUserStore = create<UserStore>()((set, get) => ({
       remindersEnabled: state.remindersEnabled,
       dailyReminderTime: state.dailyReminderTime,
       theme: state.theme,
+      homeSettings: state.homeSettings,
     });
   },
 
@@ -97,6 +127,7 @@ export const useUserStore = create<UserStore>()((set, get) => ({
       remindersEnabled: enabled,
       dailyReminderTime: state.dailyReminderTime,
       theme: state.theme,
+      homeSettings: state.homeSettings,
     });
   },
 
@@ -110,6 +141,7 @@ export const useUserStore = create<UserStore>()((set, get) => ({
       remindersEnabled: state.remindersEnabled,
       dailyReminderTime: time,
       theme: state.theme,
+      homeSettings: state.homeSettings,
     });
   },
 
@@ -123,6 +155,23 @@ export const useUserStore = create<UserStore>()((set, get) => ({
       remindersEnabled: state.remindersEnabled,
       dailyReminderTime: state.dailyReminderTime,
       theme,
+      homeSettings: state.homeSettings,
+    });
+  },
+
+  updateHomeSettings: (updates) => {
+    set((state) => {
+      const newSettings = { ...state.homeSettings, ...updates };
+      userService.upsertProfile({
+        name: state.name,
+        avatarEmoji: state.avatarEmoji,
+        joinedAt: state.joinedAt,
+        remindersEnabled: state.remindersEnabled,
+        dailyReminderTime: state.dailyReminderTime,
+        theme: state.theme,
+        homeSettings: newSettings,
+      });
+      return { homeSettings: newSettings };
     });
   },
 }));

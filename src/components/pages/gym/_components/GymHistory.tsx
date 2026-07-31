@@ -48,7 +48,7 @@ export function GymHistory() {
         </div>
       </div>
 
-      {/* History Log List */}
+      {/* Workout History List */}
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-4 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-3">
         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">
           Workout History Log ({logEntries.length})

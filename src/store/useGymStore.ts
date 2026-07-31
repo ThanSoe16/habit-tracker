@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getLocalDateString } from '@/utils/dateUtils';
-import { gymService } from '@/lib/supabase/services';
+import { gymService, gymBodyMetricsService, BodyMetricRow } from '@/lib/supabase/services';
 
 export type ExerciseCategory =
   | 'Chest'
@@ -241,15 +241,36 @@ const syncUncompletedLogsWithPlan = (
   return newHistory;
 };
 
+export interface GymSettings {
+  weightUnit: 'kg' | 'lbs';
+  restTimerSeconds: number;
+  autoFinishWorkout: boolean;
+  showCategoryBadges: boolean;
+  defaultTargetSets: number;
+}
+
+export const DEFAULT_GYM_SETTINGS: GymSettings = {
+  weightUnit: 'kg',
+  restTimerSeconds: 60,
+  autoFinishWorkout: false,
+  showCategoryBadges: true,
+  defaultTargetSets: 4,
+};
+
 interface GymStore {
   weeklyPlan: PlanDay[];
   customExercises: Exercise[];
   history: Record<string, WorkoutLog>; // key: YYYY-MM-DD
   activeDayIndex: number; // Selected active day index (0-6)
+  gymSettings: GymSettings;
+  bodyMetricLogs: BodyMetricRow[];
   isLoaded: boolean;
 
   // Actions
   fetchFromSupabase: () => Promise<void>;
+  updateGymSettings: (updates: Partial<GymSettings>) => void;
+  addBodyMetricLog: (log: BodyMetricRow) => Promise<void>;
+  deleteBodyMetricLog: (id: string) => Promise<void>;
   setActiveDayIndex: (index: number) => void;
   updateDayTitle: (dayIndex: number, title: string) => void;
   toggleRestDay: (dayIndex: number) => void;
@@ -278,6 +299,8 @@ export const useGymStore = create<GymStore>()((set, get) => ({
       customExercises: [],
       history: {},
       activeDayIndex: 0,
+      gymSettings: DEFAULT_GYM_SETTINGS,
+      bodyMetricLogs: [],
       isLoaded: false,
 
       fetchFromSupabase: async () => {
@@ -285,6 +308,8 @@ export const useGymStore = create<GymStore>()((set, get) => ({
           const remotePlans = await gymService.fetchGymPlans();
           const remoteCustomEx = await gymService.fetchCustomExercises();
           const remoteHistory = await gymService.fetchWorkoutLogs();
+          const remoteSettings = await gymService.fetchGymSettings();
+          const remoteMetrics = await gymBodyMetricsService.fetchLogs();
 
           if (remotePlans.length === 0) {
             for (const plan of DEFAULT_INITIAL_PLAN) {
@@ -296,6 +321,11 @@ export const useGymStore = create<GymStore>()((set, get) => ({
             weeklyPlan: remotePlans.length > 0 ? remotePlans : DEFAULT_INITIAL_PLAN,
             customExercises: remoteCustomEx,
             history: remoteHistory,
+            gymSettings: {
+              ...DEFAULT_GYM_SETTINGS,
+              ...(remoteSettings || {}),
+            },
+            bodyMetricLogs: remoteMetrics,
             isLoaded: true,
           });
         } catch (e) {
@@ -303,6 +333,33 @@ export const useGymStore = create<GymStore>()((set, get) => ({
           set({ isLoaded: true });
         }
       },
+
+      addBodyMetricLog: async (row) => {
+        const saved = await gymBodyMetricsService.insertLog(row);
+        if (saved) {
+          set((state) => ({
+            bodyMetricLogs: [...state.bodyMetricLogs, saved].sort(
+              (a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime()
+            ),
+          }));
+        }
+      },
+
+      deleteBodyMetricLog: async (id) => {
+        await gymBodyMetricsService.deleteLog(id);
+        set((state) => ({
+          bodyMetricLogs: state.bodyMetricLogs.filter((m) => m.id !== id),
+        }));
+      },
+
+      updateGymSettings: (updates) => {
+        set((state) => {
+          const newSettings = { ...state.gymSettings, ...updates };
+          gymService.saveGymSettings(newSettings);
+          return { gymSettings: newSettings };
+        });
+      },
+
 
       setActiveDayIndex: (index) => set({ activeDayIndex: index }),
 
