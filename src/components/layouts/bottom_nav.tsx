@@ -50,7 +50,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   // Only show bottom nav on main pages
-  const isMainPage = NAV_ITEMS.some((item) => item.href === pathname);
+  const isMainPage = NAV_ITEMS.some((item) => item.href === pathname) || pathname === '/report';
   if (!isMainPage) return null;
 
   return (

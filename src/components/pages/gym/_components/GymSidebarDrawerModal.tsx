@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Settings,
   Grid,
+  BarChart2,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/useUserStore';
@@ -79,6 +80,13 @@ export function GymSidebarDrawerModal({
           label: 'Units & Measurements',
           icon: Grid,
           action: () => router.push('/design-guide/units'),
+          isActive: false,
+        },
+        {
+          id: 'reports',
+          label: 'Reports & Analytics',
+          icon: BarChart2,
+          action: () => router.push('/report'),
           isActive: false,
         },
       ],

@@ -82,6 +82,13 @@ export function SidebarDrawerModal({
           action: () => router.push('/habits/create'),
           isActive: false,
         },
+        {
+          id: 'reports',
+          label: 'Reports & Analytics',
+          icon: BarChart2,
+          action: () => router.push('/report'),
+          isActive: false,
+        },
       ],
     },
     {
