@@ -103,7 +103,9 @@ function CompletionForm({
               {initialNotes && (
                 <div className="pt-2">
                   <span className="text-muted-foreground font-medium text-sm">Notes</span>
-                  <p className="text-sm mt-1 bg-gray-50 dark:bg-zinc-800 p-3 rounded-lg">{initialNotes}</p>
+                  <p className="text-sm mt-1 bg-gray-50 dark:bg-zinc-800 p-3 rounded-lg">
+                    {initialNotes}
+                  </p>
                 </div>
               )}
             </div>
@@ -339,13 +341,11 @@ export function HabitCompletionDrawer({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="bg-background rounded-t-[2.5rem]">
+      <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader className="flex flex-col items-center pt-4 pb-2">
             <div className="text-center">
-              <DrawerTitle className="text-2xl font-black tracking-tight">
-                {habit.name}
-              </DrawerTitle>
+              <DrawerTitle className="text-2xl font-black tracking-tight">{habit.name}</DrawerTitle>
             </div>
           </DrawerHeader>
 

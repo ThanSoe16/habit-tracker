@@ -40,7 +40,7 @@ export function ViewModeDrawerModal({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="bg-white dark:bg-zinc-900 rounded-t-[2.5rem]">
+      <DrawerContent>
         <div className="mx-auto w-full max-w-sm px-6 pt-2 pb-10 space-y-6">
           <DrawerHeader className="p-0 text-center">
             <DrawerTitle className="text-xl font-black text-gray-900 dark:text-white">
@@ -65,7 +65,7 @@ export function ViewModeDrawerModal({
                     'w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between',
                     isSelected
                       ? 'bg-blue-50/70 dark:bg-blue-950/40 border-[#2563eb] text-blue-600 dark:text-blue-400 ring-2 ring-blue-500/20'
-                      : 'bg-gray-50 dark:bg-zinc-800/80 border-gray-100 dark:border-zinc-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100'
+                      : 'bg-gray-50 dark:bg-zinc-800/80 border-gray-100 dark:border-zinc-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100',
                   )}
                 >
                   <div className="flex items-center gap-3.5">
@@ -74,7 +74,7 @@ export function ViewModeDrawerModal({
                         'w-11 h-11 rounded-2xl flex items-center justify-center text-xl shrink-0',
                         isSelected
                           ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/30'
-                          : 'bg-white dark:bg-zinc-700 text-gray-500'
+                          : 'bg-white dark:bg-zinc-700 text-gray-500',
                       )}
                     >
                       <IconComp className="w-5 h-5" />

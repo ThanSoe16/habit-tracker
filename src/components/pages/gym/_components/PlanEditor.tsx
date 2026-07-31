@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Moon, Dumbbell, Edit2, Check, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Moon, Dumbbell, Edit2, Check, RotateCcw, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useGymStore, PlanExercise, Exercise } from '@/store/useGymStore';
 import { ExerciseSelectorModal } from './ExerciseSelectorModal';
+import { ExerciseGuideModal } from './ExerciseGuideModal';
 
 export function PlanEditor() {
   const {
@@ -27,6 +28,7 @@ export function PlanEditor() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState('');
+  const [selectedGuideName, setSelectedGuideName] = useState<string | null>(null);
 
   const currentDay = weeklyPlan[activeDayIndex] || weeklyPlan[0];
 
@@ -215,10 +217,17 @@ export function PlanEditor() {
                       <div className="w-7 h-7 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center shrink-0">
                         {idx + 1}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-gray-900 dark:text-white">
-                          {ex.name}
-                        </h4>
+                      <div className="flex-1 min-w-0">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedGuideName(ex.name)}
+                          className="text-left group/title inline-flex items-center gap-1 flex-wrap"
+                        >
+                          <span className="font-bold text-sm text-gray-900 dark:text-white group-hover/title:text-blue-600 transition-colors leading-tight">
+                            {ex.name}
+                          </span>
+                          <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover/title:text-blue-600 shrink-0 transition-colors inline-block" />
+                        </button>
                         <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
                           <span className="font-semibold px-1.5 py-0.5 rounded bg-gray-200/60 dark:bg-zinc-700/60 text-[10px]">
                             {ex.category}
@@ -267,6 +276,12 @@ export function PlanEditor() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSelectExercise={handleSelectExercise}
+      />
+
+      <ExerciseGuideModal
+        exerciseName={selectedGuideName}
+        isOpen={!!selectedGuideName}
+        onClose={() => setSelectedGuideName(null)}
       />
     </div>
   );

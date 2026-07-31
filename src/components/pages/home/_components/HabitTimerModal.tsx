@@ -1,15 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  FastForward,
-  X,
-  Plus,
-  Minus,
-} from 'lucide-react';
+import { Play, Pause, RotateCcw, FastForward, X, Plus, Minus } from 'lucide-react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { cn } from '@/utils/cn';
 import { Habit } from '@/store/useHabitStore';
@@ -114,7 +106,6 @@ function TimerInnerForm({
 
   return (
     <div className="px-6 pb-10 pt-2 flex flex-col items-center space-y-6">
-
       {/* Header Title & Subtitle */}
       <div className="text-center space-y-1">
         <DrawerTitle className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
@@ -230,7 +221,7 @@ function TimerInnerForm({
             'flex-1 py-4 rounded-3xl text-white font-black text-base flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-98',
             isRunning
               ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30'
-              : 'bg-[#00c853] hover:bg-emerald-600 shadow-emerald-500/30'
+              : 'bg-[#00c853] hover:bg-emerald-600 shadow-emerald-500/30',
           )}
         >
           {isRunning ? (
@@ -270,7 +261,7 @@ export function HabitTimerModal({
 }: HabitTimerModalProps) {
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="bg-background rounded-t-[2.5rem]">
+      <DrawerContent>
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader className="p-0" />
           {isOpen && (

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, Plus, Minus, Trophy, Calendar, Sparkles, Dumbbell } from 'lucide-react';
+import { Check, Plus, Minus, Trophy, Calendar, Sparkles, Dumbbell, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useGymStore } from '@/store/useGymStore';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { ExerciseGuideModal } from './ExerciseGuideModal';
 
 interface DailyWorkoutViewProps {
   date?: Date;
@@ -23,6 +24,7 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
 
   const [notes, setNotes] = useState('');
   const [showCelebration, setShowCelebration] = useState(false);
+  const [selectedGuideName, setSelectedGuideName] = useState<string | null>(null);
 
   // Initialize or fetch current log
   const log = getWorkoutLogForDate(dateStr) || initializeWorkoutLogForDate(dateStr);
@@ -109,9 +111,12 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
 
       {/* Exercises Checklist */}
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-4 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-3">
-        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">
-          Exercises Checklist ({log.exercises.filter((e) => e.completed).length}/{log.exercises.length})
-        </h4>
+        <div className="flex items-center justify-between px-1">
+          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+            Exercises Checklist ({log.exercises.filter((e) => e.completed).length}/{log.exercises.length})
+          </h4>
+          <span className="text-[10px] font-bold text-blue-500">Tap ℹ️ for How-To Guide</span>
+        </div>
 
         <div className="space-y-3">
           {log.exercises.map((ex) => (
@@ -129,7 +134,7 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
                   <button
                     onClick={() => toggleExerciseDone(dateStr, ex.id)}
                     className={cn(
-                      'w-6 h-6 rounded-lg flex items-center justify-center transition-all border-2',
+                      'w-6 h-6 rounded-lg flex items-center justify-center transition-all border-2 shrink-0',
                       ex.completed
                         ? 'bg-green-600 border-green-600 text-white'
                         : 'border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-transparent'
@@ -138,16 +143,24 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
                     <Check className="w-3.5 h-3.5" strokeWidth={3} />
                   </button>
 
-                  <div>
-                    <h5
-                      className={cn(
-                        'font-bold text-sm text-gray-900 dark:text-white',
-                        ex.completed && 'line-through text-gray-400 dark:text-gray-500'
-                      )}
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGuideName(ex.name)}
+                      className="text-left group inline-flex items-center gap-1 flex-wrap"
                     >
-                      {ex.name}
-                    </h5>
-                    <span className="text-xs text-gray-500">
+                      <span
+                        className={cn(
+                          'font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors leading-tight',
+                          ex.completed && 'line-through text-gray-400 dark:text-gray-500'
+                        )}
+                      >
+                        {ex.name}
+                      </span>
+                      <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover:text-blue-600 shrink-0 transition-colors inline-block" />
+                    </button>
+
+                    <span className="text-xs text-gray-500 block mt-0.5">
                       Target: {ex.targetSets} sets × {ex.targetReps} reps
                       {ex.weight ? ` • ${ex.weight}` : ''}
                     </span>
@@ -155,7 +168,7 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
                 </div>
 
                 {/* Set counter buttons */}
-                <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 p-1 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm">
+                <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 p-1 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm shrink-0">
                   <button
                     onClick={() => updateCompletedSet(dateStr, ex.id, -1)}
                     disabled={ex.completedSets <= 0}
@@ -188,7 +201,7 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
             onChange={(e) => setNotes(e.target.value)}
             placeholder="e.g. Felt great on bench press, increased weight by 5kg!"
             rows={2}
-            className="w-full px-3 py-2 text-xs rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-xs rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
 
@@ -206,6 +219,13 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
           {log.completed ? 'Update Finished Workout 🎉' : 'Finish Today Workout 🎉'}
         </button>
       </div>
+
+      {/* Exercise How-To Guide Modal */}
+      <ExerciseGuideModal
+        exerciseName={selectedGuideName}
+        isOpen={!!selectedGuideName}
+        onClose={() => setSelectedGuideName(null)}
+      />
 
       {/* Celebration Modal / Popup */}
       {showCelebration && (
