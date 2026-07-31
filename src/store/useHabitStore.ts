@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/dateUtils';
+import { habitsService } from '@/lib/supabase/services';
 
 export type HabitFrequency = 'daily' | 'weekly' | 'monthly' | 'specific';
 
@@ -38,6 +39,7 @@ interface HabitStore {
   habits: Habit[];
   customUnits: string[];
   isLoaded: boolean;
+  fetchFromSupabase: () => Promise<void>;
   addCustomUnit: (unitName: string) => void;
   updateCustomUnit: (oldUnit: string, newUnit: string) => void;
   deleteCustomUnit: (unitName: string) => void;
@@ -98,53 +100,54 @@ interface HabitStore {
 const calculateStreak = (habit: Habit, history: Habit['history']): number => {
   let streak = 0;
   const todayStr = getLocalDateString();
-  const currentDate = new Date(); // Start from today locally
+  const currentDate = new Date();
 
-  // Check backwards
   while (true) {
     const dateStr = getLocalDateString(currentDate);
     const entry = history[dateStr];
     const isDone = typeof entry === 'boolean' ? entry : entry?.completed;
-
     const isRequired = isHabitRequiredOnDate(habit, currentDate);
 
     if (isRequired) {
       if (isDone) {
         streak++;
       } else {
-        // If it's today and not done yet, don't break the streak (it continues from yesterday)
         if (dateStr === todayStr) {
           // Keep going to check yesterday
         } else {
-          // Required day missed in the past, break streak
           break;
         }
       }
-    } else {
-      // Not a required day, just keep going
     }
 
-    // Move to previous day
     currentDate.setDate(currentDate.getDate() - 1);
-
-    // Safety break: don't look back more than a year (or some reasonable limit)
-    // Or just break if we reach habit creation date (if we had it as a Date object)
     if (streak > 366) break;
-
-    // Also break if we go way before the habit was created (optional optimization)
-    // For now, let's keep it simple but safe.
     if (currentDate.getFullYear() < 2024) break;
   }
 
   return streak;
 };
 
-export const useHabitStore = create<HabitStore>()(
-  persist(
-    (set) => ({
+export const useHabitStore = create<HabitStore>()((set, get) => ({
       habits: [],
       customUnits: [],
-      isLoaded: true,
+      isLoaded: false,
+
+      fetchFromSupabase: async () => {
+        try {
+          const remoteHabits = await habitsService.fetchHabits();
+          const remoteUnits = await habitsService.fetchCustomUnits();
+          
+          set({
+            habits: remoteHabits,
+            customUnits: remoteUnits,
+            isLoaded: true,
+          });
+        } catch (e) {
+          console.warn('Failed to fetch habits from Supabase:', e);
+          set({ isLoaded: true });
+        }
+      },
 
       addCustomUnit: (unitName) => {
         const trimmed = unitName.trim();
@@ -154,6 +157,7 @@ export const useHabitStore = create<HabitStore>()(
             ? state.customUnits
             : [...state.customUnits, trimmed],
         }));
+        habitsService.addCustomUnit(trimmed);
       },
 
       updateCustomUnit: (oldUnit, newUnit) => {
@@ -163,12 +167,15 @@ export const useHabitStore = create<HabitStore>()(
           customUnits: state.customUnits.map((u) => (u === oldUnit ? trimmed : u)),
           habits: state.habits.map((h) => (h.unit === oldUnit ? { ...h, unit: trimmed } : h)),
         }));
+        habitsService.deleteCustomUnit(oldUnit);
+        habitsService.addCustomUnit(trimmed);
       },
 
       deleteCustomUnit: (unitName) => {
         set((state) => ({
           customUnits: state.customUnits.filter((u) => u !== unitName),
         }));
+        habitsService.deleteCustomUnit(unitName);
       },
 
       addHabit: (
@@ -216,20 +223,28 @@ export const useHabitStore = create<HabitStore>()(
           createdAt: new Date().toISOString(),
         };
         set((state) => ({ habits: [...state.habits, newHabit] }));
+        habitsService.upsertHabit(newHabit);
       },
 
       removeHabit: (id) => {
         set((state) => ({ habits: state.habits.filter((h) => h.id !== id) }));
+        habitsService.deleteHabit(id);
       },
 
       updateHabit: (id, updates) => {
         set((state) => ({
-          habits: state.habits.map((h) => (h.id === id ? { ...h, ...updates } : h)),
+          habits: state.habits.map((h) => {
+            if (h.id !== id) return h;
+            const updated = { ...h, ...updates };
+            habitsService.upsertHabit(updated);
+            return updated;
+          }),
         }));
       },
 
       reorderHabits: (habits) => {
         set({ habits });
+        habits.forEach((h) => habitsService.upsertHabit(h));
       },
 
       toggleHabit: (id, date, details) => {
@@ -239,7 +254,6 @@ export const useHabitStore = create<HabitStore>()(
 
             const newHistory = { ...h.history };
 
-            // If details are provided, we are "finishing" or updating a completed habit
             if (details) {
               const existingObj =
                 typeof newHistory[date] === 'object' ? (newHistory[date] as any) : {};
@@ -253,7 +267,6 @@ export const useHabitStore = create<HabitStore>()(
                 ...cleanDetails,
               };
             } else {
-              // Simple toggle (legacy behavior)
               if (newHistory[date]) {
                 delete newHistory[date];
               } else {
@@ -261,10 +274,11 @@ export const useHabitStore = create<HabitStore>()(
               }
             }
 
-            // Recalculate streak
             const streak = calculateStreak(h, newHistory);
+            const updatedHabit = { ...h, history: newHistory, streak };
+            habitsService.upsertHabit(updatedHabit);
 
-            return { ...h, history: newHistory, streak };
+            return updatedHabit;
           }),
         }));
       },
@@ -277,16 +291,13 @@ export const useHabitStore = create<HabitStore>()(
             const newHistory = { ...h.history };
             delete newHistory[date];
 
-            // Recalculate streak
             const streak = calculateStreak(h, newHistory);
+            const updatedHabit = { ...h, history: newHistory, streak };
+            habitsService.upsertHabit(updatedHabit);
 
-            return { ...h, history: newHistory, streak };
+            return updatedHabit;
           }),
         }));
       },
-    }),
-    {
-      name: 'habit-tracker-data',
-    },
-  ),
-);
+    }));
+

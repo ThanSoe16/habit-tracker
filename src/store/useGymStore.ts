@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { gymService } from '@/lib/supabase/services';
 
 export type ExerciseCategory =
   | 'Chest'
@@ -245,8 +246,10 @@ interface GymStore {
   customExercises: Exercise[];
   history: Record<string, WorkoutLog>; // key: YYYY-MM-DD
   activeDayIndex: number; // Selected active day index (0-6)
+  isLoaded: boolean;
 
   // Actions
+  fetchFromSupabase: () => Promise<void>;
   setActiveDayIndex: (index: number) => void;
   updateDayTitle: (dayIndex: number, title: string) => void;
   toggleRestDay: (dayIndex: number) => void;
@@ -270,15 +273,40 @@ interface GymStore {
   deleteWorkoutLog: (dateStr: string) => void;
 }
 
-export const useGymStore = create<GymStore>()(
-  persist(
-    (set, get) => ({
+export const useGymStore = create<GymStore>()((set, get) => ({
       weeklyPlan: DEFAULT_INITIAL_PLAN,
       customExercises: [],
       history: {},
       activeDayIndex: 0,
+      isLoaded: false,
+
+      fetchFromSupabase: async () => {
+        try {
+          const remotePlans = await gymService.fetchGymPlans();
+          const remoteCustomEx = await gymService.fetchCustomExercises();
+          const remoteHistory = await gymService.fetchWorkoutLogs();
+
+          if (remotePlans.length === 0) {
+            for (const plan of DEFAULT_INITIAL_PLAN) {
+              await gymService.upsertGymPlan(plan);
+            }
+          }
+
+          set({
+            weeklyPlan: remotePlans.length > 0 ? remotePlans : DEFAULT_INITIAL_PLAN,
+            customExercises: remoteCustomEx,
+            history: remoteHistory,
+            isLoaded: true,
+          });
+        } catch (e) {
+          console.warn('Failed to fetch gym store from Supabase:', e);
+          set({ isLoaded: true });
+        }
+      },
 
       setActiveDayIndex: (index) => set({ activeDayIndex: index }),
+
+
 
       updateDayTitle: (dayIndex, title) => {
         set((state) => {
@@ -655,10 +683,7 @@ export const useGymStore = create<GymStore>()(
           delete newHistory[dateStr];
           return { history: newHistory };
         });
+        gymService.deleteWorkoutLog(dateStr);
       },
-    }),
-    {
-      name: 'gym-tracker-storage',
-    },
-  ),
-);
+    }));
+

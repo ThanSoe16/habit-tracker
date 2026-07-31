@@ -58,6 +58,7 @@ export const metadata: Metadata = {
 
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { DailyReminderProvider } from '@/components/providers/DailyReminderProvider';
+import { SupabaseSyncProvider } from '@/components/providers/SupabaseSyncProvider';
 
 export default function RootLayout({
   children,
@@ -68,9 +69,12 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NuqsAdapter>
-          <DailyReminderProvider>{children}</DailyReminderProvider>
+          <SupabaseSyncProvider>
+            <DailyReminderProvider>{children}</DailyReminderProvider>
+          </SupabaseSyncProvider>
         </NuqsAdapter>
       </body>
     </html>
   );
 }
+
