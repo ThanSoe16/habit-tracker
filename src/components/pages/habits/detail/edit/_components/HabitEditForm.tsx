@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useHabitStore, Habit } from '@/store/useHabitStore';
 import { useRouter } from 'next/navigation';
 import HabitForm from '../../../_components/form/HabitForm';
+import { normalize24HourTime } from '@/utils/timeUtils';
 
 const HabitEditForm = ({ habit }: { habit: Habit }) => {
   const router = useRouter();
@@ -14,12 +15,12 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
     resolver: zodResolver(habitSchema),
     defaultValues: {
       name: habit.name,
-      color: habit.color,
-      emoji: habit.emoji || '✨',
+      color: habit.color || '#2563eb',
+      emoji: habit.emoji || '☕',
       startDate: habit.startDate || new Date().toISOString().split('T')[0],
       type: habit.type || 'habit',
-      frequencyTab: habit.frequency as any,
-      selectedDays: habit.frequency === 'daily' ? habit.repeatDays : [1, 2, 3, 4, 5, 6, 0],
+      frequencyTab: (habit.frequency as any) || 'weekly',
+      selectedDays: habit.repeatDays || [1, 2, 3, 4, 5, 6, 0],
       selectedMonthlyDays: habit.frequency === 'monthly' ? habit.repeatDays : [],
       selectedSpecificDates: habit.specificDates || [],
       allDay: !habit.timeOfDay,
@@ -29,7 +30,7 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
       endHabitDate: habit.endHabitDate || '2026-12-31',
       endHabitDays: habit.endHabitDays || 365,
       reminders: !!habit.reminderTime,
-      reminderTime: habit.reminderTime || '07:00 AM',
+      reminderTime: normalize24HourTime(habit.reminderTime),
       unitType: habit.unitType || 'simple',
       timerMode: habit.timerMode || 'down',
       timeUnit: habit.timeUnit || 'min',

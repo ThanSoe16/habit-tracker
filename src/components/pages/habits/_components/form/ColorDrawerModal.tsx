@@ -12,6 +12,8 @@ interface ColorDrawerModalProps {
   onSelectColor: (color: string) => void;
 }
 
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+
 export function ColorDrawerModal({
   isOpen,
   onClose,
@@ -21,18 +23,16 @@ export function ColorDrawerModal({
   const colorInputRef = useRef<HTMLInputElement>(null);
   const isCustomColor = !COLORS.includes(selectedColor);
 
-  if (!isOpen) return null;
-
   const handleSelect = (color: string) => {
     onSelectColor(color);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-[36px] max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300">
+    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DrawerContent className="z-[70] max-w-lg mx-auto rounded-t-[36px] pb-8 max-h-[85vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 dark:border-zinc-800">
+        <div className="flex items-center justify-between px-6 pt-3 pb-3 border-b border-gray-100 dark:border-zinc-800 shrink-0">
           <button
             type="button"
             onClick={onClose}
@@ -40,7 +40,7 @@ export function ColorDrawerModal({
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <h2 className="text-lg font-black text-gray-900 dark:text-white">Color</h2>
+          <DrawerTitle className="text-lg font-black text-gray-900 dark:text-white">Color</DrawerTitle>
           <div className="w-10 h-10" />
         </div>
 
@@ -72,7 +72,7 @@ export function ColorDrawerModal({
                   onClick={() => handleSelect(c)}
                   className={cn(
                     'w-13 h-13 rounded-2xl transition-all flex items-center justify-center border-2 border-transparent hover:scale-105 active:scale-95',
-                    selectedColor === c && 'ring-2 ring-blue-500 ring-offset-2 scale-110 shadow-md'
+                    selectedColor === c && 'ring-2 ring-blue-500 ring-offset-2 scale-110 shadow-md',
                   )}
                   style={{ backgroundColor: c }}
                 >
@@ -96,7 +96,7 @@ export function ColorDrawerModal({
                     'w-13 h-13 rounded-2xl flex items-center justify-center border transition-all overflow-hidden',
                     isCustomColor
                       ? 'ring-2 ring-blue-500 ring-offset-2 scale-110 shadow-md'
-                      : 'bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 hover:bg-gray-200',
                   )}
                   style={isCustomColor ? { backgroundColor: selectedColor } : {}}
                 >
@@ -112,7 +112,7 @@ export function ColorDrawerModal({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

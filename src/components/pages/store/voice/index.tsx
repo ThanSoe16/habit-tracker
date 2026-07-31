@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Menu, Mic, MicOff, Square, Play, Pause, Save, Trash2, X } from 'lucide-react';
 import { useMediaStore, MediaEntry } from '@/store/useMediaStore';
+import { uploadMediaToStorage } from '@/lib/supabase/services';
 import { StoreSidebarDrawerModal } from '../_components/StoreSidebarDrawerModal';
 import { MediaCard } from '../_components/MediaCard';
 import { cn } from '@/utils/cn';
@@ -100,27 +101,33 @@ export default function StoreVoicePage() {
     }
   }, [isRecording]);
 
+  const [memoTitle, setMemoTitle] = useState('');
+
   // Save recording
-  const saveRecording = useCallback(() => {
+  const saveRecording = useCallback(async () => {
     if (!recordedBlob || !recordedUrl) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const entry: MediaEntry = {
-        id: crypto.randomUUID(),
-        type: 'voice',
-        title: `Voice Memo ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
-        dataUrl: reader.result as string,
-        fileSize: recordedBlob.size,
-        duration: recordingTime,
-        mimeType: recordedBlob.type,
-        createdAt: new Date().toISOString(),
-      };
-      addMediaEntry(entry);
-      discardRecording();
+    // Upload blob to Supabase Storage first to get clean route URL
+    const storageUrl = await uploadMediaToStorage(recordedBlob, 'voice_memo.webm');
+
+    const title =
+      memoTitle.trim() ||
+      `Voice Memo ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+
+    const entry: MediaEntry = {
+      id: crypto.randomUUID(),
+      type: 'voice',
+      title,
+      dataUrl: storageUrl || recordedUrl,
+      fileSize: recordedBlob.size,
+      duration: recordingTime,
+      mimeType: recordedBlob.type || 'audio/webm',
+      createdAt: new Date().toISOString(),
     };
-    reader.readAsDataURL(recordedBlob);
-  }, [recordedBlob, recordedUrl, recordingTime, addMediaEntry]);
+
+    addMediaEntry(entry);
+    discardRecording();
+  }, [recordedBlob, recordedUrl, recordingTime, memoTitle, addMediaEntry]);
 
   // Discard recording
   const discardRecording = useCallback(() => {
@@ -129,6 +136,7 @@ export default function StoreVoicePage() {
     setRecordedUrl(null);
     setRecordingTime(0);
     setIsPlaying(false);
+    setMemoTitle('');
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -261,38 +269,48 @@ export default function StoreVoicePage() {
               </p>
             </div>
           ) : (
-            /* Preview Controls */
-            <div className="flex items-center justify-center gap-4">
-              <button
-                type="button"
-                onClick={discardRecording}
-                className="w-12 h-12 rounded-full bg-red-500/20 hover:bg-red-500/30 flex items-center justify-center transition-colors"
-                title="Discard"
-              >
-                <Trash2 className="w-5 h-5 text-red-300" />
-              </button>
+            /* Preview Controls & Name Input */
+            <div className="space-y-4 w-full max-w-xs mx-auto">
+              <input
+                type="text"
+                value={memoTitle}
+                onChange={(e) => setMemoTitle(e.target.value)}
+                placeholder="Enter voice memo name..."
+                className="w-full px-4 py-2.5 bg-black/20 text-white placeholder-emerald-100/60 rounded-2xl text-xs font-bold border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 text-center shadow-inner"
+              />
 
-              <button
-                type="button"
-                onClick={togglePlayback}
-                className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 border-2 border-white/30 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-                title={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? (
-                  <Pause className="w-7 h-7 text-white" />
-                ) : (
-                  <Play className="w-7 h-7 text-white ml-0.5" />
-                )}
-              </button>
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={discardRecording}
+                  className="w-12 h-12 rounded-full bg-red-500/20 hover:bg-red-500/30 flex items-center justify-center transition-colors"
+                  title="Discard"
+                >
+                  <Trash2 className="w-5 h-5 text-red-300" />
+                </button>
 
-              <button
-                type="button"
-                onClick={saveRecording}
-                className="w-12 h-12 rounded-full bg-emerald-400/30 hover:bg-emerald-400/50 flex items-center justify-center transition-colors"
-                title="Save"
-              >
-                <Save className="w-5 h-5 text-emerald-200" />
-              </button>
+                <button
+                  type="button"
+                  onClick={togglePlayback}
+                  className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 border-2 border-white/30 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+                  title={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? (
+                    <Pause className="w-7 h-7 text-white" />
+                  ) : (
+                    <Play className="w-7 h-7 text-white ml-0.5" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={saveRecording}
+                  className="w-12 h-12 rounded-full bg-emerald-400/30 hover:bg-emerald-400/50 flex items-center justify-center transition-colors"
+                  title="Save"
+                >
+                  <Save className="w-5 h-5 text-emerald-200" />
+                </button>
+              </div>
             </div>
           )}
         </div>

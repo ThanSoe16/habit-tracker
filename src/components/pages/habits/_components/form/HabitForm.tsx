@@ -17,6 +17,7 @@ import { UnitSelectorModal } from './UnitSelectorModal';
 import { GoalDrawerModal } from './GoalDrawerModal';
 import { useRouter } from 'next/navigation';
 import { X, ChevronRight, Target } from 'lucide-react';
+import { normalize24HourTime } from '@/utils/timeUtils';
 
 const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const router = useRouter();
@@ -358,6 +359,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                     <FieldLabel htmlFor="form-reminderTime" className="text-xs font-bold text-gray-700 dark:text-gray-300">
                       Alarm Time
                     </FieldLabel>
+
                     <Controller
                       name="reminderTime"
                       control={form.control}
@@ -365,8 +367,13 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                         <Input
                           id="form-reminderTime"
                           type="time"
-                          className="h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-none font-bold text-sm shadow-xs"
-                          {...field}
+                          className="h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-none font-bold text-sm shadow-xs cursor-pointer px-4"
+                          value={normalize24HourTime(field.value)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            field.onChange(val);
+                            setValue('reminderTime', val, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                          }}
                         />
                       )}
                     />
@@ -401,7 +408,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                             const hh = Math.floor(alarmMins / 60) % 24;
                             const mm = alarmMins % 60;
                             const timeStr = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-                            setValue('reminderTime', timeStr, { shouldValidate: true });
+                            setValue('reminderTime', timeStr, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
                           }}
                           className="px-3 py-1.5 bg-blue-50 dark:bg-zinc-800 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold hover:bg-blue-100 dark:hover:bg-zinc-700 transition-colors border border-blue-100 dark:border-zinc-700"
                         >
@@ -415,7 +422,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                   <div className="bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 p-3 rounded-2xl flex items-center gap-2.5 text-xs text-blue-700 dark:text-blue-300 font-medium">
                     <span className="text-base">🔔</span>
                     <span>
-                      Alarm will trigger at <strong className="font-bold">{watch('reminderTime') || '09:45'}</strong> to give you enough time before starting.
+                      Alarm will trigger at <strong className="font-bold">{normalize24HourTime(watch('reminderTime'))}</strong> to give you enough time before starting.
                     </span>
                   </div>
                 </div>

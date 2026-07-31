@@ -6,6 +6,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { cn } from '@/utils/cn';
 import { Habit } from '@/store/useHabitStore';
 
+import { parseTimeTakenToSeconds, formatTimeTakenDisplay } from '@/utils/timeUtils';
+
 interface HabitTimerModalProps {
   habit: Habit;
   date: Date;
@@ -29,12 +31,7 @@ function TimerInnerForm({
   const historyEntry = habit.history[dateString];
   let initialSecs = 0;
   if (typeof historyEntry === 'object' && historyEntry?.timeTaken) {
-    const parts = String(historyEntry.timeTaken).split(':');
-    if (parts.length === 2) {
-      initialSecs = parseInt(parts[0] || '0', 10) * 60 + parseInt(parts[1] || '0', 10);
-    } else {
-      initialSecs = parseInt(parts[0] || '0', 10) * 60;
-    }
+    initialSecs = parseTimeTakenToSeconds(historyEntry.timeTaken);
   }
 
   const goalMins = habit.goalValue || 10;
@@ -70,14 +67,16 @@ function TimerInnerForm({
   const remainingSeconds = Math.max(0, totalGoalSeconds - seconds);
 
   const formatMinSec = (secVal: number) => {
-    const m = Math.floor(secVal / 60);
-    const s = secVal % 60;
-    return `${m}:${String(s).padStart(2, '0')}`;
+    return formatTimeTakenDisplay(secVal);
   };
 
   const formatRemainingPill = (secVal: number) => {
-    const m = Math.floor(secVal / 60);
+    const hours = Math.floor(secVal / 3600);
+    const m = Math.floor((secVal % 3600) / 60);
     const s = secVal % 60;
+    if (hours > 0) {
+      return `+${hours} hr, ${m} min, ${s} sec`;
+    }
     return `+${m} min, ${s} sec`;
   };
 
@@ -112,7 +111,7 @@ function TimerInnerForm({
           {habit.name}
         </DrawerTitle>
         <p className="text-xs font-semibold text-gray-400">
-          Every day, {formatMinSec(seconds)} / {goalMins} minutes
+          Every day, {formatMinSec(seconds)} / {habit.timeUnit === 'hr' ? `${goalMins} hr` : `${goalMins} minutes`}
         </p>
       </div>
 
@@ -156,7 +155,12 @@ function TimerInnerForm({
 
           {/* Digital Time Center */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-5xl font-black tracking-tight text-gray-900 dark:text-white font-mono">
+            <span
+              className={cn(
+                'font-black tracking-tight text-gray-900 dark:text-white font-mono',
+                formatMinSec(seconds).length > 5 ? 'text-3xl font-extrabold' : 'text-5xl',
+              )}
+            >
               {formatMinSec(seconds)}
             </span>
           </div>

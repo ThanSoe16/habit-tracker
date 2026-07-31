@@ -7,73 +7,104 @@ import {
   DrawerDescription,
 } from '@/components/ui/drawer';
 import {
+  User,
+  CheckSquare,
+  Dumbbell,
+  Smile,
   Archive,
-  Mic,
-  Image as ImageIcon,
-  ChevronRight,
-  Settings,
+  TrendingUp,
+  Heart,
   BarChart3,
+  Bell,
+  Moon,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/useUserStore';
 import { useRouter, usePathname } from 'next/navigation';
 
-interface StoreSidebarDrawerModalProps {
+interface AccountSidebarDrawerModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function StoreSidebarDrawerModal({
+export function AccountSidebarDrawerModal({
   isOpen,
   onClose,
-}: StoreSidebarDrawerModalProps) {
+}: AccountSidebarDrawerModalProps) {
   const { name, avatarEmoji } = useUserStore();
   const router = useRouter();
   const pathname = usePathname();
 
   const menuSections = [
     {
-      title: 'STORE',
+      title: 'MODULES',
       items: [
         {
-          id: 'all-media',
-          label: 'All Media',
+          id: 'habits',
+          label: 'Habits Tracker',
+          icon: CheckSquare,
+          action: () => router.push('/home/today'),
+          isActive: pathname.startsWith('/home') || pathname.startsWith('/habits'),
+        },
+        {
+          id: 'gym',
+          label: 'Gym & Fitness',
+          icon: Dumbbell,
+          action: () => router.push('/gym'),
+          isActive: pathname.startsWith('/gym'),
+        },
+        {
+          id: 'mood',
+          label: 'Mood Journal',
+          icon: Smile,
+          action: () => router.push('/mood'),
+          isActive: pathname.startsWith('/mood'),
+        },
+        {
+          id: 'store',
+          label: 'Media Store',
           icon: Archive,
           action: () => router.push('/store'),
-          isActive: pathname === '/store',
-        },
-        {
-          id: 'voice-memos',
-          label: 'Voice Memos',
-          icon: Mic,
-          action: () => router.push('/store/voice'),
-          isActive: pathname === '/store/voice',
-        },
-        {
-          id: 'gallery',
-          label: 'Photos & Videos',
-          icon: ImageIcon,
-          action: () => router.push('/store/gallery'),
-          isActive: pathname === '/store/gallery',
+          isActive: pathname.startsWith('/store'),
         },
       ],
     },
     {
-      title: 'GENERAL',
+      title: 'ANALYTICS & REPORTS',
       items: [
         {
-          id: 'report',
-          label: 'Storage Report',
+          id: 'habit-progress',
+          label: 'Habit Progress',
+          icon: TrendingUp,
+          action: () => router.push('/home/overall'),
+          isActive: pathname === '/home/overall',
+        },
+        {
+          id: 'mood-reports',
+          label: 'Mood Insights',
+          icon: Heart,
+          action: () => router.push('/mood/reports'),
+          isActive: pathname === '/mood/reports',
+        },
+        {
+          id: 'store-reports',
+          label: 'Storage Analytics',
           icon: BarChart3,
           action: () => router.push('/store/report'),
           isActive: pathname === '/store/report',
         },
+      ],
+    },
+    {
+      title: 'ACCOUNT & SETTINGS',
+      items: [
         {
-          id: 'settings',
-          label: 'Settings',
-          icon: Settings,
-          action: () => router.push('/store/settings'),
-          isActive: pathname === '/store/settings',
+          id: 'account',
+          label: 'Account & Settings',
+          icon: User,
+          action: () => router.push('/account'),
+          isActive: pathname === '/account' || pathname === '/settings',
         },
       ],
     },
@@ -84,17 +115,17 @@ export function StoreSidebarDrawerModal({
       <DrawerContent className="bg-white dark:bg-zinc-900 h-full w-[280px] max-w-[85vw] rounded-r-3xl border-r border-gray-100 dark:border-zinc-800 p-0 overflow-hidden flex flex-col justify-between">
         <div className="flex flex-col h-full overflow-y-auto no-scrollbar">
           {/* User Profile Header */}
-          <div className="p-6 bg-gradient-to-b from-violet-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
+          <div className="p-6 bg-gradient-to-b from-blue-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-violet-600 text-white flex items-center justify-center text-2xl shadow-md shadow-violet-500/30 shrink-0">
-                {avatarEmoji || '📦'}
+              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/30 shrink-0">
+                {avatarEmoji || '😊'}
               </div>
               <div className="space-y-0.5 overflow-hidden">
                 <DrawerTitle className="text-base font-black text-gray-900 dark:text-white truncate">
                   {name || 'User'}
                 </DrawerTitle>
-                <DrawerDescription className="text-xs font-bold text-violet-600 dark:text-violet-400 truncate">
-                  Media Store
+                <DrawerDescription className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate">
+                  Account & Preferences
                 </DrawerDescription>
               </div>
             </div>
@@ -121,7 +152,7 @@ export function StoreSidebarDrawerModal({
                         className={cn(
                           'w-full px-3.5 py-3 rounded-2xl flex items-center justify-between text-xs font-bold transition-all',
                           item.isActive
-                            ? 'bg-violet-600 text-white shadow-md shadow-violet-500/25'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
                             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/80',
                         )}
                       >
@@ -141,7 +172,7 @@ export function StoreSidebarDrawerModal({
           {/* Footer */}
           <div className="p-4 border-t border-gray-100 dark:border-zinc-800">
             <p className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-              Media Store v1.0
+              Habit Tracker v1.0.0
             </p>
           </div>
         </div>

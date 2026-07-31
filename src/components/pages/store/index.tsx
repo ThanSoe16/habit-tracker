@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, Mic, Camera, Image as ImageIcon, Archive, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMediaStore } from '@/store/useMediaStore';
@@ -10,7 +10,11 @@ import { MediaCard } from './_components/MediaCard';
 export default function StorePage() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { mediaEntries, deleteMediaEntry } = useMediaStore();
+  const { mediaEntries, deleteMediaEntry, fetchFromSupabase } = useMediaStore();
+
+  useEffect(() => {
+    fetchFromSupabase();
+  }, [fetchFromSupabase]);
 
   const voiceCount = mediaEntries.filter((e) => e.type === 'voice').length;
   const photoCount = mediaEntries.filter((e) => e.type === 'photo').length;

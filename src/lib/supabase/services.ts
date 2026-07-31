@@ -2,6 +2,7 @@ import { supabase } from './client';
 import { Habit } from '@/store/useHabitStore';
 import { MoodEntry } from '@/store/useMoodStore';
 import { PlanDay, Exercise, WorkoutLog } from '@/store/useGymStore';
+import { MediaEntry } from '@/store/useMediaStore';
 
 // Habit database record interface
 export interface HabitRow {
@@ -373,3 +374,123 @@ export const gymBodyMetricsService = {
     if (error) console.warn('Error deleting body metric log:', error.message);
   },
 };
+
+export interface MediaItemRow {
+  id?: string;
+  user_id?: string;
+  type: 'voice' | 'photo' | 'video';
+  title: string;
+  data_url: string;
+  thumbnail_url?: string | null;
+  file_size?: number | null;
+  duration?: number | null;
+  mime_type: string;
+  created_at?: string;
+}
+
+export const mediaItemsService = {
+  async fetchMediaEntries(): Promise<MediaEntry[]> {
+    const { data, error } = await supabase
+      .from('media_items')
+      .select('*')
+      .eq('user_id', 'default_user')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('Error fetching media_items from Supabase:', error.message);
+      return [];
+    }
+    if (!data) return [];
+    return data.map((row: MediaItemRow) => ({
+      id: row.id || '',
+      type: row.type,
+      title: row.title,
+      dataUrl: row.data_url,
+      thumbnailUrl: row.thumbnail_url || undefined,
+      fileSize: Number(row.file_size || 0),
+      duration: row.duration ? Number(row.duration) : undefined,
+      mimeType: row.mime_type,
+      createdAt: row.created_at || new Date().toISOString(),
+    }));
+  },
+
+  async insertMediaEntry(entry: MediaEntry): Promise<MediaEntry | null> {
+    const payload: MediaItemRow = {
+      id: entry.id,
+      user_id: 'default_user',
+      type: entry.type,
+      title: entry.title,
+      data_url: entry.dataUrl,
+      thumbnail_url: entry.thumbnailUrl || null,
+      file_size: entry.fileSize,
+      duration: entry.duration || null,
+      mime_type: entry.mimeType,
+      created_at: entry.createdAt,
+    };
+
+    const { data, error } = await supabase
+      .from('media_items')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.warn('Error inserting media item:', error.message);
+      return entry;
+    }
+    return {
+      id: data.id,
+      type: data.type,
+      title: data.title,
+      dataUrl: data.data_url,
+      thumbnailUrl: data.thumbnail_url || undefined,
+      fileSize: Number(data.file_size || 0),
+      duration: data.duration ? Number(data.duration) : undefined,
+      mimeType: data.mime_type,
+      createdAt: data.created_at || new Date().toISOString(),
+    };
+  },
+
+  async deleteMediaEntry(id: string): Promise<void> {
+    const { error } = await supabase.from('media_items').delete().eq('id', id);
+    if (error) console.warn('Error deleting media item:', error.message);
+  },
+};
+
+/**
+ * Uploads a media File or Blob to Supabase Storage bucket 'media_store'
+ * and returns the clean public URL (e.g. https://.../storage/v1/object/public/media_store/...)
+ */
+export async function uploadMediaToStorage(fileOrBlob: Blob | File, filename?: string): Promise<string> {
+  try {
+    const ext =
+      filename?.split('.').pop() ||
+      (fileOrBlob.type.includes('audio')
+        ? 'webm'
+        : fileOrBlob.type.includes('video')
+          ? 'mp4'
+          : 'jpg');
+    const filePath = `store/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+
+    const { error } = await supabase.storage
+      .from('media_store')
+      .upload(filePath, fileOrBlob, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: fileOrBlob.type || 'application/octet-stream',
+      });
+
+    if (error) {
+      console.warn('Supabase storage upload warning:', error.message);
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('media_store')
+      .getPublicUrl(filePath);
+
+    return publicUrlData?.publicUrl || '';
+  } catch (err) {
+    console.error('Storage upload error:', err);
+    return '';
+  }
+}

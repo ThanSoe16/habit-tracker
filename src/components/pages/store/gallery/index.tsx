@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Menu, Camera, Image as ImageIcon, Video, Upload, X, Check, SwitchCamera, Aperture } from 'lucide-react';
 import { useMediaStore, MediaEntry } from '@/store/useMediaStore';
+import { uploadMediaToStorage } from '@/lib/supabase/services';
 import { StoreSidebarDrawerModal } from '../_components/StoreSidebarDrawerModal';
 import { MediaCard } from '../_components/MediaCard';
 import { cn } from '@/utils/cn';
@@ -179,28 +180,7 @@ export default function StoreGalleryPage() {
     e.target.value = '';
   }, []);
 
-  // Save the previewed file
-  const saveFile = useCallback(() => {
-    const source = previewFile || previewBlob;
-    if (!source || !previewUrl) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const entry: MediaEntry = {
-        id: crypto.randomUUID(),
-        type: previewType,
-        title: `${previewType === 'video' ? 'Video' : 'Photo'} ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
-        dataUrl: reader.result as string,
-        fileSize: source.size,
-        duration: previewType === 'video' ? videoRecordingTime : 0,
-        mimeType: source.type || (previewType === 'photo' ? 'image/jpeg' : 'video/webm'),
-        createdAt: new Date().toISOString(),
-      };
-      addMediaEntry(entry);
-      discardPreview();
-    };
-    reader.readAsDataURL(source);
-  }, [previewFile, previewBlob, previewUrl, previewType, videoRecordingTime, addMediaEntry]);
+  const [mediaTitle, setMediaTitle] = useState('');
 
   // Discard preview
   const discardPreview = useCallback(() => {
@@ -208,7 +188,34 @@ export default function StoreGalleryPage() {
     setPreviewUrl(null);
     setPreviewFile(null);
     setPreviewBlob(null);
+    setMediaTitle('');
   }, [previewUrl]);
+
+  // Save the previewed file
+  const saveFile = useCallback(async () => {
+    const source = previewFile || previewBlob;
+    if (!source || !previewUrl) return;
+
+    const filename = (source as File).name || `${previewType}.${previewType === 'photo' ? 'jpg' : 'mp4'}`;
+    const storageUrl = await uploadMediaToStorage(source, filename);
+
+    const defaultTitle = `${previewType === 'video' ? 'Video' : 'Photo'} ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+    const title = mediaTitle.trim() || defaultTitle;
+
+    const entry: MediaEntry = {
+      id: crypto.randomUUID(),
+      type: previewType,
+      title,
+      dataUrl: storageUrl || previewUrl,
+      fileSize: source.size,
+      duration: previewType === 'video' ? videoRecordingTime : 0,
+      mimeType: source.type || (previewType === 'photo' ? 'image/jpeg' : 'video/webm'),
+      createdAt: new Date().toISOString(),
+    };
+
+    addMediaEntry(entry);
+    discardPreview();
+  }, [previewFile, previewBlob, previewUrl, previewType, videoRecordingTime, mediaTitle, addMediaEntry, discardPreview]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -377,6 +384,15 @@ export default function StoreGalleryPage() {
                 />
               )}
             </div>
+
+            {/* Name / Title Input */}
+            <input
+              type="text"
+              value={mediaTitle}
+              onChange={(e) => setMediaTitle(e.target.value)}
+              placeholder={`Enter ${previewType === 'video' ? 'video' : 'photo'} name...`}
+              className="w-full px-4 py-2.5 bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
 
             <div className="flex gap-3">
               <button

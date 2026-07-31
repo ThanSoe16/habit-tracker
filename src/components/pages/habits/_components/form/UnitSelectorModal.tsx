@@ -13,6 +13,8 @@ interface UnitSelectorModalProps {
   onSelectUnit: (unit: string) => void;
 }
 
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+
 export function UnitSelectorModal({
   isOpen,
   onClose,
@@ -26,8 +28,6 @@ export function UnitSelectorModal({
   const [newUnitName, setNewUnitName] = useState('');
   const [editingUnitName, setEditingUnitName] = useState<string | null>(null);
   const [editInputValue, setEditInputValue] = useState('');
-
-  if (!isOpen) return null;
 
   const handleCreateCustom = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,8 +70,8 @@ export function UnitSelectorModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white dark:bg-zinc-900 w-full max-w-lg h-[90vh] sm:h-[85vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-200">
+    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DrawerContent className="z-[70] max-w-lg mx-auto rounded-t-[36px] pb-8 max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between shrink-0">
           <button
@@ -81,7 +81,7 @@ export function UnitSelectorModal({
           >
             <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Unit</h2>
+          <DrawerTitle className="text-lg font-bold text-gray-900 dark:text-white">Unit</DrawerTitle>
           <div className="w-9" />
         </div>
 
@@ -285,7 +285,7 @@ export function UnitSelectorModal({
             />
           </div>
         </div>
-      </div>
-    </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

@@ -30,7 +30,7 @@ const CreateHabitPage = () => {
       endHabitDate: '2026-12-31',
       endHabitDays: 365,
       reminders: false,
-      reminderTime: '07:00 AM',
+      reminderTime: '07:00',
       unitType: 'simple',
       goalValue: 1,
     },

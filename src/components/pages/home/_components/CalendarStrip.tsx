@@ -4,6 +4,7 @@ import React, { RefObject } from 'react';
 import { cn } from '@/utils/cn';
 import { useHabitStore } from '@/store/useHabitStore';
 import { isHabitRequiredOnDate } from '@/utils/dateUtils';
+import { parseTimeTakenToSeconds } from '@/utils/timeUtils';
 
 interface CalendarStripProps {
   scrollContainerRef: RefObject<HTMLDivElement | null>;
@@ -57,7 +58,7 @@ export function CalendarStrip({ weekDays, onSelectDate, scrollContainerRef }: Ca
                   completedCount++;
                 } else if (
                   (h.unitType === 'time' || h.unitType === 'duration') &&
-                  parseInt(entry.timeTaken || '0', 10) >= (h.goalValue || 1)
+                  parseTimeTakenToSeconds(entry.timeTaken) >= ((h.goalValue || 1) * (h.timeUnit === 'hr' ? 3600 : 60))
                 ) {
                   completedCount++;
                 }

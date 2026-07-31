@@ -19,6 +19,8 @@ const FITNESS_ICONS = ['🏃', '🚴', '🏋️', '🧘', '🤸', '🏊', '🚣'
 const HEALTH_ICONS = ['💧', '🍎', '🥗', '💊', '🫀', '🩺', '🥑', '🍵', '🍊', '🍌', '🥛', '🥕'];
 const PRODUCTIVITY_ICONS = ['📚', '✍️', '💡', '🧠', '🎯', '💻', '🎨', '🎵', '📅', '📝', '⌛', '⏰'];
 
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+
 export function IconDrawerModal({
   isOpen,
   onClose,
@@ -29,8 +31,6 @@ export function IconDrawerModal({
   const [activeTab, setActiveTab] = useState<IconTab>('icons');
   const [searchQuery, setSearchQuery] = useState('');
   const [customText, setCustomText] = useState(selectedIcon && selectedIcon.length <= 3 ? selectedIcon : 'ABC');
-
-  if (!isOpen) return null;
 
   const handleSelect = (icon: string) => {
     onSelectIcon(icon);
@@ -44,10 +44,10 @@ export function IconDrawerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-[36px] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300">
+    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DrawerContent className="z-[70] max-w-lg mx-auto rounded-t-[36px] pb-8 max-h-[85vh] overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-gray-100 dark:border-zinc-800">
+        <div className="flex items-center justify-between px-6 pt-3 pb-3 border-b border-gray-100 dark:border-zinc-800 shrink-0">
           <button
             type="button"
             onClick={onClose}
@@ -56,7 +56,7 @@ export function IconDrawerModal({
             <ChevronLeft className="w-6 h-6" />
           </button>
 
-          <h2 className="text-lg font-black text-gray-900 dark:text-white">Icon</h2>
+          <DrawerTitle className="text-lg font-black text-gray-900 dark:text-white">Icon</DrawerTitle>
 
           <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center">
             <Sparkles className="w-5 h-5" />
@@ -251,7 +251,7 @@ export function IconDrawerModal({
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

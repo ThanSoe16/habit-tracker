@@ -7,6 +7,7 @@ import { HabitCard } from './HabitCard';
 import { HabitCompletionDrawer } from './HabitCompletionDrawer';
 import { HabitTimerModal } from './HabitTimerModal';
 import { isHabitRequiredOnDate } from '@/utils/dateUtils';
+import { parseTimeTakenToSeconds, formatTimeTakenDisplay } from '@/utils/timeUtils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface HabitListProps {
@@ -104,12 +105,14 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
         notes: typeof entry === 'object' ? entry.notes : undefined,
       });
     } else if (habit.unitType === 'time') {
-      const current = typeof entry === 'object' ? parseInt(entry.timeTaken || '0', 10) : 0;
-      const next = current + 5;
-      const isDone = next >= (habit.goalValue || 1);
+      const currentSecs = typeof entry === 'object' ? parseTimeTakenToSeconds(entry?.timeTaken) : 0;
+      const nextSecs = currentSecs + 5 * 60;
+      const isGoalInHours = habit.timeUnit === 'hr';
+      const goalSecs = (habit.goalValue || 1) * (isGoalInHours ? 3600 : 60);
+      const isDone = nextSecs >= goalSecs;
       toggleHabit(habit.id, dateStr, {
         completed: isDone,
-        timeTaken: String(next),
+        timeTaken: formatTimeTakenDisplay(nextSecs),
         count: typeof entry === 'object' ? entry.count : undefined,
         notes: typeof entry === 'object' ? entry.notes : undefined,
       });

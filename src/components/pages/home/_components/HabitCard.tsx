@@ -4,6 +4,7 @@ import { useRef, useCallback } from 'react';
 import { Check, Flame, Plus, Minus } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Habit } from '@/store/useHabitStore';
+import { parseTimeTakenToSeconds, formatTimeTakenDisplay } from '@/utils/timeUtils';
 
 interface HabitCardProps {
   habit: Habit;
@@ -49,11 +50,11 @@ export function HabitCard({
       return `${current} / ${habit.goalValue || 1} ${unitLabel}`;
     }
     if (habit.unitType === 'time') {
-      const current = timeTaken ? String(timeTaken) : '0';
+      const current = formatTimeTakenDisplay(timeTaken);
       return `${current} / ${habit.goalValue || 1} ${habit.timeUnit || 'min'}`;
     }
     if (habit.unitType === 'duration') {
-      const current = timeTaken ? String(timeTaken) : '0';
+      const current = formatTimeTakenDisplay(timeTaken);
       return `${current} / ${habit.goalValue || 1} mins (${habit.timerMode === 'down' ? 'Count Down' : 'Count Up'})`;
     }
     return null;
@@ -90,8 +91,10 @@ export function HabitCard({
     const current = parseInt(String(count) || '0', 10);
     pct = Math.min(100, Math.max(0, (current / (habit.goalValue || 1)) * 100));
   } else if (habit.unitType === 'time' || habit.unitType === 'duration') {
-    const current = parseInt(String(timeTaken) || '0', 10);
-    pct = Math.min(100, Math.max(0, (current / (habit.goalValue || 1)) * 100));
+    const currentSecs = parseTimeTakenToSeconds(timeTaken);
+    const isGoalInHours = habit.timeUnit === 'hr';
+    const goalSecs = (habit.goalValue || 1) * (isGoalInHours ? 3600 : 60);
+    pct = Math.min(100, Math.max(0, (currentSecs / (goalSecs || 1)) * 100));
   }
 
   const isCompact = cardStyle === 'compact';

@@ -25,12 +25,17 @@ export const DEFAULT_HOME_SETTINGS: HomeSettings = {
   showStreakBadges: true,
 };
 
+export type RingtoneType = 'chime' | 'marimba' | 'radar' | 'digital' | 'custom';
+
 interface UserStore {
   name: string;
   avatarEmoji: string;
   joinedAt: string;
   remindersEnabled: boolean;
   dailyReminderTime: string; // HH:mm format
+  ringtone: RingtoneType;
+  customRingtoneUrl?: string;
+  vibrationEnabled: boolean;
   theme: Theme;
   homeSettings: HomeSettings;
   isLoaded: boolean;
@@ -39,6 +44,8 @@ interface UserStore {
   setAvatarEmoji: (emoji: string) => void;
   setRemindersEnabled: (enabled: boolean) => void;
   setDailyReminderTime: (time: string) => void;
+  setRingtone: (ringtone: RingtoneType, customUrl?: string) => void;
+  setVibrationEnabled: (enabled: boolean) => void;
   setTheme: (theme: Theme) => void;
   updateHomeSettings: (updates: Partial<HomeSettings>) => void;
 }
@@ -47,8 +54,11 @@ export const useUserStore = create<UserStore>()((set, get) => ({
   name: 'User',
   avatarEmoji: '😊',
   joinedAt: new Date().toISOString(),
-  remindersEnabled: false,
+  remindersEnabled: true,
   dailyReminderTime: '08:00',
+  ringtone: 'chime' as RingtoneType,
+  customRingtoneUrl: undefined,
+  vibrationEnabled: true,
   theme: 'light' as Theme,
   homeSettings: DEFAULT_HOME_SETTINGS,
   isLoaded: false,
@@ -143,6 +153,14 @@ export const useUserStore = create<UserStore>()((set, get) => ({
       theme: state.theme,
       homeSettings: state.homeSettings,
     });
+  },
+
+  setRingtone: (ringtone, customUrl) => {
+    set({ ringtone, customRingtoneUrl: customUrl });
+  },
+
+  setVibrationEnabled: (enabled) => {
+    set({ vibrationEnabled: enabled });
   },
 
   setTheme: (theme) => {
