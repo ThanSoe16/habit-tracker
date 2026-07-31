@@ -39,10 +39,10 @@ export const WeekdaySelector = ({
           type="button"
           onClick={() => onChange([0, 1, 2, 3, 4, 5, 6])}
           className={cn(
-            'px-3 py-1.5 rounded-full text-xs font-bold transition-all border',
+            'px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border',
             isEveryDay
-              ? 'border-transparent text-white shadow-md bg-primary'
-              : 'border-foreground/20 text-foreground hover:bg-primary/10',
+              ? 'border-transparent text-white shadow-md bg-[#2563eb] shadow-blue-500/25'
+              : 'border-gray-200 text-gray-600 hover:bg-gray-100',
           )}
         >
           Every Day
@@ -51,10 +51,10 @@ export const WeekdaySelector = ({
           type="button"
           onClick={() => onChange([1, 2, 3, 4, 5])}
           className={cn(
-            'px-3 py-1.5 rounded-full text-xs font-bold transition-all border',
+            'px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border',
             isWeekdays
-              ? 'border-transparent text-white shadow-md bg-primary'
-              : 'border-foreground/20 text-foreground hover:bg-primary/10',
+              ? 'border-transparent text-white shadow-md bg-[#2563eb] shadow-blue-500/25'
+              : 'border-gray-200 text-gray-600 hover:bg-gray-100',
           )}
         >
           Weekdays
@@ -63,10 +63,10 @@ export const WeekdaySelector = ({
           type="button"
           onClick={() => onChange([0, 6])}
           className={cn(
-            'px-3 py-1.5 rounded-full text-xs font-bold transition-all border',
+            'px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border',
             isWeekends
-              ? 'border-transparent text-white shadow-md bg-primary'
-              : 'border-foreground/20 text-foreground hover:bg-primary/10',
+              ? 'border-transparent text-white shadow-md bg-[#2563eb] shadow-blue-500/25'
+              : 'border-gray-200 text-gray-600 hover:bg-gray-100',
           )}
         >
           Weekends
@@ -83,8 +83,8 @@ export const WeekdaySelector = ({
               className={cn(
                 'w-10 h-10 rounded-full text-xs font-bold transition-all border shrink-0 flex items-center justify-center',
                 isSelected
-                  ? 'border-transparent text-white shadow-md bg-primary'
-                  : 'border-foreground/50 text-foreground hover:bg-primary/10',
+                  ? 'border-transparent text-white shadow-md bg-[#2563eb] shadow-blue-500/25'
+                  : 'border-gray-200 text-gray-700 hover:bg-gray-100',
               )}
             >
               {day.label}

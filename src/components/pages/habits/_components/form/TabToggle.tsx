@@ -10,17 +10,17 @@ export const TabToggle = ({
   options: { value: string; label: string }[];
 }) => {
   return (
-    <div className="bg-gray-100 p-1 rounded-xl flex">
+    <div className="bg-gray-200/70 dark:bg-zinc-800/80 p-1.5 rounded-2xl flex gap-1">
       {options.map((t) => (
         <button
           key={t.value}
           type="button"
           onClick={() => setValue(t.value)}
           className={cn(
-            'flex-1 py-3 text-xs font-bold rounded-lg transition-all capitalize',
+            'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all capitalize',
             value === t.value
-              ? 'bg-background text-primary shadow-md shadow-blue-500/20'
-              : 'text-gray-500 hover:text-gray-700',
+              ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/25'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white',
           )}
         >
           {t.label}

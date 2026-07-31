@@ -21,7 +21,10 @@ export interface Habit {
   endHabitDate?: string;
   endHabitDays?: number;
   specificDates?: string[]; // YYYY-MM-DD
-  unitType?: 'simple' | 'time' | 'count';
+  unitType?: 'simple' | 'duration' | 'time' | 'count';
+  timerMode?: 'down' | 'up';
+  timeUnit?: 'hr' | 'min' | 'sec';
+  unit?: string;
   goalValue?: number;
   history: Record<
     string,
@@ -33,7 +36,11 @@ export interface Habit {
 
 interface HabitStore {
   habits: Habit[];
+  customUnits: string[];
   isLoaded: boolean;
+  addCustomUnit: (unitName: string) => void;
+  updateCustomUnit: (oldUnit: string, newUnit: string) => void;
+  deleteCustomUnit: (unitName: string) => void;
   addHabit: (
     name: string,
     color: string,
@@ -48,8 +55,11 @@ interface HabitStore {
     endHabitDate?: string,
     endHabitDays?: number,
     specificDates?: string[],
-    unitType?: 'simple' | 'time' | 'count',
+    unitType?: 'simple' | 'duration' | 'time' | 'count',
     goalValue?: number,
+    unit?: string,
+    timerMode?: 'down' | 'up',
+    timeUnit?: 'hr' | 'min' | 'sec',
   ) => void;
   removeHabit: (id: string) => void;
   updateHabit: (
@@ -69,7 +79,10 @@ interface HabitStore {
       endHabitDate?: string;
       endHabitDays?: number;
       specificDates?: string[];
-      unitType?: 'simple' | 'time' | 'count';
+      unitType?: 'simple' | 'duration' | 'time' | 'count';
+      timerMode?: 'down' | 'up';
+      timeUnit?: 'hr' | 'min' | 'sec';
+      unit?: string;
       goalValue?: number;
     },
   ) => void;
@@ -130,7 +143,33 @@ export const useHabitStore = create<HabitStore>()(
   persist(
     (set) => ({
       habits: [],
+      customUnits: [],
       isLoaded: true,
+
+      addCustomUnit: (unitName) => {
+        const trimmed = unitName.trim();
+        if (!trimmed) return;
+        set((state) => ({
+          customUnits: state.customUnits.includes(trimmed)
+            ? state.customUnits
+            : [...state.customUnits, trimmed],
+        }));
+      },
+
+      updateCustomUnit: (oldUnit, newUnit) => {
+        const trimmed = newUnit.trim();
+        if (!trimmed) return;
+        set((state) => ({
+          customUnits: state.customUnits.map((u) => (u === oldUnit ? trimmed : u)),
+          habits: state.habits.map((h) => (h.unit === oldUnit ? { ...h, unit: trimmed } : h)),
+        }));
+      },
+
+      deleteCustomUnit: (unitName) => {
+        set((state) => ({
+          customUnits: state.customUnits.filter((u) => u !== unitName),
+        }));
+      },
 
       addHabit: (
         name,
@@ -148,6 +187,9 @@ export const useHabitStore = create<HabitStore>()(
         specificDates,
         unitType = 'simple',
         goalValue,
+        unit,
+        timerMode,
+        timeUnit,
       ) => {
         const newHabit: Habit = {
           id: crypto.randomUUID(),
@@ -165,7 +207,10 @@ export const useHabitStore = create<HabitStore>()(
           endHabitDays,
           specificDates,
           unitType,
+          unit,
           goalValue,
+          timerMode,
+          timeUnit,
           history: {},
           streak: 0,
           createdAt: new Date().toISOString(),
@@ -196,16 +241,16 @@ export const useHabitStore = create<HabitStore>()(
 
             // If details are provided, we are "finishing" or updating a completed habit
             if (details) {
-              const prevCompleted =
-                typeof newHistory[date] === 'boolean'
-                  ? newHistory[date]
-                  : typeof newHistory[date] === 'object'
-                    ? (newHistory[date] as any).completed
-                    : false;
+              const existingObj =
+                typeof newHistory[date] === 'object' ? (newHistory[date] as any) : {};
+              const cleanDetails = Object.fromEntries(
+                Object.entries(details).filter(([_, v]) => v !== undefined)
+              );
 
               newHistory[date] = {
-                completed: details.completed !== undefined ? details.completed : prevCompleted,
-                ...details,
+                completed: details.completed !== undefined ? details.completed : !!existingObj.completed,
+                ...existingObj,
+                ...cleanDetails,
               };
             } else {
               // Simple toggle (legacy behavior)

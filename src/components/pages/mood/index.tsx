@@ -21,10 +21,10 @@ export default function MoodPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-foreground selection:bg-indigo-500/10 pb-28">
-      <div className="w-full max-w-lg mx-auto h-full flex flex-col p-4">
+    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-foreground selection:bg-blue-500/10 pb-28">
+      <div className="w-full max-w-lg mx-auto h-full flex flex-col p-4 space-y-4">
         <MoodHeader />
-        <div className="flex-1 rounded-xl overflow-y-auto shadow bg-white">
+        <div className="flex-1 rounded-[32px] overflow-y-auto shadow-xs border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2">
           <MonthNavigator
             currentDate={currentDate}
             onPrevMonth={handlePrevMonth}

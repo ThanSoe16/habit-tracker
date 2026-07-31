@@ -55,22 +55,22 @@ export default function MyHabitsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col w-full max-w-lg mx-auto">
+    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 flex flex-col w-full max-w-lg mx-auto pb-28">
       {/* Header */}
-      <header className="flex justify-between items-center px-6 py-4">
-        <h1 className="text-xl font-bold text-foreground">My Habits</h1>
+      <header className="flex justify-between items-center px-6 pt-6 pb-2">
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white">My Habits</h1>
       </header>
 
       {/* Segmented Control */}
       <div className="px-6 py-2">
-        <div className="bg-gray-100 p-1.5 rounded-2xl flex">
+        <div className="bg-gray-200/70 dark:bg-zinc-800 p-1.5 rounded-2xl flex">
           <button
             onClick={() => setActiveTab('habit')}
             className={cn(
-              'flex-1 py-3 text-[15px] font-bold rounded-xl transition-all',
+              'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all',
               activeTab === 'habit'
-                ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
-                : 'text-gray-500 hover:text-gray-700',
+                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/25'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-800',
             )}
           >
             Regular Habit
@@ -78,10 +78,10 @@ export default function MyHabitsPage() {
           <button
             onClick={() => setActiveTab('task')}
             className={cn(
-              'flex-1 py-3 text-[15px] font-bold rounded-xl transition-all',
+              'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all',
               activeTab === 'task'
-                ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
-                : 'text-gray-500 hover:text-gray-700',
+                ? 'bg-[#2563eb] text-white shadow-md shadow-blue-500/25'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-800',
             )}
           >
             One-Time Task
@@ -126,12 +126,13 @@ export default function MyHabitsPage() {
       </div>
 
       {/* Floating Add Button */}
-      <div className="fixed bottom-32 right-6">
+      <div className="fixed bottom-24 right-6 z-40">
         <button
           onClick={() => router.push('/habits/create')}
-          className="w-14 h-14 rounded-full bg-indigo-500 hover:bg-indigo-600 shadow-xl shadow-indigo-500/30 flex items-center justify-center border-none transition-all active:scale-95 hover:scale-105"
+          className="w-14 h-14 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] shadow-xl shadow-blue-500/30 flex items-center justify-center border-2 border-white dark:border-zinc-900 transition-all active:scale-95 hover:scale-105 text-white"
+          title="Create habit"
         >
-          <Plus className="w-8 h-8 text-white" />
+          <Plus className="w-7 h-7" strokeWidth={2.5} />
         </button>
       </div>
     </div>

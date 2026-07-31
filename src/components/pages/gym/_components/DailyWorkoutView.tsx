@@ -72,11 +72,11 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
     <div className="space-y-4">
       {/* Overview Card */}
       <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-5 text-white shadow-xl shadow-blue-500/20 space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-200 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-100 bg-white/15 px-3 py-1 rounded-full backdrop-blur-sm truncate max-w-[65%]" title={log.dayTitle}>
             {log.dayTitle}
           </span>
-          <span className="text-xs font-semibold text-blue-100 flex items-center gap-1">
+          <span className="text-xs font-semibold text-blue-100 flex items-center gap-1 shrink-0 whitespace-nowrap">
             <Calendar className="w-3.5 h-3.5" />
             {dateStr}
           </span>

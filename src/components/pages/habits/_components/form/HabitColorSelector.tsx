@@ -1,7 +1,6 @@
-import React, { useRef } from 'react';
-import { Check, Plus } from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { COLORS } from '@/features/habits/data';
+import { useState } from 'react';
+import { ColorDrawerModal } from './ColorDrawerModal';
+import { ChevronRight } from 'lucide-react';
 
 export const HabitColorSelector = ({
   value,
@@ -10,57 +9,37 @@ export const HabitColorSelector = ({
   value: string;
   setValue: (value: string) => void;
 }) => {
-  const colorInputRef = useRef<HTMLInputElement>(null);
-
-  const isCustomColor = !COLORS.includes(value);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="grid grid-cols-5 gap-y-3 gap-x-2">
-      {COLORS.map((c) => (
-        <button
-          key={c}
-          type="button"
-          onClick={() => setValue(c)}
-          className={cn(
-            'w-10 h-10 rounded-full transition-all flex items-center justify-center border-2 border-transparent',
-            value === c && 'border-white shadow-xl scale-110',
-          )}
-          style={{ backgroundColor: c }}
-        >
-          {value === c && <Check className="w-5 h-5 text-white" />}
-        </button>
-      ))}
+    <>
+      <button
+        type="button"
+        onClick={() => setIsModalOpen(true)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-zinc-800/80 rounded-2xl border border-gray-100 dark:border-zinc-700/60 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-full shadow-xs border-2 border-white dark:border-zinc-700"
+            style={{ backgroundColor: value || '#2563eb' }}
+          />
+          <span className="text-sm font-bold text-gray-800 dark:text-white">
+            Color
+          </span>
+        </div>
 
-      <div className="relative flex flex-col items-center gap-1">
-        <input
-          type="color"
-          ref={colorInputRef}
-          className="absolute inset-0 opacity-0 w-10 h-10 cursor-pointer"
-          onChange={(e) => setValue(e.target.value)}
-          value={isCustomColor ? value : '#FFFFFF'}
-        />
-        <button
-          type="button"
-          onClick={() => colorInputRef.current?.click()}
-          aria-label="Custom color"
-          className={cn(
-            'w-10 h-10 rounded-full flex items-center justify-center border transition-all overflow-hidden',
-            isCustomColor
-              ? 'ring-2 ring-primary ring-offset-2 scale-110 shadow-lg'
-              : 'bg-gray-50 border-gray-100 hover:bg-gray-100',
-          )}
-          style={isCustomColor ? { backgroundColor: value } : {}}
-        >
-          {isCustomColor ? (
-            <Check className="w-5 h-5 text-white drop-shadow-sm" />
-          ) : (
-            <div className="w-6 h-6 rounded-full bg-linear-to-tr from-red-500 via-green-500 to-blue-500 flex items-center justify-center">
-              <Plus className="w-3.5 h-3.5 text-white/80" />
-            </div>
-          )}
-        </button>
-        <span className="text-[10px] text-muted-foreground font-medium">Custom</span>
-      </div>
-    </div>
+        <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-bold">
+          <span>Choose Color</span>
+          <ChevronRight className="w-4 h-4" />
+        </div>
+      </button>
+
+      <ColorDrawerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedColor={value || '#2563eb'}
+        onSelectColor={(color) => setValue(color)}
+      />
+    </>
   );
 };

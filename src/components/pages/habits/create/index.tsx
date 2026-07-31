@@ -57,6 +57,9 @@ const CreateHabitPage = () => {
       data.frequencyTab === 'specific' ? data.selectedSpecificDates : [],
       data.unitType,
       data.goalValue,
+      data.unit || (data.unitType === 'time' ? 'Minutes' : 'Count'),
+      data.timerMode || 'down',
+      data.timeUnit || 'min',
     );
     router.back();
   };

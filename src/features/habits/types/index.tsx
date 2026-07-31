@@ -18,7 +18,10 @@ export const habitSchema = z.object({
   endHabitDays: z.number(),
   reminders: z.boolean(),
   reminderTime: z.string(),
-  unitType: z.enum(['simple', 'time', 'count']),
+  unitType: z.enum(['simple', 'duration', 'time', 'count']),
+  timerMode: z.enum(['down', 'up']).optional(),
+  timeUnit: z.enum(['hr', 'min', 'sec']).optional(),
+  unit: z.string().optional(),
   goalValue: z.number().min(1, 'Goal value must be at least 1'),
 });
 

@@ -1,11 +1,11 @@
-import { cn } from '@/utils/cn';
-import { EMOJIS } from '@/features/habits/data';
-import { getContrastColor } from '@/utils/colorUtils';
+import { useState } from 'react';
+import { IconDrawerModal } from './IconDrawerModal';
+import { ChevronRight } from 'lucide-react';
 
 export const HabitIconSelector = ({
   value,
   setValue,
-  selectedColor,
+  selectedColor = '#2563eb',
   habitName,
 }: {
   value: string;
@@ -13,65 +13,41 @@ export const HabitIconSelector = ({
   selectedColor?: string;
   habitName?: string;
 }) => {
-  const firstChar = habitName ? habitName.trim().charAt(0).toUpperCase() : '?';
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-3 overflow-x-auto no-scrollbar py-1">
-        <button
-          type="button"
-          onClick={() => setValue('')}
-          className={cn(
-            'w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold transition-all border shrink-0',
-            value === ''
-              ? 'border-transparent shadow-lg'
-              : 'bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100',
-          )}
-          style={
-            value === ''
-              ? {
-                  backgroundColor: selectedColor,
-                  color: selectedColor
-                    ? getContrastColor(selectedColor) === 'black'
-                      ? '#000000'
-                      : '#FFFFFF'
-                    : undefined,
-                  boxShadow: selectedColor ? `0 10px 15px -3px ${selectedColor}4D` : undefined,
-                }
-              : {}
-          }
-        >
-          {firstChar}
-        </button>
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const displayIcon = value || (habitName ? habitName.trim().charAt(0).toUpperCase() : '✨');
 
-        {EMOJIS.map((e) => (
-          <button
-            key={e}
-            type="button"
-            onClick={() => setValue(e)}
-            className={cn(
-              'w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all border shrink-0',
-              value === e
-                ? 'border-transparent shadow-lg'
-                : 'bg-gray-50 border-gray-100 text-gray-400 hover:bg-gray-100',
-            )}
-            style={
-              value === e
-                ? {
-                    backgroundColor: selectedColor,
-                    color: selectedColor
-                      ? getContrastColor(selectedColor) === 'black'
-                        ? '#000000'
-                        : '#FFFFFF'
-                      : undefined,
-                    boxShadow: selectedColor ? `0 10px 15px -3px ${selectedColor}4D` : undefined,
-                  }
-                : {}
-            }
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setIsModalOpen(true)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-zinc-800/80 rounded-2xl border border-gray-100 dark:border-zinc-700/60 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl font-bold shadow-xs transition-transform"
+            style={{ backgroundColor: selectedColor, color: '#FFFFFF' }}
           >
-            {e}
-          </button>
-        ))}
-      </div>
-    </div>
+            {displayIcon}
+          </div>
+          <span className="text-sm font-bold text-gray-800 dark:text-white">
+            Icon ({displayIcon})
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-bold">
+          <span>Choose Icon</span>
+          <ChevronRight className="w-4 h-4" />
+        </div>
+      </button>
+
+      <IconDrawerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedIcon={displayIcon}
+        selectedColor={selectedColor}
+        onSelectIcon={(icon) => setValue(icon)}
+      />
+    </>
   );
 };

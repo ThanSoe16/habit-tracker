@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { CalendarStrip } from './_components/CalendarStrip';
 import { WeeklyHabitList } from './_components/WeeklyHabitList';
 import { OverallHabitList } from './_components/OverallHabitList';
-import { PromoCard } from './_components/PromoCard';
+import { SidebarDrawerModal } from './_components/SidebarDrawerModal';
 import { useQueryState, parseAsStringLiteral } from 'nuqs';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -19,6 +19,7 @@ export default function Home() {
   const { name: userName, avatarEmoji } = useUserStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const today = new Date();
@@ -85,34 +86,17 @@ export default function Home() {
   }, [selectedDate]);
 
   return (
-    <div className="w-full max-w-lg mx-auto overflow-hidden">
-      <div className="px-4 pt-6 flex flex-col h-full">
+    <div className="min-h-screen">
+      <div className="w-full max-w-lg mx-auto p-4 pb-32 flex flex-col min-h-screen space-y-0">
         {/* Fixed Header & Calendar Section */}
-        <div className="shrink-0 space-y-4 mb-4">
+        <div className="shrink-0 space-y-0">
           <HomeHeader
             greeting={getGreeting()}
             name={userName}
             avatarEmoji={avatarEmoji}
             formattedDate={formattedDate}
+            onOpenSidebar={() => setIsSidebarOpen(true)}
           />
-
-          {/* Tab Switcher */}
-          <div className="flex bg-gray-100 p-1 rounded-xl mx-2">
-            {(['today', 'weekly', 'overall'] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={cn(
-                  'flex-1 py-2 text-sm font-bold rounded-lg transition-all capitalize',
-                  viewMode === mode
-                    ? 'bg-indigo-500 text-white shadow-sm'
-                    : 'text-gray-500 hover:bg-gray-200',
-                )}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
 
           {viewMode === 'today' && (
             <CalendarStrip
@@ -121,46 +105,29 @@ export default function Home() {
               onSelectDate={setSelectedDate}
             />
           )}
-
-          <PromoCard />
         </div>
 
         {/* Scrollable Daily Routine */}
-        <section className="flex-1 space-y-2 pb-24">
-          <div className="flex items-center justify-between sticky top-0 bg-background z-10 py-1">
-            <h2 className="text-xl font-semibold">
-              {viewMode === 'today'
-                ? 'Daily routine'
-                : viewMode === 'weekly'
-                  ? 'Weekly routine'
-                  : 'Overall progress'}
-            </h2>
-            {viewMode !== 'today' && (
-              <button
-                onClick={() => router.push(`/${viewMode}`)}
-                className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 transition-colors"
-              >
-                See all
-              </button>
-            )}
-          </div>
+        <section className="flex-1 space-y-3">
           {viewMode === 'today' ? (
             <>
-              <div className="flex gap-2 mb-3">
-                {(['all', 'pending', 'completed'] as const).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className={cn(
-                      'px-4 py-1.5 rounded-full text-xs font-bold capitalize transition-all border',
-                      filter === f
-                        ? 'bg-gray-800 text-white border-gray-800'
-                        : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50',
-                    )}
-                  >
-                    {f}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  {(['all', 'pending', 'completed'] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={cn(
+                        'px-3.5 py-1.5 rounded-full text-xs font-bold capitalize transition-all border',
+                        filter === f
+                          ? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
+                          : 'bg-white dark:bg-zinc-800 text-gray-500 border-gray-200/80 dark:border-zinc-700 hover:bg-gray-50',
+                      )}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
               </div>
               <HabitList selectedDate={selectedDate} filter={filter} />
             </>
@@ -175,14 +142,23 @@ export default function Home() {
       </div>
 
       {/* Floating Layout for Add Button */}
-      <div className="fixed bottom-28 right-6 z-50">
+      <div className="fixed bottom-24 right-6 z-40">
         <button
           onClick={() => router.push('/habits/create')}
-          className="rounded-full w-14 h-14 shadow-2xl bg-blue-600 hover:bg-blue-600/90 text-white p-0 flex items-center justify-center shrink-0 border-[3px] border-white/20 hover:scale-105 active:scale-95 transition-all"
+          className="rounded-full w-14 h-14 shadow-xl shadow-blue-500/30 bg-[#2563eb] hover:bg-[#1d4ed8] text-white p-0 flex items-center justify-center shrink-0 border-2 border-white dark:border-zinc-900 hover:scale-105 active:scale-95 transition-all"
+          title="Create habit"
         >
-          <Plus className="w-7 h-7" />
+          <Plus className="w-7 h-7" strokeWidth={2.5} />
         </button>
       </div>
+
+      {/* Navigation Sidebar Drawer */}
+      <SidebarDrawerModal
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        currentViewMode={viewMode}
+        onSelectViewMode={(mode) => setViewMode(mode)}
+      />
     </div>
   );
 }

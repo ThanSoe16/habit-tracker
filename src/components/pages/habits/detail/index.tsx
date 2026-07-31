@@ -101,36 +101,70 @@ export default function HabitDetail({ id }: { id: string }) {
       </header>
 
       <div className="px-6 py-4 space-y-6">
-        {/* Habit Info */}
-        <div className="flex items-center gap-4">
+        {/* Habit Info & Icon Header */}
+        <div className="flex flex-col items-center text-center space-y-3 py-2">
           <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-sm"
-            style={{ backgroundColor: habit.color + '20' }}
+            className="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl shadow-sm"
+            style={{ backgroundColor: habit.color ? `${habit.color}20` : '#eff6ff', color: habit.color || '#2563eb' }}
           >
             {habit.emoji || '✨'}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">{habit.name}</h2>
-            <p className="text-gray-500 font-medium">Everyday</p>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white">{habit.name}</h2>
+            <p className="text-xs font-semibold text-gray-400 mt-0.5">
+              {habit.unit ? `${habit.goalValue || 1} ${habit.unit} daily` : 'Daily routine'}
+            </p>
+          </div>
+
+          {/* Action / Timer Pill matching reference image */}
+          <div className="pt-2">
+            <button
+              type="button"
+              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-blue-500/30 flex items-center gap-3 text-sm transition-transform active:scale-95"
+            >
+              <span>{habit.unitType === 'time' ? `${habit.goalValue || 20}:00 min` : `Log ${habit.goalValue || 1} ${habit.unit || 'Count'}`}</span>
+              <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                ▶
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Helpful Tips Section (matching reference mockup) */}
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-3">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white">Helpful tips</h3>
+          <div className="space-y-2 text-xs font-medium text-gray-600 dark:text-gray-300">
+            <div className="bg-[#f4f7fd] dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
+              <span className="text-blue-500 font-bold">•</span>
+              <span>Focus on your breath to anchor your attention throughout the routine.</span>
+            </div>
+            <div className="bg-[#f4f7fd] dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
+              <span className="text-blue-500 font-bold">•</span>
+              <span>Embrace non-judgmental awareness of thoughts and keep momentum.</span>
+            </div>
+            <div className="bg-[#f4f7fd] dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
+              <span className="text-blue-500 font-bold">•</span>
+              <span>Let go of expectations and surrender to consistent daily progress.</span>
+            </div>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">{habit.streak} days</p>
+          <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl shadow-xs border border-gray-100 dark:border-zinc-800">
+            <p className="text-[17px] font-bold text-gray-800 dark:text-white">{habit.streak} days</p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">Current streak</p>
           </div>
-          <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">{completionRate}%</p>
+          <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl shadow-xs border border-gray-100 dark:border-zinc-800">
+            <p className="text-[17px] font-bold text-gray-800 dark:text-white">{completionRate}%</p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">Completion rate</p>
           </div>
-          <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">{totalCompletions}</p>
+          <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl shadow-xs border border-gray-100 dark:border-zinc-800">
+            <p className="text-[17px] font-bold text-gray-800 dark:text-white">{totalCompletions}</p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">Habits completed</p>
           </div>
-          <div className="bg-white p-5 rounded-3xl shadow-sm border border-black/5">
-            <p className="text-[17px] font-bold text-gray-800">{totalCompletions}</p>
+          <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl shadow-xs border border-gray-100 dark:border-zinc-800">
+            <p className="text-[17px] font-bold text-gray-800 dark:text-white">{totalCompletions}</p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">Total perfect days</p>
           </div>
         </div>
