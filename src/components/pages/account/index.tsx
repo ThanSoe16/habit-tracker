@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Menu, Settings as SettingsIcon } from 'lucide-react';
+import React from 'react';
+import { ChevronLeft, Settings as SettingsIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ProfileCard } from './_components/ProfileCard';
 import { QuickStats } from './_components/QuickStats';
 import { SettingsList } from './_components/SettingsList';
-import { AccountSidebarDrawerModal } from './_components/AccountSidebarDrawerModal';
 
 export default function AccountPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-foreground">
@@ -17,11 +17,11 @@ export default function AccountPage() {
         <header className="flex justify-between items-center py-1">
           <button
             type="button"
-            onClick={() => setIsSidebarOpen(true)}
+            onClick={() => router.back()}
             className="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 shadow-xs border border-gray-100 dark:border-zinc-700 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition-colors"
-            title="Open Menu Sidebar"
+            title="Go Back"
           >
-            <Menu className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
 
           <h1 className="text-lg font-black tracking-tight text-gray-900 dark:text-white">
@@ -37,12 +37,6 @@ export default function AccountPage() {
         <QuickStats />
         <SettingsList />
       </div>
-
-      {/* Sidebar Drawer */}
-      <AccountSidebarDrawerModal
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
     </div>
   );
 }

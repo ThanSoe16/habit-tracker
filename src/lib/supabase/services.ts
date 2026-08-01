@@ -3,6 +3,7 @@ import { Habit } from '@/store/useHabitStore';
 import { MoodEntry } from '@/store/useMoodStore';
 import { PlanDay, Exercise, WorkoutLog } from '@/store/useGymStore';
 import { MediaEntry } from '@/store/useMediaStore';
+import { WalletBalances } from '@/store/useBudgetStore';
 
 // Habit database record interface
 export interface HabitRow {
@@ -494,3 +495,202 @@ export async function uploadMediaToStorage(fileOrBlob: Blob | File, filename?: s
     return '';
   }
 }
+
+/**
+ * Supabase service for syncing Budget data across 6 dedicated tables:
+ * 1. current_budget (wallets)
+ * 2. family_budgets
+ * 3. incomes
+ * 4. expenses
+ * 5. monthly_salary
+ * 6. budget_settings
+ */
+export const budgetService = {
+  async fetchBudgetData(): Promise<{
+    walletBalances?: WalletBalances;
+    monthlySalaries?: any[];
+    budgetEntries?: any[];
+    familyTransactions?: any[];
+    lastProcessedMonth?: string;
+    currency?: string;
+  } | null> {
+    try {
+      const [
+        walletsRes,
+        familyRes,
+        incomesRes,
+        expensesRes,
+        salaryRes,
+        settingsRes,
+      ] = await Promise.all([
+        supabase.from('current_budget').select('*'),
+        supabase.from('family_budgets').select('*'),
+        supabase.from('incomes').select('*'),
+        supabase.from('expenses').select('*'),
+        supabase.from('monthly_salary').select('*'),
+        supabase.from('budget_settings').select('*').eq('id', 'default_settings').maybeSingle(),
+      ]);
+
+      const walletBalances: WalletBalances = { USDT: 0, THB: 0, MMK: 0 };
+      if (walletsRes.data) {
+        walletsRes.data.forEach((w: { currency: string; balance: number }) => {
+          walletBalances[w.currency] = Number(w.balance) || 0;
+        });
+      }
+
+      const familyTransactions = (familyRes.data || []).map((f: any) => ({
+        id: f.id,
+        type: f.type,
+        person: f.person,
+        amount: Number(f.amount),
+        currency: f.currency,
+        date: f.date,
+        note: f.note || undefined,
+        addToCurrentBudget: f.add_to_current_budget ?? true,
+        entryId: f.entry_id || undefined,
+      }));
+
+      const incomesList = (incomesRes.data || []).map((i: any) => ({
+        id: i.id,
+        title: i.title,
+        amount: Number(i.amount),
+        currency: i.currency,
+        type: 'income' as const,
+        category: i.category,
+        date: i.date,
+        note: i.note || undefined,
+      }));
+
+      const expensesList = (expensesRes.data || []).map((e: any) => ({
+        id: e.id,
+        title: e.title,
+        amount: Number(e.amount),
+        currency: e.currency,
+        type: 'expense' as const,
+        category: e.category,
+        date: e.date,
+        note: e.note || undefined,
+      }));
+
+      const budgetEntries = [...incomesList, ...expensesList];
+
+      const monthlySalaries = (salaryRes.data || []).map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        amount: Number(s.amount),
+        currency: s.currency,
+        category: s.category,
+        isEnabled: s.is_enabled ?? true,
+        disabledReason: s.disabled_reason || undefined,
+        note: s.note || undefined,
+      }));
+
+      return {
+        walletBalances,
+        monthlySalaries,
+        budgetEntries,
+        familyTransactions,
+        lastProcessedMonth: settingsRes.data?.last_processed_month || '',
+        currency: settingsRes.data?.default_currency || 'USDT',
+      };
+    } catch (err) {
+      console.warn('Error fetching 6 budget tables from Supabase:', err);
+      return null;
+    }
+  },
+
+  async saveBudgetData(state: {
+    walletBalances: WalletBalances;
+    monthlySalaries: any[];
+    budgetEntries: any[];
+    familyTransactions: any[];
+    currency?: string;
+    lastProcessedMonth?: string;
+  }): Promise<void> {
+    try {
+      // 1. Save Current Budget (Wallets)
+      const walletPayloads = Object.entries(state.walletBalances).map(([currency, balance]) => ({
+        currency,
+        balance,
+        updated_at: new Date().toISOString(),
+      }));
+      if (walletPayloads.length > 0) {
+        await supabase.from('current_budget').upsert(walletPayloads, { onConflict: 'currency' });
+      }
+
+      // 2. Save Family Budgets
+      const familyPayloads = state.familyTransactions.map((f) => ({
+        id: f.id,
+        type: f.type,
+        person: f.person,
+        amount: f.amount,
+        currency: f.currency,
+        date: f.date,
+        note: f.note || null,
+        add_to_current_budget: f.addToCurrentBudget ?? true,
+        entry_id: f.entryId || null,
+      }));
+      if (familyPayloads.length > 0) {
+        await supabase.from('family_budgets').upsert(familyPayloads, { onConflict: 'id' });
+      }
+
+      // 3. Save Incomes
+      const incomeEntries = state.budgetEntries.filter((e) => e.type === 'income');
+      const incomePayloads = incomeEntries.map((i) => ({
+        id: i.id,
+        title: i.title,
+        amount: i.amount,
+        currency: i.currency,
+        category: i.category,
+        date: i.date,
+        note: i.note || null,
+      }));
+      if (incomePayloads.length > 0) {
+        await supabase.from('incomes').upsert(incomePayloads, { onConflict: 'id' });
+      }
+
+      // 4. Save Expenses
+      const expenseEntries = state.budgetEntries.filter((e) => e.type === 'expense');
+      const expensePayloads = expenseEntries.map((e) => ({
+        id: e.id,
+        title: e.title,
+        amount: e.amount,
+        currency: e.currency,
+        category: e.category,
+        date: e.date,
+        note: e.note || null,
+      }));
+      if (expensePayloads.length > 0) {
+        await supabase.from('expenses').upsert(expensePayloads, { onConflict: 'id' });
+      }
+
+      // 5. Save Monthly Salary
+      const salaryPayloads = state.monthlySalaries.map((s) => ({
+        id: s.id,
+        title: s.title,
+        amount: s.amount,
+        currency: s.currency,
+        category: s.category,
+        is_enabled: s.isEnabled ?? true,
+        disabled_reason: s.disabledReason || null,
+        note: s.note || null,
+      }));
+      if (salaryPayloads.length > 0) {
+        await supabase.from('monthly_salary').upsert(salaryPayloads, { onConflict: 'id' });
+      }
+
+      // 6. Save Budget Settings
+      await supabase.from('budget_settings').upsert(
+        {
+          id: 'default_settings',
+          default_currency: state.currency || 'USDT',
+          last_processed_month: state.lastProcessedMonth || '',
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      );
+    } catch (err) {
+      console.warn('Error saving 6 budget tables to Supabase:', err);
+    }
+  },
+};

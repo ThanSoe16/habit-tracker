@@ -41,18 +41,18 @@ export function ProgressStats({ onBack }: ProgressStatsProps) {
         ];
 
   return (
-    <div className="bg-[#181d24] rounded-[2.5rem] p-6 text-white relative shadow-2xl space-y-6">
+    <div className="bg-white dark:bg-[#181d24] rounded-[2.5rem] p-6 text-gray-900 dark:text-white relative shadow-xl dark:shadow-2xl border border-gray-100 dark:border-zinc-800 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-start pt-1">
-        <h1 className="text-2xl font-black leading-tight max-w-[200px] text-white">
+        <h1 className="text-2xl font-black leading-tight max-w-[200px] text-gray-900 dark:text-white">
           Your progress and insights
         </h1>
         <button
           type="button"
           onClick={() => (onBack ? onBack() : router.push('/home'))}
-          className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+          className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors"
         >
-          <X className="w-5 h-5 text-gray-300" />
+          <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
         </button>
       </div>
 
@@ -67,7 +67,7 @@ export function ProgressStats({ onBack }: ProgressStatsProps) {
               >
                 <span className="text-xs font-black text-white drop-shadow-xs">{item.streak}</span>
               </div>
-              <span className="text-[11px] font-bold text-gray-400 truncate max-w-full text-center">
+              <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400 truncate max-w-full text-center">
                 {item.name}
               </span>
             </div>
@@ -76,27 +76,27 @@ export function ProgressStats({ onBack }: ProgressStatsProps) {
       </div>
 
       {/* Points & Stats Card */}
-      <div className="bg-[#10141a] rounded-[2rem] p-5 space-y-5 border border-white/5 shadow-inner">
+      <div className="bg-[#f4f7fd] dark:bg-[#10141a] rounded-[2rem] p-5 space-y-5 border border-gray-100 dark:border-white/5 shadow-inner">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="font-extrabold text-base text-white">Points Earned</h2>
-            <p className="text-gray-400 text-xs font-medium">For this week</p>
+            <h2 className="font-extrabold text-base text-gray-900 dark:text-white">Points Earned</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">For this week</p>
           </div>
           <span className="text-xl font-black text-[#ff3d00]">842 Points</span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-center">
+        <div className="grid grid-cols-3 gap-2 border-t border-gray-200 dark:border-white/10 pt-4 text-center">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Habits</p>
-            <p className="text-lg font-black text-white">{habits.length || 4}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">Habits</p>
+            <p className="text-lg font-black text-gray-900 dark:text-white">{habits.length || 4}</p>
           </div>
-          <div className="border-x border-white/10">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Finished</p>
-            <p className="text-lg font-black text-white">{finishedCount || 4}</p>
+          <div className="border-x border-gray-200 dark:border-white/10">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">Finished</p>
+            <p className="text-lg font-black text-gray-900 dark:text-white">{finishedCount || 4}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Streak</p>
-            <p className="text-lg font-black text-white">{maxStreak || 6}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">Streak</p>
+            <p className="text-lg font-black text-gray-900 dark:text-white">{maxStreak || 6}</p>
           </div>
         </div>
 

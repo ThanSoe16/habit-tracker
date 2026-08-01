@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import Image from 'next/image';
-import { Dumbbell, Archive } from 'lucide-react';
+import { Dumbbell, Archive, Wallet } from 'lucide-react';
 
 interface NavItem {
   label: string;
@@ -12,7 +12,7 @@ interface NavItem {
   icon?: string;
   activeIcon?: string;
   useLucide?: boolean;
-  lucideIcon?: 'dumbbell' | 'archive';
+  lucideIcon?: 'dumbbell' | 'archive' | 'wallet';
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -41,10 +41,10 @@ const NAV_ITEMS: NavItem[] = [
     href: '/store',
   },
   {
-    label: 'Account',
-    icon: '/side-bar/profile-inactive.png',
-    activeIcon: '/side-bar/profile-active.png',
-    href: '/account',
+    label: 'Budget',
+    useLucide: true,
+    lucideIcon: 'wallet',
+    href: '/budget',
   },
 ];
 
@@ -67,7 +67,12 @@ export function BottomNav() {
             isActive = pathname.startsWith(item.href);
           }
 
-          const LucideIcon = item.lucideIcon === 'archive' ? Archive : Dumbbell;
+          const LucideIcon =
+            item.lucideIcon === 'archive'
+              ? Archive
+              : item.lucideIcon === 'wallet'
+                ? Wallet
+                : Dumbbell;
 
           return (
             <Link

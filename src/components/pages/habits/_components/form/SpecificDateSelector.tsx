@@ -41,7 +41,7 @@ export const SpecificDateSelector = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="multiple" selected={selectedDates} onSelect={handleSelect} initialFocus />
+          <Calendar mode="multiple" selected={selectedDates} onSelect={handleSelect} />
         </PopoverContent>
       </Popover>
 

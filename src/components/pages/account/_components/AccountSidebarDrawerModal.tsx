@@ -18,6 +18,7 @@ import {
   Bell,
   Moon,
   ChevronRight,
+  Wallet,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/useUserStore';
@@ -40,6 +41,13 @@ export function AccountSidebarDrawerModal({
     {
       title: 'MODULES',
       items: [
+        {
+          id: 'budget',
+          label: 'Budget Tracker',
+          icon: Wallet,
+          action: () => router.push('/budget'),
+          isActive: pathname.startsWith('/budget'),
+        },
         {
           id: 'habits',
           label: 'Habits Tracker',

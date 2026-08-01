@@ -54,11 +54,11 @@ export function CalendarStats() {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-zinc-800">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-bold text-foreground">Calendar Stats</h3>
-        <button className="flex items-center gap-1 text-xs font-medium text-muted-foreground bg-gray-100 px-3 py-1.5 rounded-full">
+        <h3 className="text-base font-bold text-gray-900 dark:text-white">Calendar Stats</h3>
+        <button className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full">
           This Month
           <ChevronDown className="w-3.5 h-3.5" />
         </button>
@@ -68,16 +68,16 @@ export function CalendarStats() {
       <div className="flex items-center justify-between mb-5">
         <button
           onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4 text-gray-500" />
+          <ChevronLeft className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </button>
-        <h4 className="text-sm font-bold text-foreground">{format(currentDate, 'MMMM yyyy')}</h4>
+        <h4 className="text-sm font-bold text-gray-900 dark:text-white">{format(currentDate, 'MMMM yyyy')}</h4>
         <button
           onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
         >
-          <ChevronRight className="w-4 h-4 text-gray-500" />
+          <ChevronRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </button>
       </div>
 

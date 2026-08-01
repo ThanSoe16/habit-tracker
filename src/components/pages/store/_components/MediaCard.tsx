@@ -6,6 +6,16 @@ import { MediaEntry } from '@/store/useMediaStore';
 import { cn } from '@/utils/cn';
 import { format, parseISO } from 'date-fns';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface MediaCardProps {
   entry: MediaEntry;
@@ -18,6 +28,7 @@ export function MediaCard({ entry, onDelete, onPlay }: MediaCardProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(entry.duration || 0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Toggle audio playback
@@ -204,7 +215,7 @@ export function MediaCard({ entry, onDelete, onPlay }: MediaCardProps) {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(entry.id);
+                setIsDeleteDialogOpen(true);
               }}
               className="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-700/60 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center shrink-0 transition-colors"
               title="Delete file"
@@ -214,6 +225,47 @@ export function MediaCard({ entry, onDelete, onPlay }: MediaCardProps) {
           )}
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION DIALOG */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent
+          onClick={(e) => e.stopPropagation()}
+          className="z-[90] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl max-w-xs mx-auto text-gray-900 dark:text-white"
+        >
+          <AlertDialogHeader className="space-y-2 text-center sm:text-center">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto mb-1">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <AlertDialogTitle className="text-base font-extrabold text-gray-900 dark:text-white">
+              Delete {entry.type === 'voice' ? 'Voice Memo' : entry.type === 'photo' ? 'Photo' : 'Video'}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete &ldquo;{entry.title || 'this item'}&rdquo;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-row items-center justify-end gap-2 mt-4">
+            <AlertDialogCancel
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteDialogOpen(false);
+              }}
+              className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700 font-bold text-xs"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onDelete) onDelete(entry.id);
+                setIsDeleteDialogOpen(false);
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-500/20"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* FULLSCREEN LIGHTBOX / MEDIA VIEWER DRAWER */}
       <Drawer open={isViewerOpen} onOpenChange={setIsViewerOpen}>

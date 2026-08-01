@@ -14,6 +14,8 @@ import {
   BarChart2,
   Calendar,
   Sparkles,
+  Wallet,
+  User,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/useUserStore';
@@ -31,6 +33,9 @@ export function MoodSidebarDrawerModal({
   const { name, avatarEmoji } = useUserStore();
   const router = useRouter();
   const pathname = usePathname();
+
+  const isAccountPage = pathname === '/account';
+  const isBudgetPage = pathname === '/budget';
 
   const menuSections = [
     {
@@ -56,6 +61,13 @@ export function MoodSidebarDrawerModal({
       title: 'GENERAL',
       items: [
         {
+          id: 'budget',
+          label: 'Budget Tracker',
+          icon: Wallet,
+          action: () => router.push('/budget'),
+          isActive: isBudgetPage,
+        },
+        {
           id: 'reports',
           label: 'Reports & Analytics',
           icon: BarChart2,
@@ -63,11 +75,11 @@ export function MoodSidebarDrawerModal({
           isActive: pathname === '/mood/reports' || pathname === '/report',
         },
         {
-          id: 'settings',
-          label: 'Settings',
-          icon: Settings,
-          action: () => router.push('/mood/settings'),
-          isActive: pathname === '/mood/settings',
+          id: 'account',
+          label: 'Account & Settings',
+          icon: User,
+          action: () => router.push('/account'),
+          isActive: isAccountPage || pathname === '/mood/settings',
         },
       ],
     },
@@ -78,7 +90,14 @@ export function MoodSidebarDrawerModal({
       <DrawerContent className="bg-white dark:bg-zinc-900 h-full w-[280px] max-w-[85vw] rounded-r-3xl border-r border-gray-100 dark:border-zinc-800 p-0 overflow-hidden flex flex-col justify-between">
         <div className="flex flex-col h-full overflow-y-auto no-scrollbar">
           {/* User Profile Header */}
-          <div className="p-6 bg-gradient-to-b from-purple-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
+          <button
+            type="button"
+            onClick={() => {
+              router.push('/account');
+              onClose();
+            }}
+            className="p-6 bg-gradient-to-b from-purple-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800 text-left hover:bg-purple-50/40 transition-colors"
+          >
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl shadow-md shadow-indigo-500/30 shrink-0">
                 {avatarEmoji || '😊'}
@@ -92,7 +111,7 @@ export function MoodSidebarDrawerModal({
                 </DrawerDescription>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Navigation Sections */}
           <div className="p-4 space-y-6 flex-1">

@@ -33,11 +33,11 @@ export function HabitsCompletedChart() {
   );
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-zinc-800">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-base font-bold text-foreground">Habits Completed</h3>
-        <button className="flex items-center gap-1 text-xs font-medium text-muted-foreground bg-gray-100 px-3 py-1.5 rounded-full">
+        <h3 className="text-base font-bold text-gray-900 dark:text-white">Habits Completed</h3>
+        <button className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full">
           This Week
           <ChevronDown className="w-3.5 h-3.5" />
         </button>

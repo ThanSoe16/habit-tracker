@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useUserStore } from '@/store/useUserStore';
+import { useBudgetStore, CURRENCIES, CurrencyCode } from '@/store/useBudgetStore';
 import { useRouter } from 'next/navigation';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import {
@@ -15,9 +16,13 @@ import {
   Sun,
   Music,
   Smartphone,
+  Coins,
+  X,
+  Check,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { RingtoneDrawerModal } from './RingtoneDrawerModal';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 interface SettingItem {
   icon: LucideIcon;
@@ -45,9 +50,12 @@ export function SettingsList() {
     theme,
     setTheme,
   } = useUserStore();
+
+  const { currency, setCurrency } = useBudgetStore();
+
   const [isRingtoneModalOpen, setIsRingtoneModalOpen] = useState(false);
-  const { isSubscribed, subscribeToPush, unsubscribeFromPush, sendTestPush } =
-    usePushNotifications();
+  const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+  const { isSubscribed, subscribeToPush, unsubscribeFromPush } = usePushNotifications();
   const router = useRouter();
 
   const handlePushToggle = async () => {
@@ -58,35 +66,12 @@ export function SettingsList() {
     }
   };
 
-  const handleNotificationToggle = async () => {
-    if (!remindersEnabled) {
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          setRemindersEnabled(true);
-        } else {
-          alert(
-            'Notification permission was denied. Please allow notifications in your browser settings.',
-          );
-        }
-      } else {
-        alert('Your browser does not support notifications.');
-      }
-    } else {
-      setRemindersEnabled(false);
-    }
-  };
-
   const handleThemeToggle = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     if (typeof document !== 'undefined') {
       document.documentElement.classList.toggle('dark', newTheme === 'dark');
     }
-  };
-
-  const handleRemindersClick = () => {
-    router.push('/habits');
   };
 
   const ringtoneLabels: Record<string, string> = {
@@ -101,6 +86,14 @@ export function SettingsList() {
     {
       title: 'General',
       items: [
+        {
+          icon: Coins,
+          label: 'Currency',
+          value: `${CURRENCIES[currency]?.flag || '💵'} ${currency}`,
+          color: 'text-amber-500',
+          bg: 'bg-amber-50 dark:bg-amber-950/40',
+          onClick: () => setIsCurrencyModalOpen(true),
+        },
         {
           icon: Bell,
           label: 'Push Notifications',
@@ -226,6 +219,55 @@ export function SettingsList() {
         isOpen={isRingtoneModalOpen}
         onClose={() => setIsRingtoneModalOpen(false)}
       />
+
+      {/* CURRENCY DRAWER MODAL */}
+      <Drawer open={isCurrencyModalOpen} onOpenChange={setIsCurrencyModalOpen}>
+        <DrawerContent className="z-[80] max-w-lg mx-auto bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-t-[36px] p-6 space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
+            <DrawerTitle className="text-base font-black">
+              Select Currency
+            </DrawerTitle>
+            <button
+              type="button"
+              onClick={() => setIsCurrencyModalOpen(false)}
+              className="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-zinc-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => {
+              const info = CURRENCIES[code];
+              const isSelected = currency === code;
+              return (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => {
+                    setCurrency(code);
+                    setIsCurrencyModalOpen(false);
+                  }}
+                  className={`w-full p-4 rounded-2xl border flex items-center justify-between transition-all ${
+                    isSelected
+                      ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 font-extrabold text-amber-700 dark:text-amber-400'
+                      : 'border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{info.flag}</span>
+                    <div className="text-left">
+                      <p className="text-sm">{info.name}</p>
+                      <p className="text-xs text-gray-400 font-semibold">{code} ({info.symbol})</p>
+                    </div>
+                  </div>
+                  {isSelected && <Check className="w-5 h-5 text-amber-500" />}
+                </button>
+              );
+            })}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

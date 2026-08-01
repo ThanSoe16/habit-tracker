@@ -15,6 +15,8 @@ import {
   Sparkles,
   ListTodo,
   CheckSquare,
+  Wallet,
+  User,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/useUserStore';
@@ -45,6 +47,8 @@ export function SidebarDrawerModal({
   const isOneTimeTaskActive = pathname === '/habits' && tabParam === 'task';
   const isReportPage = pathname === '/report';
   const isSettingsPage = pathname === '/settings';
+  const isAccountPage = pathname === '/account';
+  const isBudgetPage = pathname === '/budget';
 
   const menuSections = [
     {
@@ -105,6 +109,13 @@ export function SidebarDrawerModal({
       title: 'GENERAL',
       items: [
         {
+          id: 'budget',
+          label: 'Budget Tracker',
+          icon: Wallet,
+          action: () => router.push('/budget'),
+          isActive: isBudgetPage,
+        },
+        {
           id: 'reports',
           label: 'Progress & Insights',
           icon: BarChart2,
@@ -112,11 +123,11 @@ export function SidebarDrawerModal({
           isActive: isReportPage,
         },
         {
-          id: 'settings',
-          label: 'Settings',
-          icon: Settings,
-          action: () => router.push('/settings'),
-          isActive: isSettingsPage,
+          id: 'account',
+          label: 'Account & Settings',
+          icon: User,
+          action: () => router.push('/account'),
+          isActive: isAccountPage || isSettingsPage,
         },
       ],
     },
@@ -127,7 +138,14 @@ export function SidebarDrawerModal({
       <DrawerContent className="bg-white dark:bg-zinc-900 h-full w-[280px] max-w-[85vw] rounded-r-3xl border-r border-gray-100 dark:border-zinc-800 p-0 overflow-hidden flex flex-col justify-between">
         <div className="flex flex-col h-full overflow-y-auto no-scrollbar">
           {/* User Profile Card Header */}
-          <div className="p-6 bg-linear-to-b from-blue-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
+          <button
+            type="button"
+            onClick={() => {
+              router.push('/account');
+              onClose();
+            }}
+            className="p-6 bg-gradient-to-b from-blue-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800 text-left hover:bg-blue-50/40 transition-colors"
+          >
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-[#2563eb] text-white flex items-center justify-center text-2xl shadow-md shadow-blue-500/30 shrink-0">
                 {avatarEmoji || '😊'}
@@ -141,7 +159,7 @@ export function SidebarDrawerModal({
                 </DrawerDescription>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Navigation Sections */}
           <div className="p-4 space-y-6 flex-1">
