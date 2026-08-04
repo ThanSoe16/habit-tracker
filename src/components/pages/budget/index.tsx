@@ -18,6 +18,8 @@ import {
   Sparkles,
   HelpCircle,
   Coins,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import {
   useBudgetStore,
@@ -60,6 +62,7 @@ export default function BudgetPage() {
   const [isExchangeDrawerOpen, setIsExchangeDrawerOpen] = useState(false);
   const [isSalaryDrawerOpen, setIsSalaryDrawerOpen] = useState(false);
   const [isExpenseDrawerOpen, setIsExpenseDrawerOpen] = useState(false);
+  const [isAmountVisible, setIsAmountVisible] = useState(true);
 
   // Editing Salary & Balance States
   const [editingSalary, setEditingSalary] = useState<MonthlySalary | null>(null);
@@ -264,9 +267,19 @@ export default function BudgetPage() {
                 <Wallet className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
-                  Current Budget Table
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
+                    Current Budget Table
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setIsAmountVisible(!isAmountVisible)}
+                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                    title={isAmountVisible ? 'Hide Amounts' : 'Show Amounts'}
+                  >
+                    {isAmountVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
                 <p className="text-[10px] text-gray-400 font-bold">3 Active Currencies</p>
               </div>
             </div>
@@ -297,7 +310,7 @@ export default function BudgetPage() {
                         {info.name}
                       </p>
                       <p className="text-lg font-black text-gray-900 dark:text-white tabular-nums">
-                        {formatCurrency(bal, code)}
+                        {isAmountVisible ? formatCurrency(bal, code) : '••••••••'}
                       </p>
                     </div>
                   </div>
@@ -318,138 +331,7 @@ export default function BudgetPage() {
           </div>
         </div>
 
-        {/* SECTION 2: MONTHLY SALARY TABLE (TEMPLATES & RECURRING) */}
-        <div id="section-salary" className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
-          <div className="flex items-center justify-between pb-1 border-b border-gray-100 dark:border-zinc-800">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                <CalendarIcon className="w-4.5 h-4.5" />
-              </div>
-              <div>
-                <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
-                  Monthly Salary Table
-                </h2>
-                <p className="text-[10px] text-gray-400 font-bold">Auto-credits on 1st of every month</p>
-              </div>
-            </div>
 
-            <button
-              type="button"
-              onClick={openAddSalary}
-              className="px-3 py-1.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold flex items-center gap-1 shadow-sm shadow-purple-500/30 transition-transform active:scale-95"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add Salary
-            </button>
-          </div>
-
-          {/* Info Banner */}
-          <div className="bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 p-3 rounded-2xl text-[11px] text-purple-900 dark:text-purple-200 font-medium flex items-start gap-2">
-            <HelpCircle className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
-            <span>
-              Editing or disabling a salary template will <strong>not affect</strong> funds already credited to your Current Budget.
-            </span>
-          </div>
-
-          {/* Salary Items Table/List */}
-          {monthlySalaries.length > 0 ? (
-            <div className="space-y-2.5">
-              {monthlySalaries.map((sal) => (
-                <div
-                  key={sal.id}
-                  className={cn(
-                    'p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all',
-                    sal.isEnabled
-                      ? 'bg-gray-50 dark:bg-zinc-800/80 border-gray-200 dark:border-zinc-700'
-                      : 'bg-gray-50/40 dark:bg-zinc-800/30 border-gray-100 dark:border-zinc-800/60 opacity-60',
-                  )}
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
-                      {getCategoryEmoji(sal.category)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-extrabold text-xs text-gray-900 dark:text-white">
-                          {sal.title}
-                        </p>
-                        <span
-                          className={cn(
-                            'text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0',
-                            sal.isEnabled
-                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
-                              : 'bg-gray-200 text-gray-600 dark:bg-zinc-700 dark:text-gray-400',
-                          )}
-                        >
-                          {sal.isEnabled ? 'Active' : 'Disabled'}
-                        </span>
-                      </div>
-                      <p className="text-[10px] font-bold text-gray-400 mt-0.5">
-                        {sal.category} • Every 1st of Month
-                      </p>
-                      {!sal.isEnabled && sal.disabledReason && (
-                        <p className="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold mt-0.5">
-                          Reason: {sal.disabledReason}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-black text-xs text-gray-900 dark:text-white tabular-nums">
-                      {formatCurrency(sal.amount, sal.currency)}
-                    </span>
-
-                    {/* Enable/Disable Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (sal.isEnabled) {
-                          setDisableTargetSalary(sal);
-                          setDisableReasonInput('');
-                        } else {
-                          toggleMonthlySalary(sal.id);
-                        }
-                      }}
-                      className={cn(
-                        'w-7 h-7 rounded-lg flex items-center justify-center transition-colors',
-                        sal.isEnabled
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-gray-200 dark:bg-zinc-700 text-gray-400',
-                      )}
-                      title={sal.isEnabled ? 'Disable Salary' : 'Enable Salary'}
-                    >
-                      <Power className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Edit */}
-                    <button
-                      type="button"
-                      onClick={() => openEditSalary(sal)}
-                      className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-zinc-700 text-gray-500 hover:text-blue-500 flex items-center justify-center transition-colors"
-                      title="Edit Salary"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Delete */}
-                    <button
-                      type="button"
-                      onClick={() => setDeleteSalaryId(sal.id)}
-                      className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-zinc-700 text-gray-400 hover:text-red-500 flex items-center justify-center transition-colors"
-                      title="Delete Salary Template"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-gray-400 font-bold text-center py-4">
-              No salary templates configured. Tap &quot;Add Salary&quot; to define monthly earnings!
-            </p>
-          )}
-        </div>
 
         {/* SECTION 3: EXPENSE & ACTIVITY LOG TABLE */}
         <div id="section-expenses" className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
