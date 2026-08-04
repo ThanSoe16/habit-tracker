@@ -363,18 +363,18 @@ export default function BudgetPage() {
                       : 'bg-gray-50/40 dark:bg-zinc-800/30 border-gray-100 dark:border-zinc-800/60 opacity-60',
                   )}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
                       {getCategoryEmoji(sal.category)}
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-extrabold text-xs text-gray-900 dark:text-white truncate">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-extrabold text-xs text-gray-900 dark:text-white">
                           {sal.title}
                         </p>
                         <span
                           className={cn(
-                            'text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider',
+                            'text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0',
                             sal.isEnabled
                               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
                               : 'bg-gray-200 text-gray-600 dark:bg-zinc-700 dark:text-gray-400',

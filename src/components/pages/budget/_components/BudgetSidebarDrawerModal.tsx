@@ -97,6 +97,13 @@ export function BudgetSidebarDrawerModal({
       title: 'GENERAL',
       items: [
         {
+          id: 'budget-reports',
+          label: 'Budget Reports',
+          icon: BarChart3,
+          action: () => router.push('/budget/reports'),
+          isActive: pathname.startsWith('/budget/reports'),
+        },
+        {
           id: 'budget-settings',
           label: 'Budget Settings',
           icon: Settings,

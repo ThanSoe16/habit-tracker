@@ -496,21 +496,21 @@ export default function BudgetReportsPage() {
 
         {/* 7. DETAILED HISTORY LOG & ACTIVITY LIST */}
         <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
-          <div className="flex items-center justify-between pb-1 border-b border-gray-100 dark:border-zinc-800">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-gray-100 dark:border-zinc-800">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                 <Receipt className="w-4.5 h-4.5" />
               </div>
-              <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
+              <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white truncate">
                 Detailed History Log ({historyItems.length})
               </h2>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setIsExportModalOpen(true)}
-                className="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-black flex items-center gap-1 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+                className="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[11px] font-black flex items-center gap-1 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" /> Export Image
               </button>
