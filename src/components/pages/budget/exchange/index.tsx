@@ -20,6 +20,7 @@ import {
   DEFAULT_EXCHANGE_RATES,
 } from '@/store/useBudgetStore';
 import { BudgetSidebarDrawerModal } from '../_components/BudgetSidebarDrawerModal';
+import { MoneyInput } from '@/components/ui/money-input';
 import { ExportTableModal } from '../_components/ExportTableModal';
 import { cn } from '@/utils/cn';
 
@@ -131,8 +132,8 @@ export default function CurrencyExchangePage() {
         </header>
 
         {/* WALLET BALANCES SUMMARY BAR */}
-        <div className="grid grid-cols-3 gap-2">
-          {(['USDT', 'THB', 'MMK'] as const).map((code) => (
+        <div className="grid grid-cols-4 gap-2">
+          {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
             <div
               key={code}
               className="bg-white dark:bg-zinc-900 rounded-2xl p-3 border border-gray-100 dark:border-zinc-800 shadow-xs text-center"
@@ -141,7 +142,7 @@ export default function CurrencyExchangePage() {
                 {CURRENCIES[code].flag} {code}
               </span>
               <span className="text-xs font-black text-gray-900 dark:text-white block mt-0.5 tabular-nums">
-                {formatCurrency(walletBalances[code], code)}
+                {formatCurrency(walletBalances[code] || 0, code)}
               </span>
             </div>
           ))}
@@ -196,19 +197,17 @@ export default function CurrencyExchangePage() {
                   }}
                   className="px-3 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none"
                 >
-                  {(['USDT', 'THB', 'MMK'] as const).map((code) => (
+                  {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
                     <option key={code} value={code}>
                       {CURRENCIES[code].flag} {code}
                     </option>
                   ))}
                 </select>
 
-                <input
-                  type="number"
-                  step="0.01"
+                <MoneyInput
                   placeholder="Amount to send..."
                   value={fromAmount}
-                  onChange={(e) => setFromAmount(e.target.value)}
+                  setValue={setFromAmount}
                   className="flex-1 px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
@@ -229,12 +228,10 @@ export default function CurrencyExchangePage() {
                 <label className="text-[10px] font-bold text-gray-400 block mb-0.5">
                   Exchange Rate (1 {fromCurrency} = ? {toCurrency})
                 </label>
-                <input
-                  type="number"
-                  step="0.0001"
+                <MoneyInput
                   placeholder={`Rate (${defaultRate})`}
                   value={customRate}
-                  onChange={(e) => setCustomRate(e.target.value)}
+                  setValue={setCustomRate}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-800 rounded-xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none"
                 />
               </div>
@@ -258,7 +255,7 @@ export default function CurrencyExchangePage() {
                   }}
                   className="px-3 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none"
                 >
-                  {(['USDT', 'THB', 'MMK'] as const).map((code) => (
+                  {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
                     <option key={code} value={code}>
                       {CURRENCIES[code].flag} {code}
                     </option>
@@ -295,7 +292,7 @@ export default function CurrencyExchangePage() {
 
             {/* Currency Filter Tabs */}
             <div className="flex bg-gray-200/60 dark:bg-zinc-800 p-1 rounded-xl gap-1">
-              {(['ALL', 'USDT', 'THB', 'MMK'] as const).map((code) => (
+              {(['ALL', 'USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
                 <button
                   key={code}
                   type="button"

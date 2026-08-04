@@ -103,6 +103,13 @@ export function SidebarDrawerModal({
           action: () => router.push('/habits?tab=task'),
           isActive: isOneTimeTaskActive,
         },
+        {
+          id: 'habit-settings',
+          label: 'Habit Settings',
+          icon: Settings,
+          action: () => router.push('/settings'),
+          isActive: isSettingsPage,
+        },
       ],
     },
     {
@@ -127,7 +134,7 @@ export function SidebarDrawerModal({
           label: 'Account & Settings',
           icon: User,
           action: () => router.push('/account'),
-          isActive: isAccountPage || isSettingsPage,
+          isActive: isAccountPage,
         },
       ],
     },

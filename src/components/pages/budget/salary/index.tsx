@@ -24,6 +24,7 @@ import {
   MonthlySalary,
 } from '@/store/useBudgetStore';
 import { BudgetSidebarDrawerModal } from '../_components/BudgetSidebarDrawerModal';
+import { MoneyInput } from '@/components/ui/money-input';
 import { cn } from '@/utils/cn';
 import {
   AlertDialog,
@@ -345,12 +346,9 @@ export default function SalaryPage() {
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
                   Amount
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
+                <MoneyInput
                   value={salAmount}
-                  onChange={(e) => setSalAmount(e.target.value)}
+                  setValue={setSalAmount}
                   placeholder="0.00"
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />

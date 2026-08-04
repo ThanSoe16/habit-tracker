@@ -32,9 +32,9 @@ export default function HabitDetail({ id }: { id: string }) {
     );
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this habit?')) {
-      removeHabit(habit.id);
+      await removeHabit(habit.id);
       router.back();
     }
   };

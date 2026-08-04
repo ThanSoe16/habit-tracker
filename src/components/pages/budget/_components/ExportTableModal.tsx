@@ -64,7 +64,7 @@ export function ExportTableModal({
       acc[row.currency] = (acc[row.currency] || 0) + net;
       return acc;
     },
-    { USDT: 0, THB: 0, MMK: 0 } as Record<CurrencyCode, number>,
+    { USDT: 0, THB: 0, MMK: 0, SGD: 0 } as Record<CurrencyCode, number>,
   );
 
   return (
@@ -159,8 +159,8 @@ export function ExportTableModal({
               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-wider px-1">
                 Net Totals by Currency
               </p>
-              <div className="grid grid-cols-3 gap-2">
-                {(['USDT', 'THB', 'MMK'] as const).map((code) => {
+              <div className="grid grid-cols-4 gap-2">
+                {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => {
                   const val = totalsPerCurrency[code] || 0;
                   return (
                     <div

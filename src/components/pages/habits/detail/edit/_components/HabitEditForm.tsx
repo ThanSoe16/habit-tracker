@@ -39,8 +39,8 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
     },
   });
 
-  const onSubmit = (data: HabitData) => {
-    updateHabit(habit.id, {
+  const onSubmit = async (data: HabitData) => {
+    await updateHabit(habit.id, {
       name: data.name,
       color: data.color,
       frequency: data.frequencyTab as any,

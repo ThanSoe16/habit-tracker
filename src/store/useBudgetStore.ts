@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { budgetService } from '@/lib/supabase/services';
 
-export type CurrencyCode = 'USDT' | 'MMK' | 'THB';
+export type CurrencyCode = 'USDT' | 'MMK' | 'THB' | 'SGD';
 export type EntryType = 'income' | 'expense' | 'exchange';
 
 export interface CurrencyConfig {
@@ -18,6 +18,7 @@ export const CURRENCIES: Record<CurrencyCode, CurrencyConfig> = {
   USDT: { code: 'USDT', symbol: '$', name: 'Tether (USDT)', flag: '💵' },
   MMK: { code: 'MMK', symbol: 'K', name: 'Myanmar Kyat', flag: '🇲🇲' },
   THB: { code: 'THB', symbol: '฿', name: 'Thai Baht', flag: '🇹🇭' },
+  SGD: { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', flag: '🇸🇬' },
 };
 
 export function formatCurrency(amount: number, currency: CurrencyCode = 'USDT'): string {
@@ -25,7 +26,7 @@ export function formatCurrency(amount: number, currency: CurrencyCode = 'USDT'):
   if (currency === 'MMK') {
     return `${Math.round(amount).toLocaleString('en-US')} ${config.symbol}`;
   }
-  if (currency === 'THB') {
+  if (currency === 'THB' || currency === 'SGD') {
     return `${config.symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
   return `${config.symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -35,6 +36,7 @@ export interface WalletBalances {
   USDT: number;
   THB: number;
   MMK: number;
+  SGD: number;
   [key: string]: number;
 }
 
@@ -84,6 +86,12 @@ export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
   'MMK_USDT': 1 / 4500,
   'THB_MMK': 126.7,
   'MMK_THB': 1 / 126.7,
+  'USDT_SGD': 1.35,
+  'SGD_USDT': 1 / 1.35,
+  'SGD_THB': 26.3,
+  'THB_SGD': 1 / 26.3,
+  'SGD_MMK': 3330,
+  'MMK_SGD': 1 / 3330,
 };
 
 export const BUDGET_CATEGORIES = [
@@ -127,6 +135,7 @@ interface BudgetStoreState {
 
   // Actions for Family Budget Module
   addFamilyTransaction: (tx: Omit<FamilyTransaction, 'id'>) => void;
+  updateFamilyTransaction: (id: string, updates: Omit<FamilyTransaction, 'id'>) => void;
   deleteFamilyTransaction: (id: string) => void;
 
   // Currency Exchange
@@ -204,6 +213,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
         USDT: 1000,
         THB: 8000,
         MMK: 36000000,
+        SGD: 0,
       },
       monthlySalaries: DEFAULT_SALARIES,
       budgetEntries: DEFAULT_ENTRIES,
@@ -250,9 +260,12 @@ export const useBudgetStore = create<BudgetStoreState>()(
         })),
 
       deleteMonthlySalary: (id) =>
-        set((state) => ({
-          monthlySalaries: state.monthlySalaries.filter((sal) => sal.id !== id),
-        })),
+        set((state) => {
+          budgetService.deleteMonthlySalary(id);
+          return {
+            monthlySalaries: state.monthlySalaries.filter((sal) => sal.id !== id),
+          };
+        }),
 
       processMonthlySalaryPayout: () => {
         const state = get();
@@ -356,6 +369,8 @@ export const useBudgetStore = create<BudgetStoreState>()(
             }
           }
 
+          budgetService.deleteBudgetEntry(id, target.type);
+
           return {
             walletBalances: updatedBalances,
             budgetEntries: state.budgetEntries.filter((e) => e.id !== id),
@@ -413,6 +428,84 @@ export const useBudgetStore = create<BudgetStoreState>()(
           };
         }),
 
+      updateFamilyTransaction: (id, updates) =>
+        set((state) => {
+          const oldTx = (state.familyTransactions || []).find((tx) => tx.id === id);
+          if (!oldTx) return state;
+
+          const updatedBalances = { ...state.walletBalances };
+
+          // 1. Revert old transaction's impact on wallet balance if it was added to budget
+          const oldAddToBudget = oldTx.addToCurrentBudget !== false;
+          if (oldAddToBudget) {
+            const currentOldBal = updatedBalances[oldTx.currency] || 0;
+            updatedBalances[oldTx.currency] =
+              oldTx.type === 'received'
+                ? Math.max(0, currentOldBal - oldTx.amount)
+                : currentOldBal + oldTx.amount;
+          }
+
+          // 2. Apply new transaction's impact on wallet balance if added to budget
+          const newAddToBudget = updates.addToCurrentBudget !== false;
+          if (newAddToBudget) {
+            const currentNewBal = updatedBalances[updates.currency] || 0;
+            updatedBalances[updates.currency] =
+              updates.type === 'received'
+                ? currentNewBal + updates.amount
+                : Math.max(0, currentNewBal - updates.amount);
+          }
+
+          // 3. Handle linked budget entry
+          let entryId = oldTx.entryId;
+          let updatedBudgetEntries = [...state.budgetEntries];
+
+          if (newAddToBudget) {
+            if (!entryId) {
+              entryId = crypto.randomUUID();
+            }
+            const budgetEntryPayload: BudgetEntry = {
+              id: entryId,
+              title:
+                updates.type === 'received'
+                  ? `Received from ${updates.person}`
+                  : `Given to ${updates.person}`,
+              amount: updates.amount,
+              currency: updates.currency,
+              type: updates.type === 'received' ? 'income' : 'expense',
+              category: 'Family',
+              date: updates.date,
+              note: updates.note,
+            };
+
+            const existingEntryIdx = updatedBudgetEntries.findIndex((e) => e.id === entryId);
+            if (existingEntryIdx >= 0) {
+              updatedBudgetEntries[existingEntryIdx] = budgetEntryPayload;
+            } else {
+              updatedBudgetEntries = [budgetEntryPayload, ...updatedBudgetEntries];
+            }
+          } else {
+            if (entryId) {
+              updatedBudgetEntries = updatedBudgetEntries.filter((e) => e.id !== entryId);
+              budgetService.deleteBudgetEntry(entryId);
+              entryId = undefined;
+            }
+          }
+
+          const updatedFamilyTx: FamilyTransaction = {
+            ...updates,
+            id,
+            entryId,
+          };
+
+          return {
+            walletBalances: updatedBalances,
+            familyTransactions: (state.familyTransactions || []).map((tx) =>
+              tx.id === id ? updatedFamilyTx : tx
+            ),
+            budgetEntries: updatedBudgetEntries,
+          };
+        }),
+
       deleteFamilyTransaction: (id) =>
         set((state) => {
           const target = (state.familyTransactions || []).find((tx) => tx.id === id);
@@ -432,6 +525,11 @@ export const useBudgetStore = create<BudgetStoreState>()(
           const updatedBudgetEntries = target.entryId
             ? state.budgetEntries.filter((entry) => entry.id !== target.entryId)
             : state.budgetEntries;
+
+          budgetService.deleteFamilyTransaction(id);
+          if (target.entryId) {
+            budgetService.deleteBudgetEntry(target.entryId);
+          }
 
           return {
             walletBalances: addToBudget
@@ -477,13 +575,16 @@ export const useBudgetStore = create<BudgetStoreState>()(
         }),
 
       resetBudgetData: () =>
-        set(() => ({
-          walletBalances: { USDT: 0, THB: 0, MMK: 0 },
-          monthlySalaries: [],
-          budgetEntries: [],
-          familyTransactions: [],
-          lastProcessedMonth: '',
-        })),
+        set(() => {
+          budgetService.clearAllBudgetData();
+          return {
+            walletBalances: { USDT: 0, THB: 0, MMK: 0, SGD: 0 },
+            monthlySalaries: [],
+            budgetEntries: [],
+            familyTransactions: [],
+            lastProcessedMonth: '',
+          };
+        }),
 
       importBudgetData: (data: Partial<BudgetStoreState>) =>
         set((state) => ({

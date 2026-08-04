@@ -98,6 +98,7 @@ export default function BudgetReportsPage() {
     USDT: { inflow: 0, outflow: 0, net: 0 },
     THB: { inflow: 0, outflow: 0, net: 0 },
     MMK: { inflow: 0, outflow: 0, net: 0 },
+    SGD: { inflow: 0, outflow: 0, net: 0 },
   };
 
   if (selectedModule === 'ALL' || selectedModule === 'INCOME') {

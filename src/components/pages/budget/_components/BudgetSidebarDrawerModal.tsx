@@ -89,25 +89,11 @@ export function BudgetSidebarDrawerModal({
       title: 'GENERAL',
       items: [
         {
-          id: 'reports',
-          label: 'Reports',
-          icon: BarChart3,
-          action: () => router.push('/budget/reports'),
-          isActive: pathname.startsWith('/budget/reports'),
-        },
-        {
-          id: 'settings',
-          label: 'Settings',
+          id: 'budget-settings',
+          label: 'Budget Settings',
           icon: Settings,
           action: () => router.push('/budget/settings'),
           isActive: pathname.startsWith('/budget/settings'),
-        },
-        {
-          id: 'auth-login',
-          label: 'Login / Account',
-          icon: LogIn,
-          action: () => router.push('/login'),
-          isActive: pathname.startsWith('/login') || pathname.startsWith('/auth'),
         },
       ],
     },

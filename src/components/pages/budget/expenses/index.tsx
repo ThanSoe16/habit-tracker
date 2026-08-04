@@ -21,6 +21,7 @@ import {
 } from '@/store/useBudgetStore';
 import { BudgetSidebarDrawerModal } from '../_components/BudgetSidebarDrawerModal';
 import { cn } from '@/utils/cn';
+import { MoneyInput } from '@/components/ui/money-input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,14 +84,10 @@ export default function ExpensesPage() {
     return found ? found.icon : '💸';
   };
 
-  const filteredEntries = budgetEntries.filter((e) => {
-    const isExpense = e.type === 'expense';
-    const matchCurrency = filterCurrency === 'ALL' || e.currency === filterCurrency;
-    return isExpense && matchCurrency;
-  });
-
-  // Expense entries (type === 'expense')
-  const expenseEntriesOnly = budgetEntries.filter((e) => e.type === 'expense');
+  // Expense entries (type === 'expense' and excluding Family transfers)
+  const expenseEntriesOnly = budgetEntries.filter(
+    (e) => e.type === 'expense' && e.category !== 'Family',
+  );
 
   // Total expenses calculation per currency
   const totalExpensePerCurrency = expenseEntriesOnly.reduce(
@@ -98,8 +95,16 @@ export default function ExpensesPage() {
       acc[entry.currency] = (acc[entry.currency] || 0) + entry.amount;
       return acc;
     },
-    { USDT: 0, THB: 0, MMK: 0 } as Record<CurrencyCode, number>,
+    { USDT: 0, THB: 0, MMK: 0, SGD: 0 } as Record<CurrencyCode, number>,
   );
+
+  // Filtered Entries
+  const filteredEntries = budgetEntries.filter((entry) => {
+    if (entry.type !== 'expense') return false;
+    if (entry.category === 'Family') return false;
+    if (filterCurrency !== 'ALL' && entry.currency !== filterCurrency) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
@@ -150,29 +155,37 @@ export default function ExpensesPage() {
           </p>
 
           {/* Quick Expense Totals Per Currency */}
-          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20 text-center">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/15">
+          <div className="grid grid-cols-4 gap-2 pt-2 border-t border-white/20 text-center">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/15">
               <p className="text-[9px] font-black text-rose-200 uppercase tracking-wider">
                 USDT Spent
               </p>
-              <p className="text-xs font-black truncate mt-0.5 text-white tabular-nums">
-                -{formatCurrency(totalExpensePerCurrency.USDT, 'USDT')}
+              <p className="text-[11px] font-black truncate mt-0.5 text-white tabular-nums">
+                -{formatCurrency(totalExpensePerCurrency.USDT || 0, 'USDT')}
               </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/15">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/15">
               <p className="text-[9px] font-black text-rose-200 uppercase tracking-wider">
                 THB Spent
               </p>
-              <p className="text-xs font-black truncate mt-0.5 text-white tabular-nums">
-                -{formatCurrency(totalExpensePerCurrency.THB, 'THB')}
+              <p className="text-[11px] font-black truncate mt-0.5 text-white tabular-nums">
+                -{formatCurrency(totalExpensePerCurrency.THB || 0, 'THB')}
               </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/15">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/15">
               <p className="text-[9px] font-black text-rose-200 uppercase tracking-wider">
                 MMK Spent
               </p>
-              <p className="text-xs font-black truncate mt-0.5 text-white tabular-nums">
-                -{formatCurrency(totalExpensePerCurrency.MMK, 'MMK')}
+              <p className="text-[11px] font-black truncate mt-0.5 text-white tabular-nums">
+                -{formatCurrency(totalExpensePerCurrency.MMK || 0, 'MMK')}
+              </p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/15">
+              <p className="text-[9px] font-black text-rose-200 uppercase tracking-wider">
+                SGD Spent
+              </p>
+              <p className="text-[11px] font-black truncate mt-0.5 text-white tabular-nums">
+                -{formatCurrency(totalExpensePerCurrency.SGD || 0, 'SGD')}
               </p>
             </div>
           </div>
@@ -180,7 +193,7 @@ export default function ExpensesPage() {
 
         {/* Currency Filter Tabs */}
         <div className="flex gap-1.5 bg-white dark:bg-zinc-900 p-1.5 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-xs">
-          {(['ALL', 'USDT', 'THB', 'MMK'] as const).map((code) => (
+          {(['ALL', 'USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
             <button
               key={code}
               type="button"
@@ -317,12 +330,9 @@ export default function ExpensesPage() {
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
                   Amount
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
+                <MoneyInput
                   value={expAmount}
-                  onChange={(e) => setExpAmount(e.target.value)}
+                  setValue={setExpAmount}
                   placeholder="0.00"
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />

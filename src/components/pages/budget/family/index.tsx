@@ -8,6 +8,7 @@ import {
   TrendingDown,
   Users,
   Trash2,
+  Pencil,
   X,
   Check,
   Calendar as CalendarIcon,
@@ -26,6 +27,7 @@ import {
   FamilyTransaction,
 } from '@/store/useBudgetStore';
 import { BudgetSidebarDrawerModal } from '../_components/BudgetSidebarDrawerModal';
+import { MoneyInput } from '@/components/ui/money-input';
 import { ExportTableModal } from '../_components/ExportTableModal';
 import { cn } from '@/utils/cn';
 import {
@@ -60,6 +62,7 @@ export default function FamilyBudgetPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
+  const [editingTx, setEditingTx] = useState<FamilyTransaction | null>(null);
 
   // Form State
   const [txType, setTxType] = useState<'received' | 'given'>('received');
@@ -77,9 +80,39 @@ export default function FamilyBudgetPage() {
   const {
     familyTransactions = [],
     addFamilyTransaction,
+    updateFamilyTransaction,
     deleteFamilyTransaction,
     walletBalances,
   } = useBudgetStore();
+
+  const handleOpenCreateDrawer = () => {
+    setEditingTx(null);
+    setTxType('received');
+    setPerson('Mom');
+    setCustomPerson('');
+    setAmount('');
+    setDate(new Date().toISOString().split('T')[0]);
+    setNote('');
+    setAddToCurrentBudget(true);
+    setIsDrawerOpen(true);
+  };
+
+  const handleOpenEditDrawer = (tx: FamilyTransaction) => {
+    setEditingTx(tx);
+    setTxType(tx.type);
+    if (PRESET_RELATIONS.includes(tx.person)) {
+      setPerson(tx.person);
+      setCustomPerson('');
+    } else {
+      setPerson('Mom');
+      setCustomPerson(tx.person);
+    }
+    setAmount(tx.amount.toString());
+    setDate(tx.date);
+    setNote(tx.note || '');
+    setAddToCurrentBudget(tx.addToCurrentBudget !== false);
+    setIsDrawerOpen(true);
+  };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,27 +121,42 @@ export default function FamilyBudgetPage() {
 
     const finalPerson = customPerson.trim() || person;
 
-    addFamilyTransaction({
-      type: txType,
-      person: finalPerson,
-      amount: numericAmount,
-      currency: 'MMK',
-      date,
-      note: note.trim() || undefined,
-      addToCurrentBudget,
-    });
+    if (editingTx) {
+      updateFamilyTransaction(editingTx.id, {
+        type: txType,
+        person: finalPerson,
+        amount: numericAmount,
+        currency: 'MMK',
+        date,
+        note: note.trim() || undefined,
+        addToCurrentBudget,
+      });
+    } else {
+      addFamilyTransaction({
+        type: txType,
+        person: finalPerson,
+        amount: numericAmount,
+        currency: 'MMK',
+        date,
+        note: note.trim() || undefined,
+        addToCurrentBudget,
+      });
+    }
 
     // Reset Form
+    setEditingTx(null);
     setAmount('');
     setNote('');
     setCustomPerson('');
     setIsDrawerOpen(false);
   };
 
-  // Filtered transactions (person filter)
-  const filteredTxs = familyTransactions.filter((tx) => {
-    return filterPerson === 'ALL' || tx.person === filterPerson;
-  });
+  // Filtered transactions (person filter & descending date sort)
+  const filteredTxs = familyTransactions
+    .filter((tx) => {
+      return filterPerson === 'ALL' || tx.person === filterPerson;
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Calculate Net Holding Summary in MMK per Person
   const personSummary: Record<string, number> = {};
@@ -220,7 +268,7 @@ export default function FamilyBudgetPage() {
             </h2>
             <button
               type="button"
-              onClick={() => setIsDrawerOpen(true)}
+              onClick={handleOpenCreateDrawer}
               className="text-xs font-black text-pink-600 dark:text-pink-400 hover:underline"
             >
               + Record Money
@@ -370,6 +418,15 @@ export default function FamilyBudgetPage() {
 
                     <button
                       type="button"
+                      onClick={() => handleOpenEditDrawer(tx)}
+                      className="w-7 h-7 rounded-full bg-white dark:bg-zinc-700 text-gray-400 hover:text-pink-600 flex items-center justify-center transition-colors"
+                      title="Edit Record"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => setDeleteTxId(tx.id)}
                       className="w-7 h-7 rounded-full bg-white dark:bg-zinc-700 text-gray-400 hover:text-red-500 flex items-center justify-center transition-colors"
                       title="Delete Record"
@@ -388,12 +445,13 @@ export default function FamilyBudgetPage() {
         </div>
       </div>
 
-      {/* LOG FAMILY TRANSFER DRAWER */}
+      {/* LOG / EDIT FAMILY TRANSFER DRAWER */}
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerContent className="z-[80] max-w-lg mx-auto bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-t-[36px] p-6 space-y-4 max-h-[85vh] h-auto overflow-y-auto shrink-0">
           <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
             <DrawerTitle className="text-base font-black flex items-center gap-2">
-              <Users className="w-5 h-5 text-pink-600" /> Log Family Money Transfer
+              <Users className="w-5 h-5 text-pink-600" />
+              {editingTx ? 'Edit Family Money Record' : 'Log Family Money Transfer'}
             </DrawerTitle>
             <button
               type="button"
@@ -477,12 +535,9 @@ export default function FamilyBudgetPage() {
                 Amount (MMK)
               </label>
               <div className="relative">
-                <input
-                  type="number"
-                  step="0.01"
-                  required
+                <MoneyInput
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  setValue={setAmount}
                   placeholder="0.00"
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-pink-500 pr-24"
                 />
@@ -545,7 +600,11 @@ export default function FamilyBudgetPage() {
               )}
             >
               <Check className="w-4 h-4" />{' '}
-              {txType === 'received' ? 'Save Received Money' : 'Save Given Money'}
+              {editingTx
+                ? 'Save Changes'
+                : txType === 'received'
+                ? 'Save Received Money'
+                : 'Save Given Money'}
             </button>
           </form>
         </DrawerContent>

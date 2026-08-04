@@ -74,8 +74,9 @@ function TimePickerSection({
     setSecs(s);
 
     if (h > 0) {
-      onChangeTimeUnit?.('hr');
-      onChangeGoalValue(h);
+      const totalMinutes = h * 60 + m;
+      onChangeTimeUnit?.('min');
+      onChangeGoalValue(totalMinutes);
     } else {
       onChangeTimeUnit?.('min');
       onChangeGoalValue(m || 1);

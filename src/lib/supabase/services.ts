@@ -531,7 +531,7 @@ export const budgetService = {
         supabase.from('budget_settings').select('*').eq('id', 'default_settings').maybeSingle(),
       ]);
 
-      const walletBalances: WalletBalances = { USDT: 0, THB: 0, MMK: 0 };
+      const walletBalances: WalletBalances = { USDT: 0, THB: 0, MMK: 0, SGD: 0 };
       if (walletsRes.data) {
         walletsRes.data.forEach((w: { currency: string; balance: number }) => {
           walletBalances[w.currency] = Number(w.balance) || 0;
@@ -691,6 +691,58 @@ export const budgetService = {
       );
     } catch (err) {
       console.warn('Error saving 6 budget tables to Supabase:', err);
+    }
+  },
+
+  async deleteFamilyTransaction(id: string): Promise<void> {
+    try {
+      const { error } = await supabase.from('family_budgets').delete().eq('id', id);
+      if (error) {
+        console.warn('Error deleting family transaction from Supabase:', error.message);
+      }
+    } catch (err) {
+      console.warn('Error deleting family transaction:', err);
+    }
+  },
+
+  async deleteMonthlySalary(id: string): Promise<void> {
+    try {
+      const { error } = await supabase.from('monthly_salary').delete().eq('id', id);
+      if (error) {
+        console.warn('Error deleting monthly salary from Supabase:', error.message);
+      }
+    } catch (err) {
+      console.warn('Error deleting monthly salary:', err);
+    }
+  },
+
+  async deleteBudgetEntry(id: string, type?: 'income' | 'expense' | 'exchange'): Promise<void> {
+    try {
+      if (type === 'income') {
+        await supabase.from('incomes').delete().eq('id', id);
+      } else if (type === 'expense') {
+        await supabase.from('expenses').delete().eq('id', id);
+      } else {
+        await Promise.all([
+          supabase.from('incomes').delete().eq('id', id),
+          supabase.from('expenses').delete().eq('id', id),
+        ]);
+      }
+    } catch (err) {
+      console.warn('Error deleting budget entry from Supabase:', err);
+    }
+  },
+
+  async clearAllBudgetData(): Promise<void> {
+    try {
+      await Promise.all([
+        supabase.from('family_budgets').delete().neq('id', ''),
+        supabase.from('incomes').delete().neq('id', ''),
+        supabase.from('expenses').delete().neq('id', ''),
+        supabase.from('monthly_salary').delete().neq('id', ''),
+      ]);
+    } catch (err) {
+      console.warn('Error clearing budget data from Supabase:', err);
     }
   },
 };

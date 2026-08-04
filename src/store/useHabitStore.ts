@@ -178,7 +178,7 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
         habitsService.deleteCustomUnit(unitName);
       },
 
-      addHabit: (
+      addHabit: async (
         name,
         color,
         frequency,
@@ -223,23 +223,26 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
           createdAt: new Date().toISOString(),
         };
         set((state) => ({ habits: [...state.habits, newHabit] }));
-        habitsService.upsertHabit(newHabit);
+        await habitsService.upsertHabit(newHabit);
+        await get().fetchFromSupabase();
       },
 
-      removeHabit: (id) => {
+      removeHabit: async (id) => {
         set((state) => ({ habits: state.habits.filter((h) => h.id !== id) }));
-        habitsService.deleteHabit(id);
+        await habitsService.deleteHabit(id);
+        await get().fetchFromSupabase();
       },
 
-      updateHabit: (id, updates) => {
-        set((state) => ({
-          habits: state.habits.map((h) => {
-            if (h.id !== id) return h;
-            const updated = { ...h, ...updates };
-            habitsService.upsertHabit(updated);
-            return updated;
-          }),
-        }));
+      updateHabit: async (id, updates) => {
+        const currentHabit = get().habits.find((h) => h.id === id);
+        if (currentHabit) {
+          const updated = { ...currentHabit, ...updates };
+          set((state) => ({
+            habits: state.habits.map((h) => (h.id === id ? updated : h)),
+          }));
+          await habitsService.upsertHabit(updated);
+          await get().fetchFromSupabase();
+        }
       },
 
       reorderHabits: (habits) => {

@@ -21,6 +21,7 @@ import {
   formatCurrency,
 } from '@/store/useBudgetStore';
 import { BudgetSidebarDrawerModal } from '../_components/BudgetSidebarDrawerModal';
+import { MoneyInput } from '@/components/ui/money-input';
 import { cn } from '@/utils/cn';
 import {
   AlertDialog,
@@ -51,19 +52,22 @@ export default function BudgetSettingsPage() {
   } = useBudgetStore();
 
   // Local Wallet Balances Form State
-  const [usdtBal, setUsdtBal] = useState(walletBalances.USDT.toString());
-  const [thbBal, setThbBal] = useState(walletBalances.THB.toString());
-  const [mmkBal, setMmkBal] = useState(walletBalances.MMK.toString());
+  const [usdtBal, setUsdtBal] = useState((walletBalances.USDT || 0).toString());
+  const [thbBal, setThbBal] = useState((walletBalances.THB || 0).toString());
+  const [mmkBal, setMmkBal] = useState((walletBalances.MMK || 0).toString());
+  const [sgdBal, setSgdBal] = useState((walletBalances.SGD || 0).toString());
 
   const handleSaveBalances = (e: React.FormEvent) => {
     e.preventDefault();
     const u = parseFloat(usdtBal) || 0;
     const t = parseFloat(thbBal) || 0;
     const m = parseFloat(mmkBal) || 0;
+    const s = parseFloat(sgdBal) || 0;
 
     updateWalletBalance('USDT', u);
     updateWalletBalance('THB', t);
     updateWalletBalance('MMK', m);
+    updateWalletBalance('SGD', s);
 
     setSavedFeedback(true);
     setTimeout(() => setSavedFeedback(false), 2500);
@@ -162,12 +166,9 @@ export default function BudgetSettingsPage() {
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                 💵 USDT Wallet Balance ($)
               </label>
-              <input
-                type="number"
-                step="0.01"
-                required
+              <MoneyInput
                 value={usdtBal}
-                onChange={(e) => setUsdtBal(e.target.value)}
+                setValue={setUsdtBal}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -176,12 +177,9 @@ export default function BudgetSettingsPage() {
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                 🇹🇭 THB Wallet Balance (฿)
               </label>
-              <input
-                type="number"
-                step="0.01"
-                required
+              <MoneyInput
                 value={thbBal}
-                onChange={(e) => setThbBal(e.target.value)}
+                setValue={setThbBal}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -190,12 +188,20 @@ export default function BudgetSettingsPage() {
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                 🇲🇲 MMK Wallet Balance (K)
               </label>
-              <input
-                type="number"
-                step="1"
-                required
+              <MoneyInput
                 value={mmkBal}
-                onChange={(e) => setMmkBal(e.target.value)}
+                setValue={setMmkBal}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                🇸🇬 SGD Wallet Balance (S$)
+              </label>
+              <MoneyInput
+                value={sgdBal}
+                setValue={setSgdBal}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -220,8 +226,8 @@ export default function BudgetSettingsPage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {(['USDT', 'THB', 'MMK'] as const).map((code) => (
+          <div className="grid grid-cols-4 gap-2">
+            {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
               <button
                 key={code}
                 type="button"

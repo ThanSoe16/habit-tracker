@@ -29,6 +29,7 @@ import {
   DEFAULT_EXCHANGE_RATES,
 } from '@/store/useBudgetStore';
 import { BudgetSidebarDrawerModal } from './_components/BudgetSidebarDrawerModal';
+import { MoneyInput } from '@/components/ui/money-input';
 import { cn } from '@/utils/cn';
 import {
   AlertDialog,
@@ -220,10 +221,12 @@ export default function BudgetPage() {
     return found ? found.icon : '💸';
   };
 
-  const filteredEntries = budgetEntries.filter((e) => {
-    if (filterCurrency === 'ALL') return true;
-    return e.currency === filterCurrency;
-  });
+  const filteredEntries = budgetEntries
+    .filter((e) => {
+      if (filterCurrency === 'ALL') return true;
+      return e.currency === filterCurrency;
+    })
+    .slice(0, 10);
 
   return (
     <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
@@ -474,7 +477,7 @@ export default function BudgetPage() {
 
           {/* Filter Pills */}
           <div className="flex gap-1.5 bg-gray-50 dark:bg-zinc-800 p-1 rounded-2xl border border-gray-100 dark:border-zinc-700">
-            {(['ALL', 'USDT', 'THB', 'MMK'] as const).map((code) => (
+            {(['ALL', 'USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
               <button
                 key={code}
                 type="button"
@@ -604,12 +607,9 @@ export default function BudgetPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
+                <MoneyInput
                   value={exchangeFromAmount}
-                  onChange={(e) => setExchangeFromAmount(e.target.value)}
+                  setValue={setExchangeFromAmount}
                   placeholder="Amount to send..."
                   className="flex-1 px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
@@ -621,12 +621,9 @@ export default function BudgetPage() {
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                 Exchange Rate (1 {exchangeFrom} = ? {exchangeTo})
               </label>
-              <input
-                type="number"
-                step="any"
-                required
+              <MoneyInput
                 value={exchangeRate}
-                onChange={(e) => setExchangeRate(e.target.value)}
+                setValue={setExchangeRate}
                 className="w-full px-4 py-2.5 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -703,12 +700,9 @@ export default function BudgetPage() {
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
                   Amount
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
+                <MoneyInput
                   value={salAmount}
-                  onChange={(e) => setSalAmount(e.target.value)}
+                  setValue={setSalAmount}
                   placeholder="0.00"
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
@@ -813,12 +807,9 @@ export default function BudgetPage() {
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
                   Amount
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
+                <MoneyInput
                   value={expAmount}
-                  onChange={(e) => setExpAmount(e.target.value)}
+                  setValue={setExpAmount}
                   placeholder="0.00"
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
@@ -989,12 +980,9 @@ export default function BudgetPage() {
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
                   New Balance Amount
                 </label>
-                <input
-                  type="number"
-                  step="any"
-                  required
+                <MoneyInput
                   value={balInput}
-                  onChange={(e) => setBalInput(e.target.value)}
+                  setValue={setBalInput}
                   placeholder="0.00"
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-sm font-black border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

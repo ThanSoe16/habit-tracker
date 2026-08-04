@@ -36,8 +36,8 @@ const CreateHabitPage = () => {
     },
   });
 
-  const onSubmit = (data: HabitData) => {
-    addHabit(
+  const onSubmit = async (data: HabitData) => {
+    await addHabit(
       data.name,
       data.color,
       data.frequencyTab,

@@ -79,32 +79,6 @@ export function AccountSidebarDrawerModal({
       ],
     },
     {
-      title: 'ANALYTICS & REPORTS',
-      items: [
-        {
-          id: 'habit-progress',
-          label: 'Habit Progress',
-          icon: TrendingUp,
-          action: () => router.push('/home/overall'),
-          isActive: pathname === '/home/overall',
-        },
-        {
-          id: 'mood-reports',
-          label: 'Mood Insights',
-          icon: Heart,
-          action: () => router.push('/mood/reports'),
-          isActive: pathname === '/mood/reports',
-        },
-        {
-          id: 'store-reports',
-          label: 'Storage Analytics',
-          icon: BarChart3,
-          action: () => router.push('/store/report'),
-          isActive: pathname === '/store/report',
-        },
-      ],
-    },
-    {
       title: 'ACCOUNT & SETTINGS',
       items: [
         {

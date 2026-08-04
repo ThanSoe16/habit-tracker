@@ -22,6 +22,7 @@ import {
 } from '@/store/useBudgetStore';
 import { BudgetSidebarDrawerModal } from '../_components/BudgetSidebarDrawerModal';
 import { cn } from '@/utils/cn';
+import { MoneyInput } from '@/components/ui/money-input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,7 +100,7 @@ export default function IncomePage() {
         acc[entry.currency] = (acc[entry.currency] || 0) + entry.amount;
         return acc;
       },
-      { USDT: 0, THB: 0, MMK: 0 } as Record<CurrencyCode, number>,
+      { USDT: 0, THB: 0, MMK: 0, SGD: 0 } as Record<CurrencyCode, number>,
     );
 
   return (
@@ -187,7 +188,7 @@ export default function IncomePage() {
 
             {/* Currency Filter Tabs */}
             <div className="flex gap-1 bg-gray-50 dark:bg-zinc-800 p-1 rounded-xl">
-              {(['ALL', 'USDT', 'THB', 'MMK'] as const).map((code) => (
+              {(['ALL', 'USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
                 <button
                   key={code}
                   type="button"
@@ -318,12 +319,9 @@ export default function IncomePage() {
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
                   Amount
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
+                <MoneyInput
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  setValue={setAmount}
                   placeholder="0.00"
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
