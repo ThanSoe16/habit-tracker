@@ -107,6 +107,7 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
             table === 'expenses' ||
             table === 'monthly_salary' ||
             table === 'budget_settings' ||
+            table === 'loans' ||
             table === 'budget_state'
           ) {
             useBudgetStore.getState().fetchFromSupabase();

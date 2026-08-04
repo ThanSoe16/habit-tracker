@@ -16,6 +16,7 @@ import {
   Settings,
   ChevronRight,
   ArrowRightLeft,
+  HandCoins,
   LogIn,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
@@ -82,6 +83,13 @@ export function BudgetSidebarDrawerModal({
           icon: ArrowRightLeft,
           action: () => router.push('/budget/exchange'),
           isActive: pathname.startsWith('/budget/exchange'),
+        },
+        {
+          id: 'budget-loans',
+          label: 'Loan & Borrow',
+          icon: HandCoins,
+          action: () => router.push('/budget/loans'),
+          isActive: pathname.startsWith('/budget/loans'),
         },
       ],
     },

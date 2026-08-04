@@ -511,6 +511,7 @@ export const budgetService = {
     monthlySalaries?: any[];
     budgetEntries?: any[];
     familyTransactions?: any[];
+    loans?: any[];
     lastProcessedMonth?: string;
     currency?: string;
   } | null> {
@@ -522,6 +523,7 @@ export const budgetService = {
         expensesRes,
         salaryRes,
         settingsRes,
+        loansRes,
       ] = await Promise.all([
         supabase.from('current_budget').select('*'),
         supabase.from('family_budgets').select('*'),
@@ -529,6 +531,7 @@ export const budgetService = {
         supabase.from('expenses').select('*'),
         supabase.from('monthly_salary').select('*'),
         supabase.from('budget_settings').select('*').eq('id', 'default_settings').maybeSingle(),
+        supabase.from('loans').select('*'),
       ]);
 
       const walletBalances: WalletBalances = { USDT: 0, THB: 0, MMK: 0, SGD: 0 };
@@ -585,11 +588,25 @@ export const budgetService = {
         note: s.note || undefined,
       }));
 
+      const loans = (loansRes?.data || []).map((l: any) => ({
+        id: l.id,
+        type: l.type,
+        personName: l.person_name,
+        amount: Number(l.amount),
+        currency: l.currency,
+        status: l.status,
+        repaidAmount: Number(l.repaid_amount || 0),
+        dueDate: l.due_date || undefined,
+        date: l.date,
+        note: l.note || undefined,
+      }));
+
       return {
         walletBalances,
         monthlySalaries,
         budgetEntries,
         familyTransactions,
+        loans,
         lastProcessedMonth: settingsRes.data?.last_processed_month || '',
         currency: settingsRes.data?.default_currency || 'USDT',
       };
@@ -733,6 +750,34 @@ export const budgetService = {
     }
   },
 
+  async upsertLoan(loan: any): Promise<void> {
+    try {
+      const payload = {
+        id: loan.id,
+        type: loan.type,
+        person_name: loan.personName,
+        amount: loan.amount,
+        currency: loan.currency,
+        status: loan.status || 'pending',
+        repaid_amount: loan.repaidAmount || 0,
+        due_date: loan.dueDate || null,
+        date: loan.date,
+        note: loan.note || null,
+      };
+      await supabase.from('loans').upsert(payload, { onConflict: 'id' });
+    } catch (err) {
+      console.warn('Error upserting loan in Supabase:', err);
+    }
+  },
+
+  async deleteLoan(id: string): Promise<void> {
+    try {
+      await supabase.from('loans').delete().eq('id', id);
+    } catch (err) {
+      console.warn('Error deleting loan from Supabase:', err);
+    }
+  },
+
   async clearAllBudgetData(): Promise<void> {
     try {
       await Promise.all([
@@ -740,6 +785,7 @@ export const budgetService = {
         supabase.from('incomes').delete().neq('id', ''),
         supabase.from('expenses').delete().neq('id', ''),
         supabase.from('monthly_salary').delete().neq('id', ''),
+        supabase.from('loans').delete().neq('id', ''),
       ]);
     } catch (err) {
       console.warn('Error clearing budget data from Supabase:', err);

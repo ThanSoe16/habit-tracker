@@ -79,6 +79,19 @@ export interface FamilyTransaction {
   addToCurrentBudget?: boolean; // Whether to credit/deduct current wallet balance
 }
 
+export interface LoanTransaction {
+  id: string;
+  type: 'lend' | 'borrow'; // 'lend' (money out/I lent) | 'borrow' (money in/I borrowed)
+  personName: string;
+  amount: number;
+  currency: CurrencyCode;
+  status: 'pending' | 'repaid' | 'partial';
+  repaidAmount: number;
+  dueDate?: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
+  note?: string;
+}
+
 export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
   'USDT_THB': 35.5,
   'THB_USDT': 1 / 35.5,
@@ -106,6 +119,7 @@ export const BUDGET_CATEGORIES = [
   { name: 'Investments', icon: '📈' },
   { name: 'Side Business', icon: '💻' },
   { name: 'Currency Exchange', icon: '💱' },
+  { name: 'Loans & Debts', icon: '🤝' },
   { name: 'Other', icon: '📦' },
 ] as const;
 
@@ -114,6 +128,7 @@ interface BudgetStoreState {
   monthlySalaries: MonthlySalary[];
   budgetEntries: BudgetEntry[];
   familyTransactions: FamilyTransaction[];
+  loans: LoanTransaction[];
   lastProcessedMonth: string; // YYYY-MM
   currency: CurrencyCode;
   setCurrency: (currency: CurrencyCode) => void;
@@ -137,6 +152,12 @@ interface BudgetStoreState {
   addFamilyTransaction: (tx: Omit<FamilyTransaction, 'id'>) => void;
   updateFamilyTransaction: (id: string, updates: Omit<FamilyTransaction, 'id'>) => void;
   deleteFamilyTransaction: (id: string) => void;
+
+  // Actions for Loans & Debts Module
+  addLoan: (loan: Omit<LoanTransaction, 'id' | 'status' | 'repaidAmount'>) => void;
+  updateLoan: (id: string, updates: Partial<LoanTransaction>) => void;
+  deleteLoan: (id: string) => void;
+  repayLoan: (id: string, payAmount: number) => void;
 
   // Currency Exchange
   executeCurrencyExchange: (params: {
@@ -218,6 +239,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
       monthlySalaries: DEFAULT_SALARIES,
       budgetEntries: DEFAULT_ENTRIES,
       familyTransactions: [],
+      loans: [],
       lastProcessedMonth: '',
       currency: 'USDT',
 
@@ -540,6 +562,110 @@ export const useBudgetStore = create<BudgetStoreState>()(
               : state.walletBalances,
             familyTransactions: updatedFamilyTxs,
             budgetEntries: updatedBudgetEntries,
+          };
+        }),
+
+      // Actions for Loans & Debts Module
+      addLoan: (loanData) =>
+        set((state) => {
+          const newLoan: LoanTransaction = {
+            ...loanData,
+            id: `loan-${Date.now()}`,
+            status: 'pending',
+            repaidAmount: 0,
+          };
+
+          const currentBal = state.walletBalances[loanData.currency] || 0;
+          // Lend = money out (deduct), Borrow = money in (credit)
+          const updatedBal =
+            loanData.type === 'lend'
+              ? Math.max(0, currentBal - loanData.amount)
+              : currentBal + loanData.amount;
+
+          budgetService.upsertLoan?.(newLoan);
+
+          return {
+            walletBalances: {
+              ...state.walletBalances,
+              [loanData.currency]: updatedBal,
+            },
+            loans: [newLoan, ...(state.loans || [])],
+          };
+        }),
+
+      updateLoan: (id, updates) =>
+        set((state) => {
+          const updatedLoans = (state.loans || []).map((l) =>
+            l.id === id ? { ...l, ...updates } : l
+          );
+          const target = updatedLoans.find((l) => l.id === id);
+          if (target) {
+            budgetService.upsertLoan?.(target);
+          }
+          return { loans: updatedLoans };
+        }),
+
+      deleteLoan: (id) =>
+        set((state) => {
+          const target = (state.loans || []).find((l) => l.id === id);
+          if (!target) return state;
+
+          // Revert initial wallet effect if pending/partial
+          const remainingUnsettled = target.amount - (target.repaidAmount || 0);
+          let updatedBal = state.walletBalances[target.currency] || 0;
+
+          if (remainingUnsettled > 0) {
+            if (target.type === 'lend') {
+              // Money was lent out -> refund to wallet
+              updatedBal += remainingUnsettled;
+            } else {
+              // Money was borrowed -> deduct from wallet
+              updatedBal = Math.max(0, updatedBal - remainingUnsettled);
+            }
+          }
+
+          budgetService.deleteLoan?.(id);
+
+          return {
+            walletBalances: {
+              ...state.walletBalances,
+              [target.currency]: updatedBal,
+            },
+            loans: (state.loans || []).filter((l) => l.id !== id),
+          };
+        }),
+
+      repayLoan: (id, payAmount) =>
+        set((state) => {
+          const target = (state.loans || []).find((l) => l.id === id);
+          if (!target || payAmount <= 0) return state;
+
+          const newRepaid = (target.repaidAmount || 0) + payAmount;
+          const newStatus: LoanTransaction['status'] =
+            newRepaid >= target.amount ? 'repaid' : 'partial';
+
+          const currentBal = state.walletBalances[target.currency] || 0;
+          // Repaying a lent loan = money comes back (credit)
+          // Repaying a borrowed debt = paying back money (deduct)
+          const updatedBal =
+            target.type === 'lend'
+              ? currentBal + payAmount
+              : Math.max(0, currentBal - payAmount);
+
+          const updatedLoan: LoanTransaction = {
+            ...target,
+            repaidAmount: Math.min(target.amount, newRepaid),
+            status: newStatus,
+          };
+
+          budgetService.upsertLoan?.(updatedLoan);
+
+          return {
+            walletBalances: {
+              ...state.walletBalances,
+              [target.currency]: updatedBal,
+            },
+            loans: (state.loans || []).map((l) => (l.id === id ? updatedLoan : l)),
           };
         }),
 
