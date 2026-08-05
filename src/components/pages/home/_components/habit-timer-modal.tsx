@@ -29,13 +29,13 @@ function TimerInnerForm({
 }) {
   const dateString = date.toLocaleDateString('en-CA');
   const historyEntry = habit.history[dateString];
-  let initialSecs = 0;
+  const goalMins = habit.goalValue || 10;
+  const isCountDown = habit.timerMode === 'down';
+
+  let initialSecs = isCountDown ? goalMins * 60 : 0;
   if (typeof historyEntry === 'object' && historyEntry?.timeTaken) {
     initialSecs = parseTimeTakenToSeconds(historyEntry.timeTaken);
   }
-
-  const goalMins = habit.goalValue || 10;
-  const isCountDown = habit.timerMode === 'down';
 
   const [seconds, setSeconds] = useState(initialSecs);
   const [isRunning, setIsRunning] = useState(false);
@@ -70,26 +70,20 @@ function TimerInnerForm({
     };
   }, [isRunning]);
 
-  // Timestamp-based Timer Interval with sleep drift compensation
+  // Timestamp-based Timer Interval
   useEffect(() => {
     if (isRunning) {
-      lastTimeRef.current = Date.now();
       intervalRef.current = setInterval(() => {
-        const now = Date.now();
-        const deltaSeconds = Math.round((now - (lastTimeRef.current || now)) / 1000);
-        if (deltaSeconds >= 1) {
-          lastTimeRef.current = now;
-          setSeconds((prev) => {
-            if (isCountDown) {
-              if (prev <= deltaSeconds) {
-                setIsRunning(false);
-                return 0;
-              }
-              return prev - deltaSeconds;
+        setSeconds((prev) => {
+          if (isCountDown) {
+            if (prev <= 1) {
+              setIsRunning(false);
+              return 0;
             }
-            return prev + deltaSeconds;
-          });
-        }
+            return prev - 1;
+          }
+          return prev + 1;
+        });
       }, 1000);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
