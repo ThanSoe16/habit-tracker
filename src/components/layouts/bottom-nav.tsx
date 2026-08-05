@@ -23,10 +23,10 @@ const NAV_ITEMS: NavItem[] = [
     href: '/habits/today',
   },
   {
-    label: 'Gym Plan',
+    label: 'Workout',
     useLucide: true,
     lucideIcon: 'dumbbell',
-    href: '/gym',
+    href: '/workout/today',
   },
   {
     label: 'Mood Stat',
@@ -56,7 +56,12 @@ export function BottomNav() {
       <div className="pointer-events-auto bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-gray-100 dark:border-zinc-800 shadow-2xl shadow-blue-900/15 dark:shadow-black/80 rounded-full px-3 py-2 flex items-center justify-between gap-1 max-w-[340px] w-full transition-colors duration-300">
         {NAV_ITEMS.map((item) => {
           let isActive = false;
-          if (item.href === '/habits/today' || item.href === '/today' || item.href === '/home/today' || item.href === '/home') {
+          if (
+            item.href === '/habits/today' ||
+            item.href === '/today' ||
+            item.href === '/home/today' ||
+            item.href === '/home'
+          ) {
             isActive =
               pathname === '/' ||
               pathname.startsWith('/habits') ||
