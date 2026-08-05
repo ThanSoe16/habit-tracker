@@ -54,8 +54,8 @@ export function WorkoutAppSidebar({ onSelectTab }: WorkoutSidebarProps) {
   const isPlan = pathname === '/managements/plan';
   const isEditPersonalInfo = pathname === '/managements/edit-personal-info';
 
-  const isReports = pathname === '/generals/reports';
-  const isSettings = pathname === '/generals/settings';
+  const isReports = pathname === '/workout-generals/reports';
+  const isSettings = pathname === '/workout-generals/settings';
 
   const menuSections = [
     {

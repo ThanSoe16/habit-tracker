@@ -56,21 +56,19 @@ export function BottomNav() {
       <div className="pointer-events-auto bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-gray-100 dark:border-zinc-800 shadow-2xl shadow-blue-900/15 dark:shadow-black/80 rounded-full px-3 py-2 flex items-center justify-between gap-1 max-w-[340px] w-full transition-colors duration-300">
         {NAV_ITEMS.map((item) => {
           let isActive = false;
-          if (
-            item.href === '/habits/today' ||
-            item.href === '/today' ||
-            item.href === '/home/today' ||
-            item.href === '/home'
-          ) {
+          if (item.href === '/habits/today') {
             isActive =
               pathname === '/' ||
               pathname.startsWith('/habits') ||
-              pathname.startsWith('/managements') ||
-              pathname.startsWith('/generals') ||
               pathname.startsWith('/home') ||
-              pathname.startsWith('/general') ||
+              (pathname.startsWith('/generals') && !pathname.startsWith('/workout')) ||
               pathname === '/report' ||
               pathname === '/settings';
+          } else if (item.href === '/workout/today') {
+            isActive =
+              pathname.startsWith('/workout') ||
+              pathname.startsWith('/managements') ||
+              pathname.startsWith('/workout-generals');
           } else {
             isActive = pathname.startsWith(item.href);
           }
