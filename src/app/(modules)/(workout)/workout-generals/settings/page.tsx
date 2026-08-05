@@ -1,10 +1,10 @@
-import { GymHistory } from '@/components/pages/(workout)/workouts/history';
+import GymSettingsPage from '@/components/pages/(workout)/generals/settings';
 import { Suspense } from 'react';
 
 export default function WorkoutTodayPageRoute() {
   return (
     <Suspense>
-      <GymHistory />
+      <GymSettingsPage />
     </Suspense>
   );
 }

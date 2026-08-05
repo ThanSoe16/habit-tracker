@@ -1,15 +1,30 @@
 'use client';
 
 import React from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { WorkoutAppSidebar } from '@/components/pages/(workout)/_components/workout-sidebar';
+import { Dumbbell } from 'lucide-react';
 
 export default function WorkoutLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full bg-background dark:bg-zinc-950 text-foreground">
         <WorkoutAppSidebar />
-        <main className="flex-1 w-full overflow-x-hidden">{children}</main>
+        <main className="flex-1 w-full overflow-x-hidden">
+          <div className="w-full max-w-lg mx-auto px-4 pt-6 pb-28 space-y-5">
+            {/* Top Header matching Home Header layout */}
+            <header className="flex justify-between items-center py-1">
+              <SidebarTrigger className="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 shadow-xs border border-gray-100 dark:border-zinc-700 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition-colors" />
+
+              <h1 className="text-lg font-black tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+                Gym & Fitness Split <Dumbbell className="w-5 h-5 text-blue-600 animate-pulse" />
+              </h1>
+
+              <div className="w-10 h-10" />
+            </header>
+            {children}
+          </div>
+        </main>
       </div>
     </SidebarProvider>
   );

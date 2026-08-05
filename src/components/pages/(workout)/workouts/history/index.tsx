@@ -57,7 +57,9 @@ export function GymHistory() {
         {logEntries.length === 0 ? (
           <div className="text-center py-10 px-4 bg-gray-50 dark:bg-zinc-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-800">
             <Calendar className="w-8 h-8 mx-auto text-gray-300 dark:text-zinc-600 mb-2" />
-            <p className="text-xs text-muted-foreground font-medium">No workout history logged yet.</p>
+            <p className="text-xs text-muted-foreground font-medium">
+              No workout history logged yet.
+            </p>
             <p className="text-[11px] text-gray-400 mt-1">
               Complete your daily workout to build your history!
             </p>

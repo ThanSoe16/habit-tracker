@@ -139,7 +139,7 @@ export function WorkoutAppSidebar({ onSelectTab }: WorkoutSidebarProps) {
           label: 'Reports & Insights',
           icon: BarChart2,
           action: () => {
-            router.push('/generals/reports');
+            router.push('/workout-generals/reports');
             setOpenMobile(false);
           },
           isActive: isReports,
@@ -149,7 +149,7 @@ export function WorkoutAppSidebar({ onSelectTab }: WorkoutSidebarProps) {
           label: 'Settings',
           icon: Settings,
           action: () => {
-            router.push('/generals/settings');
+            router.push('/workout-generals/settings');
             setOpenMobile(false);
           },
           isActive: isSettings,
@@ -206,7 +206,9 @@ export function WorkoutAppSidebar({ onSelectTab }: WorkoutSidebarProps) {
                           <Icon
                             className={cn(
                               'w-4 h-4 shrink-0',
-                              item.isActive ? 'text-foreground' : 'text-gray-500 dark:text-zinc-400',
+                              item.isActive
+                                ? 'text-foreground'
+                                : 'text-gray-500 dark:text-zinc-400',
                             )}
                           />
                           <span className="truncate">{item.label}</span>
