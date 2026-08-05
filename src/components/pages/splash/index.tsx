@@ -16,7 +16,7 @@ const Splash = () => {
       setIsExiting(true);
       // Wait for exit animation, then redirect
       setTimeout(() => {
-        router.push('/home');
+        router.push('/habits/today');
       }, 500); // Duration of fade-out
     }, 2500); // Splash duration
 

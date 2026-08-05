@@ -20,7 +20,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Home',
     icon: '/side-bar/home-inactive.png',
     activeIcon: '/side-bar/home-active.png',
-    href: '/home/today',
+    href: '/habits/today',
   },
   {
     label: 'Gym Plan',
@@ -56,13 +56,16 @@ export function BottomNav() {
       <div className="pointer-events-auto bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-gray-100 dark:border-zinc-800 shadow-2xl shadow-blue-900/15 dark:shadow-black/80 rounded-full px-3 py-2 flex items-center justify-between gap-1 max-w-[340px] w-full transition-colors duration-300">
         {NAV_ITEMS.map((item) => {
           let isActive = false;
-          if (item.href === '/home/today' || item.href === '/home') {
+          if (item.href === '/habits/today' || item.href === '/today' || item.href === '/home/today' || item.href === '/home') {
             isActive =
               pathname === '/' ||
+              pathname.startsWith('/habits') ||
+              pathname.startsWith('/managements') ||
+              pathname.startsWith('/generals') ||
               pathname.startsWith('/home') ||
+              pathname.startsWith('/general') ||
               pathname === '/report' ||
-              pathname === '/settings' ||
-              pathname.startsWith('/habits');
+              pathname === '/settings';
           } else {
             isActive = pathname.startsWith(item.href);
           }

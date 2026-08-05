@@ -1,5 +1,5 @@
-import Splash from '@/components/pages/splash';
+import { redirect } from 'next/navigation';
 
-export default function SplashPage() {
-  return <Splash />;
+export default function RootPage() {
+  redirect('/habits/today');
 }
