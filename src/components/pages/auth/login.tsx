@@ -59,7 +59,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-100 dark:border-zinc-800 space-y-6 relative overflow-hidden">
         {/* Decorative Ambient Glow */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />

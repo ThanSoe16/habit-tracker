@@ -48,7 +48,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           type={type === 'password' ? (isPasswordVisible ? 'text' : 'password') : type}
           className={cn(
-            'file:text-foreground placeholder:text-muted-foreground placeholder:text-sm focus-visible:ring-ring text-base flex h-full w-full rounded-lg border bg-gray-50 px-3 shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pt-[1px]',
+            'file:text-foreground placeholder:text-muted-foreground placeholder:text-sm focus-visible:ring-ring text-base flex h-full w-full rounded-lg border bg-gray-50 px-3 shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50 text-base md:text-sm pt-[1px]',
             postFix ? 'pr-10' : '',
             preFix ? 'pl-10' : '',
             maxLength && 'pr-[70px]',
