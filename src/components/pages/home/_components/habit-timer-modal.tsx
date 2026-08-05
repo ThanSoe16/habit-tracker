@@ -40,20 +40,56 @@ function TimerInnerForm({
   const [seconds, setSeconds] = useState(initialSecs);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const wakeLockRef = useRef<any>(null);
+  const lastTimeRef = useRef<number | null>(null);
 
+  // Screen Wake Lock API support
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      if (isRunning && 'wakeLock' in navigator) {
+        try {
+          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        } catch (err) {
+          console.warn('Wake Lock request failed:', err);
+        }
+      }
+    };
+
+    if (isRunning) {
+      requestWakeLock();
+    } else if (wakeLockRef.current) {
+      wakeLockRef.current.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
+
+    return () => {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+    };
+  }, [isRunning]);
+
+  // Timestamp-based Timer Interval with sleep drift compensation
   useEffect(() => {
     if (isRunning) {
+      lastTimeRef.current = Date.now();
       intervalRef.current = setInterval(() => {
-        setSeconds((prev) => {
-          if (isCountDown) {
-            if (prev <= 1) {
-              setIsRunning(false);
-              return 0;
+        const now = Date.now();
+        const deltaSeconds = Math.round((now - (lastTimeRef.current || now)) / 1000);
+        if (deltaSeconds >= 1) {
+          lastTimeRef.current = now;
+          setSeconds((prev) => {
+            if (isCountDown) {
+              if (prev <= deltaSeconds) {
+                setIsRunning(false);
+                return 0;
+              }
+              return prev - deltaSeconds;
             }
-            return prev - 1;
-          }
-          return prev + 1;
-        });
+            return prev + deltaSeconds;
+          });
+        }
       }, 1000);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);

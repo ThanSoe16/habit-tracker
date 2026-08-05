@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ExpenseCreatePayload } from '@/features/budget/types';
 import { CurrencyCode, CURRENCIES, BUDGET_CATEGORIES } from '@/store/use-budget-store';
 
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+
 interface BudgetExpenseDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,8 +28,6 @@ export const BudgetExpenseDrawer: React.FC<BudgetExpenseDrawerProps> = ({
   const [currency, setCurrency] = useState<CurrencyCode>('USDT');
   const [note, setNote] = useState('');
 
-  if (!isOpen) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numericAmount = parseFloat(amount);
@@ -44,9 +44,11 @@ export const BudgetExpenseDrawer: React.FC<BudgetExpenseDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm">
-      <Flex direction="column" className="fixed bottom-0 left-0 right-0 max-h-[85vh] rounded-t-2xl bg-card p-6 shadow-lg border-t border-border">
-        <h2 className="text-xl font-bold mb-4 text-card-foreground">Add Expense</h2>
+    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DrawerContent className="p-6">
+        <DrawerHeader className="p-0 mb-4">
+          <DrawerTitle className="text-xl font-bold text-card-foreground">Add Expense</DrawerTitle>
+        </DrawerHeader>
         <form onSubmit={handleSubmit}>
           <Grid columns={{ initial: '1', md: '2' }} gap="4">
             <Flex direction="column" gap="1">
@@ -97,8 +99,8 @@ export const BudgetExpenseDrawer: React.FC<BudgetExpenseDrawerProps> = ({
             </Button>
           </Flex>
         </form>
-      </Flex>
-    </div>
+      </DrawerContent>
+    </Drawer>
   );
 };
 export default BudgetExpenseDrawer;
