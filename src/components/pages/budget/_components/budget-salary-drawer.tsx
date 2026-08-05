@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MonthlySalaryPayload } from '@/features/budget/types';
-import { CurrencyCode, CURRENCIES } from '@/store/useBudgetStore';
+import { CurrencyCode, CURRENCIES } from '@/store/use-budget-store';
 
 interface BudgetSalaryDrawerProps {
   isOpen: boolean;

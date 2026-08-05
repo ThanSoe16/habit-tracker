@@ -13,8 +13,8 @@ import {
   Sun,
   Menu,
 } from 'lucide-react';
-import { MoodSidebarDrawerModal } from '@/components/pages/mood/_components/MoodSidebarDrawerModal';
-import { useUserStore } from '@/store/useUserStore';
+import { MoodSidebarDrawerModal } from '@/components/pages/mood/_components/mood-sidebar-drawer-modal';
+import { useUserStore } from '@/store/use-user-store';
 import { cn } from '@/utils/cn';
 
 export default function MoodSettingsPage() {
@@ -42,7 +42,7 @@ export default function MoodSettingsPage() {
   const emojiOptions = ['😊', '😎', '🧘', '🌟', '🕊️', '🌈', '🎯', '🔥'];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-zinc-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white">
       <div className="w-full max-w-lg mx-auto p-4 pb-32 space-y-6">
         {/* Header */}
         <header className="flex justify-between items-center py-1">

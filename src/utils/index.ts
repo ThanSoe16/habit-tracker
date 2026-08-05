@@ -1,4 +1,4 @@
 export * from './cn';
-export * from './dateUtils';
-export * from './timeUtils';
-export * from './colorUtils';
+export * from './date-utils';
+export * from './time-utils';
+export * from './color-utils';

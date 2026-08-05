@@ -2,18 +2,18 @@
 
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
-import { ProgressStats } from '@/components/pages/home/_components/ProgressStats';
-import { HabitsCompletedChart } from './_components/HabitsCompletedChart';
-import { CompletionRateChart } from './_components/CompletionRateChart';
-import { CalendarStats } from './_components/CalendarStats';
-import { MoodChart } from './_components/MoodChart';
-import { SidebarDrawerModal } from '@/components/pages/home/_components/SidebarDrawerModal';
+import { ProgressStats } from '@/components/pages/home/_components/progress-stats';
+import { HabitsCompletedChart } from './_components/habits-completed-chart';
+import { CompletionRateChart } from './_components/completion-rate-chart';
+import { CalendarStats } from './_components/calendar-stats';
+import { MoodChart } from './_components/mood-chart';
+import { SidebarDrawerModal } from '@/components/pages/home/_components/sidebar-drawer-modal';
 
 export default function ReportPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white">
       <div className="max-w-lg mx-auto p-4 pb-28 space-y-4">
         {/* Header matching HomeHeader layout with Menu Button */}
         <header className="flex justify-between items-center py-1">

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu, Scale, Trash2, Calendar, TrendingDown, TrendingUp, Plus } from 'lucide-react';
-import { useGymStore } from '@/store/useGymStore';
-import { GymSidebarDrawerModal } from '@/components/pages/gym/_components/GymSidebarDrawerModal';
+import { useGymStore } from '@/store/use-gym-store';
+import { GymSidebarDrawerModal } from '@/components/pages/gym/_components/gym-sidebar-drawer-modal';
 import { cn } from '@/utils/cn';
 
 export default function GymBodyMetricsHistoryPage() {
@@ -19,7 +19,7 @@ export default function GymBodyMetricsHistoryPage() {
   const logs = bodyMetricLogs.slice().reverse();
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-zinc-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white">
       <div className="w-full max-w-lg mx-auto p-4 pb-32 space-y-5">
         {/* Header */}
         {/* Header */}
@@ -40,7 +40,7 @@ export default function GymBodyMetricsHistoryPage() {
           <button
             type="button"
             onClick={() => router.push('/gym/profile')}
-            className="w-10 h-10 rounded-full bg-blue-600 text-white shadow-md shadow-blue-500/25 flex items-center justify-center hover:bg-blue-700 transition-all"
+            className="w-10 h-10 rounded-full bg-blue-600 text-white shadow-md shadow-primary/25 flex items-center justify-center hover:bg-blue-700 transition-all"
             title="Add Metric Log"
           >
             <Plus className="w-5 h-5" />
@@ -75,7 +75,7 @@ export default function GymBodyMetricsHistoryPage() {
                   className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/50 flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm shadow-blue-500/30">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm shadow-primary/30">
                       <Scale className="w-5 h-5" />
                     </div>
                     <div>

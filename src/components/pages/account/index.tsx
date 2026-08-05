@@ -3,35 +3,39 @@
 import React from 'react';
 import { ChevronLeft, Settings as SettingsIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ProfileCard } from './_components/ProfileCard';
-import { QuickStats } from './_components/QuickStats';
-import { SettingsList } from './_components/SettingsList';
+import { Flex } from '@radix-ui/themes';
+import { Button } from '@/components/ui/button';
+import { ProfileCard } from './_components/profile-card';
+import { QuickStats } from './_components/quick-stats';
+import { SettingsList } from './_components/settings-list';
 
 export default function AccountPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="w-full max-w-lg mx-auto p-4 pb-32 space-y-5">
         {/* Header */}
-        <header className="flex justify-between items-center py-1">
-          <button
+        <Flex justify="between" align="center" py="1">
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 shadow-xs border border-gray-100 dark:border-zinc-700 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition-colors"
+            className="rounded-full shadow-xs text-foreground"
             title="Go Back"
           >
             <ChevronLeft className="w-6 h-6" />
-          </button>
+          </Button>
 
-          <h1 className="text-lg font-black tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-lg font-black tracking-tight text-foreground">
             Account & Settings
           </h1>
 
-          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
+          <Flex align="center" justify="center" className="w-10 h-10 rounded-full bg-primary/10 text-primary">
             <SettingsIcon className="w-5 h-5" />
-          </div>
-        </header>
+          </Flex>
+        </Flex>
 
         <ProfileCard />
         <QuickStats />
@@ -40,3 +44,4 @@ export default function AccountPage() {
     </div>
   );
 }
+

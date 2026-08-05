@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { WeeklyHabitList } from '@/components/pages/home/_components/WeeklyHabitList';
+import { WeeklyHabitList } from '@/components/pages/home/_components/weekly-habit-list';
 import PageLayout from '@/components/layouts';
 
 export default function WeeklyProgressPage() {

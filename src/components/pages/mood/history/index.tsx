@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useMoodStore } from '@/store/useMoodStore';
+import { useMoodStore } from '@/store/use-mood-store';
 import { Menu, Calendar, Smile, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
-import { MoodSidebarDrawerModal } from '../_components/MoodSidebarDrawerModal';
+import { MoodSidebarDrawerModal } from '../_components/mood-sidebar-drawer-modal';
 
 export default function MoodHistoryPage() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function MoodHistoryPage() {
     .map(([date, entry]) => ({ date, ...entry }));
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
       <div className="w-full max-w-lg mx-auto p-4 space-y-5">
         {/* Header matching HomeHeader layout */}
         <header className="flex justify-between items-center py-1">

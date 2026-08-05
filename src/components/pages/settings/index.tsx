@@ -19,8 +19,8 @@ import {
   ArrowUpDown,
   Menu,
 } from 'lucide-react';
-import { SidebarDrawerModal } from '@/components/pages/home/_components/SidebarDrawerModal';
-import { useUserStore, HomeSettings } from '@/store/useUserStore';
+import { SidebarDrawerModal } from '@/components/pages/home/_components/sidebar-drawer-modal';
+import { useUserStore, HomeSettings } from '@/store/use-user-store';
 import { cn } from '@/utils/cn';
 
 export default function SettingsPage() {
@@ -65,7 +65,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-zinc-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white">
       <div className="w-full max-w-lg mx-auto p-4 pb-32 space-y-6">
         {/* Header */}
         <header className="flex items-center justify-between py-2">

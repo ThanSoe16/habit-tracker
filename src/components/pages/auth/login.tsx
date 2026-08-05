@@ -14,7 +14,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { authService } from '@/lib/supabase/auth';
-import { useUserStore } from '@/store/useUserStore';
+import { useUserStore } from '@/store/use-user-store';
 
 export default function LoginPage() {
   const router = useRouter();

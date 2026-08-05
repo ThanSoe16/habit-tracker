@@ -1,10 +1,10 @@
 'use client';
 import { useForm } from 'react-hook-form';
-import HabitForm from '../_components/form/HabitForm';
+import HabitForm from '../_components/form/habit-form';
 import { HabitData, habitSchema } from '@/features/habits/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { COLORS, EMOJIS } from '@/features/habits/data';
-import { useHabitStore } from '@/store/useHabitStore';
+import { useHabitStore } from '@/store/use-habit-store';
 import { useRouter } from 'next/navigation';
 
 const CreateHabitPage = () => {

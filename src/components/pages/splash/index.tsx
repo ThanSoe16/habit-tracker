@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/cn';
-import { SplashLogo } from './_components/SplashLogo';
-import { SplashProgress } from './_components/SplashProgress';
+import { SplashLogo } from './_components/splash-logo';
+import { SplashProgress } from './_components/splash-progress';
 
 const Splash = () => {
   const router = useRouter();

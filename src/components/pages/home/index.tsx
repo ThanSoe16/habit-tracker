@@ -4,16 +4,16 @@ import { useState, useRef, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
-import { HabitList } from '@/components/pages/home/_components/HabitList';
+import { HabitList } from '@/components/pages/home/_components/habit-list';
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, isSameDay } from 'date-fns';
-import { HomeHeader } from './_components/HomeHeader';
+import { HomeHeader } from './_components/home-header';
 import { useRouter } from 'next/navigation';
-import { CalendarStrip } from './_components/CalendarStrip';
-import { WeeklyHabitList } from './_components/WeeklyHabitList';
-import { OverallHabitList } from './_components/OverallHabitList';
-import { SidebarDrawerModal } from './_components/SidebarDrawerModal';
-import { ProgressStats } from './_components/ProgressStats';
-import { useUserStore } from '@/store/useUserStore';
+import { CalendarStrip } from './_components/calendar-strip';
+import { WeeklyHabitList } from './_components/weekly-habit-list';
+import { OverallHabitList } from './_components/overall-habit-list';
+import { SidebarDrawerModal } from './_components/sidebar-drawer-modal';
+import { ProgressStats } from './_components/progress-stats';
+import { useUserStore } from '@/store/use-user-store';
 
 interface HomePageProps {
   initialViewMode?: 'today' | 'weekly' | 'overall';
@@ -158,7 +158,7 @@ export default function Home({ initialViewMode = 'today' }: HomePageProps) {
       <div className="fixed bottom-24 right-6 z-40">
         <button
           onClick={() => router.push('/habits/create')}
-          className="rounded-full w-14 h-14 shadow-xl shadow-blue-500/30 bg-[#2563eb] hover:bg-[#1d4ed8] text-white p-0 flex items-center justify-center shrink-0 border-2 border-white dark:border-zinc-900 hover:scale-105 active:scale-95 transition-all"
+          className="rounded-full w-14 h-14 shadow-xl shadow-primary/30 bg-primary hover:bg-primary/90 text-white p-0 flex items-center justify-center shrink-0 border-2 border-white dark:border-zinc-900 hover:scale-105 active:scale-95 transition-all"
           title="Create habit"
         >
           <Plus className="w-7 h-7" strokeWidth={2.5} />

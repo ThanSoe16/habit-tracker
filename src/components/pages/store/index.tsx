@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Mic, Camera, Image as ImageIcon, Archive, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useMediaStore } from '@/store/useMediaStore';
-import { StoreSidebarDrawerModal } from './_components/StoreSidebarDrawerModal';
-import { MediaCard } from './_components/MediaCard';
+import { useMediaStore } from '@/store/use-media-store';
+import { StoreSidebarDrawerModal } from './_components/store-sidebar-drawer-modal';
+import { MediaCard } from './_components/media-card';
 
 export default function StorePage() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function StorePage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
       <div className="w-full max-w-lg mx-auto p-4 space-y-5">
         {/* Header */}
         <header className="flex justify-between items-center py-1">
@@ -128,7 +128,7 @@ export default function StorePage() {
                 <button
                   type="button"
                   onClick={() => router.push('/store/gallery')}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/25 transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-primary/25 transition-all flex items-center gap-1.5"
                 >
                   <Camera className="w-3.5 h-3.5" /> Capture
                 </button>

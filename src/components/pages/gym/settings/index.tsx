@@ -13,9 +13,9 @@ import {
   Sun,
   Menu,
 } from 'lucide-react';
-import { GymSidebarDrawerModal } from '@/components/pages/gym/_components/GymSidebarDrawerModal';
-import { useGymStore } from '@/store/useGymStore';
-import { useUserStore } from '@/store/useUserStore';
+import { GymSidebarDrawerModal } from '@/components/pages/gym/_components/gym-sidebar-drawer-modal';
+import { useGymStore } from '@/store/use-gym-store';
+import { useUserStore } from '@/store/use-user-store';
 import { cn } from '@/utils/cn';
 
 export default function GymSettingsPage() {
@@ -36,7 +36,7 @@ export default function GymSettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-zinc-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white">
       <div className="w-full max-w-lg mx-auto p-4 pb-32 space-y-6">
         {/* Header */}
         <header className="flex items-center justify-between py-2">
@@ -177,7 +177,7 @@ export default function GymSettingsPage() {
             {/* Show Category Badges */}
             <div className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/50">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#2563eb]/10 text-blue-600 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 text-blue-600 flex items-center justify-center">
                   <Tag className="w-4 h-4" />
                 </div>
                 <div>

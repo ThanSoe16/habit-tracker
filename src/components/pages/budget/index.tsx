@@ -29,8 +29,8 @@ import {
   formatCurrency,
   MonthlySalary,
   DEFAULT_EXCHANGE_RATES,
-} from '@/store/useBudgetStore';
-import { BudgetSidebarDrawerModal } from './_components/BudgetSidebarDrawerModal';
+} from '@/store/use-budget-store';
+import { BudgetSidebarDrawerModal } from './_components/budget-sidebar-drawer-modal';
 import { MoneyInput } from '@/components/ui/money-input';
 import { cn } from '@/utils/cn';
 import {
@@ -232,7 +232,7 @@ export default function BudgetPage() {
     .slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
       <div className="w-full max-w-lg mx-auto p-4 space-y-5">
         {/* Header */}
         <header className="flex justify-between items-center py-1">
@@ -872,7 +872,7 @@ export default function BudgetPage() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-2xl shadow-lg shadow-blue-500/25 transition-all text-xs flex items-center justify-center gap-2 mt-2"
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-2xl shadow-lg shadow-primary/25 transition-all text-xs flex items-center justify-center gap-2 mt-2"
               >
                 <Check className="w-4 h-4" /> Save Balance
               </button>

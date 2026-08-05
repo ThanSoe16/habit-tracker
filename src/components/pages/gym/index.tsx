@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dumbbell, Menu } from 'lucide-react';
-import { DailyWorkoutView } from './_components/DailyWorkoutView';
-import { PlanEditor } from './_components/PlanEditor';
-import { GymHistory } from './_components/GymHistory';
-import { GymSidebarDrawerModal, GymTab } from './_components/GymSidebarDrawerModal';
+import { DailyWorkoutView } from './_components/daily-workout-view';
+import { PlanEditor } from './_components/plan-editor';
+import { GymHistory } from './_components/gym-history';
+import { GymSidebarDrawerModal, GymTab } from './_components/gym-sidebar-drawer-modal';
 
 interface GymPageProps {
   initialTab?: GymTab;
@@ -27,7 +27,7 @@ export default function GymPage({ initialTab = 'today' }: GymPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950">
+    <div className="min-h-screen bg-background dark:bg-zinc-950">
       <div className="w-full max-w-lg mx-auto px-4 pt-6 pb-28 space-y-5">
         {/* Top Header matching Home Header layout */}
         <header className="flex justify-between items-center py-1">

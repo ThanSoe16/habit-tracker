@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { OverallHabitList } from '@/components/pages/home/_components/OverallHabitList';
+import { OverallHabitList } from '@/components/pages/home/_components/overall-habit-list';
 import PageLayout from '@/components/layouts';
 
 export default function OverallProgressPage() {

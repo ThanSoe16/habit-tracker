@@ -1,4 +1,4 @@
-import { CurrencyCode } from '@/store/useBudgetStore';
+import { CurrencyCode } from '@/store/use-budget-store';
 
 export interface BudgetFilterParams {
   currency?: CurrencyCode | 'ALL';

@@ -2,10 +2,10 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Menu, Mic, MicOff, Square, Play, Pause, Save, Trash2, X } from 'lucide-react';
-import { useMediaStore, MediaEntry } from '@/store/useMediaStore';
+import { useMediaStore, MediaEntry } from '@/store/use-media-store';
 import { uploadMediaToStorage } from '@/lib/supabase/services';
-import { StoreSidebarDrawerModal } from '../_components/StoreSidebarDrawerModal';
-import { MediaCard } from '../_components/MediaCard';
+import { StoreSidebarDrawerModal } from '../_components/store-sidebar-drawer-modal';
+import { MediaCard } from '../_components/media-card';
 import { cn } from '@/utils/cn';
 
 export default function StoreVoicePage() {
@@ -172,7 +172,7 @@ export default function StoreVoicePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
       <div className="w-full max-w-lg mx-auto p-4 space-y-5">
         {/* Header */}
         <header className="flex justify-between items-center py-1">

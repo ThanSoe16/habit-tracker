@@ -18,8 +18,8 @@ import {
   CurrencyCode,
   CURRENCIES,
   formatCurrency,
-} from '@/store/useBudgetStore';
-import { BudgetSidebarDrawerModal } from '../_components/BudgetSidebarDrawerModal';
+} from '@/store/use-budget-store';
+import { BudgetSidebarDrawerModal } from '../_components/budget-sidebar-drawer-modal';
 import { cn } from '@/utils/cn';
 import { MoneyInput } from '@/components/ui/money-input';
 import {
@@ -107,7 +107,7 @@ export default function ExpensesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white pb-32">
       <div className="w-full max-w-lg mx-auto p-4 space-y-5">
         {/* Header */}
         <header className="flex justify-between items-center py-1">

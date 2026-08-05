@@ -13,8 +13,8 @@ import {
   Calendar,
   Zap,
 } from 'lucide-react';
-import { useGymStore } from '@/store/useGymStore';
-import { GymSidebarDrawerModal } from '@/components/pages/gym/_components/GymSidebarDrawerModal';
+import { useGymStore } from '@/store/use-gym-store';
+import { GymSidebarDrawerModal } from '@/components/pages/gym/_components/gym-sidebar-drawer-modal';
 import { cn } from '@/utils/cn';
 
 export default function GymReportsPage() {
@@ -61,7 +61,7 @@ export default function GymReportsPage() {
   const weightDiff = latestMetric && firstMetric ? latestMetric.weight_kg - firstMetric.weight_kg : 0;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-zinc-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white">
       <div className="w-full max-w-lg mx-auto p-4 pb-32 space-y-5">
         {/* Header */}
         <header className="flex justify-between items-center py-1">

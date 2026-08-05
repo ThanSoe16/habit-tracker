@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useHabitStore } from '@/store/useHabitStore';
+import { useHabitStore } from '@/store/use-habit-store';
 import { ChevronLeft, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 // Assuming we have a Calendar component or we'll build a simplified one for stats
@@ -16,7 +16,7 @@ import {
   endOfMonth,
   eachDayOfInterval,
 } from 'date-fns';
-import { isHabitRequiredOnDate, getLocalDateString } from '@/utils/dateUtils';
+import { isHabitRequiredOnDate, getLocalDateString } from '@/utils/date-utils';
 
 export default function HabitDetail({ id }: { id: string }) {
   const [viewDate, setViewDate] = React.useState(new Date());
@@ -120,7 +120,7 @@ export default function HabitDetail({ id }: { id: string }) {
           <div className="pt-2">
             <button
               type="button"
-              className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-blue-500/30 flex items-center gap-3 text-sm transition-transform active:scale-95"
+              className="bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-primary/30 flex items-center gap-3 text-sm transition-transform active:scale-95"
             >
               <span>{habit.unitType === 'time' ? `${habit.goalValue || 20}:00 min` : `Log ${habit.goalValue || 1} ${habit.unit || 'Count'}`}</span>
               <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
@@ -134,15 +134,15 @@ export default function HabitDetail({ id }: { id: string }) {
         <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-3">
           <h3 className="text-sm font-bold text-gray-900 dark:text-white">Helpful tips</h3>
           <div className="space-y-2 text-xs font-medium text-gray-600 dark:text-gray-300">
-            <div className="bg-[#f4f7fd] dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
+            <div className="bg-background dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
               <span className="text-blue-500 font-bold">•</span>
               <span>Focus on your breath to anchor your attention throughout the routine.</span>
             </div>
-            <div className="bg-[#f4f7fd] dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
+            <div className="bg-background dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
               <span className="text-blue-500 font-bold">•</span>
               <span>Embrace non-judgmental awareness of thoughts and keep momentum.</span>
             </div>
-            <div className="bg-[#f4f7fd] dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
+            <div className="bg-background dark:bg-zinc-800/60 p-3.5 rounded-2xl flex items-start gap-2">
               <span className="text-blue-500 font-bold">•</span>
               <span>Let go of expectations and surrender to consistent daily progress.</span>
             </div>

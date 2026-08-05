@@ -1,6 +1,6 @@
-import { BottomNav } from './bottom_nav';
-import { ReminderProvider } from '@/components/providers/ReminderProvider';
-import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { BottomNav } from './bottom-nav';
+import { ReminderProvider } from '@/components/providers/reminder-provider';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 
 const PageLayout = ({ children }: { children: React.ReactNode }) => {
   return (

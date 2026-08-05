@@ -1,9 +1,9 @@
 import { supabase } from './client';
-import { Habit } from '@/store/useHabitStore';
-import { MoodEntry } from '@/store/useMoodStore';
-import { PlanDay, Exercise, WorkoutLog } from '@/store/useGymStore';
-import { MediaEntry } from '@/store/useMediaStore';
-import { WalletBalances } from '@/store/useBudgetStore';
+import { Habit } from '@/store/use-habit-store';
+import { MoodEntry } from '@/store/use-mood-store';
+import { PlanDay, Exercise, WorkoutLog } from '@/store/use-gym-store';
+import { MediaEntry } from '@/store/use-media-store';
+import { WalletBalances } from '@/store/use-budget-store';
 
 // Habit database record interface
 export interface HabitRow {

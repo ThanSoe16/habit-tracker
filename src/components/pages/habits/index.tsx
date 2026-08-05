@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useHabitStore } from '@/store/useHabitStore';
-import { MyHabitCard } from './_components/MyHabitCard';
+import { useHabitStore } from '@/store/use-habit-store';
+import { MyHabitCard } from './_components/my-habit-card';
 import { cn } from '@/utils/cn';
 import { Menu, Plus } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SidebarDrawerModal } from '@/components/pages/home/_components/SidebarDrawerModal';
+import { SidebarDrawerModal } from '@/components/pages/home/_components/sidebar-drawer-modal';
 import {
   DndContext,
   closestCenter,
@@ -71,7 +71,7 @@ export default function MyHabitsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fd] dark:bg-zinc-950 flex flex-col w-full max-w-lg mx-auto pb-28">
+    <div className="min-h-screen bg-background dark:bg-zinc-950 flex flex-col w-full max-w-lg mx-auto pb-28">
       {/* Header matching HomeHeader layout */}
       <header className="flex justify-between items-center px-4 py-3">
         <button
@@ -131,7 +131,7 @@ export default function MyHabitsPage() {
         <button
           type="button"
           onClick={() => router.push('/habits/create')}
-          className="w-14 h-14 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] shadow-xl shadow-blue-500/30 flex items-center justify-center border-2 border-white dark:border-zinc-900 transition-all active:scale-95 hover:scale-105 text-white"
+          className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30 flex items-center justify-center border-2 border-white dark:border-zinc-900 transition-all active:scale-95 hover:scale-105 text-white"
           title="Create habit"
         >
           <Plus className="w-7 h-7" strokeWidth={2.5} />

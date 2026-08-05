@@ -64,8 +64,8 @@ export const metadata: Metadata = {
 };
 
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { DailyReminderProvider } from '@/components/providers/DailyReminderProvider';
-import { SupabaseSyncProvider } from '@/components/providers/SupabaseSyncProvider';
+import { DailyReminderProvider } from '@/components/providers/daily-reminder-provider';
+import { SupabaseSyncProvider } from '@/components/providers/supabase-sync-provider';
 
 export default function RootLayout({
   children,
