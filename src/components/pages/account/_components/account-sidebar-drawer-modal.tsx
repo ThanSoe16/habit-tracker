@@ -66,8 +66,8 @@ export function AccountSidebarDrawerModal({
           id: 'mood',
           label: 'Mood Journal',
           icon: Smile,
-          action: () => router.push('/mood'),
-          isActive: pathname.startsWith('/mood'),
+          action: () => router.push('/mood/today'),
+          isActive: pathname.startsWith('/mood') || pathname.startsWith('/mood-generals'),
         },
         {
           id: 'store',

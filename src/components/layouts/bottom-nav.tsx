@@ -32,7 +32,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Mood Stat',
     icon: '/side-bar/mood-inactive.png',
     activeIcon: '/side-bar/mood-active.png',
-    href: '/mood',
+    href: '/mood/today',
   },
   {
     label: 'Store',
@@ -61,7 +61,7 @@ export function BottomNav() {
               pathname === '/' ||
               pathname.startsWith('/habits') ||
               pathname.startsWith('/home') ||
-              (pathname.startsWith('/generals') && !pathname.startsWith('/workout')) ||
+              (pathname.startsWith('/generals') && !pathname.startsWith('/workout') && !pathname.startsWith('/mood')) ||
               pathname === '/report' ||
               pathname === '/settings';
           } else if (item.href === '/workout/today') {
@@ -69,6 +69,10 @@ export function BottomNav() {
               pathname.startsWith('/workout') ||
               pathname.startsWith('/managements') ||
               pathname.startsWith('/workout-generals');
+          } else if (item.href === '/mood/today' || item.href === '/mood') {
+            isActive =
+              pathname.startsWith('/mood') ||
+              pathname.startsWith('/mood-generals');
           } else {
             isActive = pathname.startsWith(item.href);
           }
