@@ -30,7 +30,7 @@ export default function GymBodyMetricsHistoryPage() {
             <p className="text-xs font-bold text-gray-500">No body metric logs recorded yet</p>
             <button
               type="button"
-              onClick={() => router.push('/gym/profile')}
+              onClick={() => router.push('/workout/personal-info')}
               className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-sm"
             >
               Log First Metric Entry

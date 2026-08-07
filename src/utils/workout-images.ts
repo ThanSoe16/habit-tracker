@@ -68,7 +68,14 @@ export const EXERCISE_IMAGES_MAP: Record<string, string> = {
   'Stationary Cycling': '/work-out/core-abs/stationary-cycling.png',
 };
 
-export function getExerciseImage(exerciseName: string): string | null {
+export function getExerciseImage(
+  exerciseName: string,
+  customImageUrl?: string | null
+): string | null {
+  if (customImageUrl && customImageUrl.trim().length > 0) {
+    return customImageUrl.trim();
+  }
+
   if (!exerciseName) return null;
   const trimmed = exerciseName.trim();
   if (EXERCISE_IMAGES_MAP[trimmed]) {

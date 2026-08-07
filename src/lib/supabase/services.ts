@@ -792,3 +792,76 @@ export const budgetService = {
     }
   },
 };
+
+// Workout Exercises Supabase Service
+export interface WorkoutExerciseRow {
+  id: string;
+  name: string;
+  category: string;
+  image_url?: string | null;
+  default_sets?: number | null;
+  default_reps?: string | null;
+  is_custom?: boolean | null;
+  created_at?: string | null;
+}
+
+export const workoutExercisesService = {
+  async fetchExercises(): Promise<WorkoutExerciseRow[]> {
+    const { data, error } = await supabase
+      .from('workout_exercises')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.warn('Error fetching workout exercises from Supabase:', error.message);
+      return [];
+    }
+    return data || [];
+  },
+
+  async upsertExercise(exercise: Partial<WorkoutExerciseRow>): Promise<WorkoutExerciseRow | null> {
+    const { data, error } = await supabase
+      .from('workout_exercises')
+      .upsert(exercise, { onConflict: 'name' })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn('Error upserting exercise in Supabase:', error.message);
+      return null;
+    }
+    return data;
+  },
+
+  async uploadExerciseImage(file: File, fileName: string): Promise<string | null> {
+    try {
+      const cleanFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const { data, error } = await supabase.storage
+        .from('workout-images')
+        .upload(cleanFileName, file, { upsert: true });
+
+      if (error) {
+        console.warn('Error uploading image to Supabase storage:', error.message);
+        return null;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('workout-images')
+        .getPublicUrl(data.path);
+
+      return publicUrlData.publicUrl;
+    } catch (err) {
+      console.warn('Error in uploadExerciseImage:', err);
+      return null;
+    }
+  },
+
+  async deleteExercise(id: string): Promise<boolean> {
+    const { error } = await supabase.from('workout_exercises').delete().eq('id', id);
+    if (error) {
+      console.warn('Error deleting exercise from Supabase:', error.message);
+      return false;
+    }
+    return true;
+  },
+};

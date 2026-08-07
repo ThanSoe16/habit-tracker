@@ -66,6 +66,19 @@ export default function GymProfilePage() {
         )
       : 100;
 
+  // Health & Caloric Calculations
+  const bmr = Math.round(10 * weightKg + 6.25 * heightCm - 120); // Estimated BMR (Mifflin-St Jeor)
+  const activityMultipliers: Record<string, number> = {
+    Sedentary: 1.2,
+    'Lightly Active': 1.375,
+    'Moderately Active': 1.55,
+    'Very Active': 1.725,
+  };
+  const tdee = Math.round(bmr * (activityMultipliers[activityLevel] || 1.55));
+  const minHealthyKg = Math.round(18.5 * (heightM * heightM));
+  const maxHealthyKg = Math.round(24.9 * (heightM * heightM));
+  const remainingTargetKg = Math.abs(weightKg - targetWeightKg);
+
   const handleSaveMetrics = async (e: React.FormEvent) => {
     e.preventDefault();
     const todayStr = new Date().toLocaleDateString('en-CA');
@@ -84,15 +97,26 @@ export default function GymProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white">
-      <button
-        type="button"
-        onClick={() => setShowLogForm(!showLogForm)}
-        className="w-10 h-10 rounded-full bg-blue-600 text-white shadow-md shadow-primary/25 flex items-center justify-center hover:bg-blue-700 transition-all"
-        title="Update Metrics"
-      >
-        <Plus className="w-5 h-5" />
-      </button>
+    <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white space-y-4">
+      {/* Top Header Row */}
+      <div className="flex items-center justify-between px-1">
+        <div>
+          <h1 className="text-xl font-black tracking-tight text-gray-900 dark:text-white">
+            Personal Info & Health
+          </h1>
+          <p className="text-xs text-gray-400 font-medium">
+            Track body weight, height, target, & health metrics
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowLogForm(!showLogForm)}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all"
+        >
+          <Plus className="w-4 h-4" /> Log Entry
+        </button>
+      </div>
 
       {/* Section 1: Current Body Metrics Overview */}
       <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-3xl p-5 text-white shadow-xl shadow-blue-500/20 space-y-4">
@@ -139,8 +163,10 @@ export default function GymProfilePage() {
         {/* BMI & Stats */}
         <div className="flex items-center justify-between bg-black/20 rounded-2xl p-3.5 border border-white/10">
           <div>
-            <p className="text-xs font-bold text-blue-100">BMI Index</p>
-            <p className="text-xl font-black">{bmi}</p>
+            <p className="text-xs font-bold text-blue-100">BMI Index ({bmi})</p>
+            <p className="text-xs text-blue-200 mt-0.5">
+              Healthy Range: {displayWeight(minHealthyKg)} - {displayWeight(maxHealthyKg)} {weightUnitLabel}
+            </p>
           </div>
           <span className={cn('px-3 py-1 rounded-xl text-xs font-black shadow-xs', bmiInfo.color)}>
             {bmiInfo.label}
@@ -254,13 +280,13 @@ export default function GymProfilePage() {
         </form>
       )}
 
-      {/* Section 2: Monthly Progress Analytics */}
+      {/* Section 2: Progress Analytics & Metabolism Insights */}
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <BarChart2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <h2 className="text-xs font-black uppercase tracking-wider text-gray-400">
-              Monthly Progress Analytics
+              Progress & Metabolism Insights
             </h2>
           </div>
           {weightDiff !== 0 && (
@@ -287,7 +313,9 @@ export default function GymProfilePage() {
         <div className="space-y-2">
           <div className="flex justify-between text-xs font-bold">
             <span className="text-gray-500">Target Goal Progress</span>
-            <span className="text-blue-600 dark:text-blue-400">{targetProgressPct}% Achieved</span>
+            <span className="text-blue-600 dark:text-blue-400">
+              {targetProgressPct}% Achieved ({displayWeight(remainingTargetKg)} {weightUnitLabel} remaining)
+            </span>
           </div>
           <div className="w-full h-3 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5">
             <div
@@ -297,27 +325,28 @@ export default function GymProfilePage() {
           </div>
         </div>
 
-        {/* Body Composition Summary */}
+        {/* Body Composition & Caloric Maintenance Summary */}
         <div className="grid grid-cols-2 gap-3 pt-2">
-          <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/50">
-            <p className="text-[11px] font-bold text-gray-400">Body Fat %</p>
-            <p className="text-lg font-black text-gray-900 dark:text-white mt-0.5">{bodyFatPct}%</p>
+          <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/50 space-y-0.5">
+            <p className="text-[11px] font-bold text-gray-400">BMR (Basal Metabolic Rate)</p>
+            <p className="text-lg font-black text-gray-900 dark:text-white">{bmr} <span className="text-xs font-bold text-gray-500">kcal/day</span></p>
+            <p className="text-[10px] text-gray-400">Calories burned at rest</p>
           </div>
-          <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/50">
-            <p className="text-[11px] font-bold text-gray-400">Muscle Mass</p>
-            <p className="text-lg font-black text-gray-900 dark:text-white mt-0.5">
-              {displayWeight(muscleMassKg)} {weightUnitLabel}
-            </p>
+
+          <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/50 space-y-0.5">
+            <p className="text-[11px] font-bold text-gray-400">TDEE (Daily Maintenance)</p>
+            <p className="text-lg font-black text-blue-600 dark:text-blue-400">{tdee} <span className="text-xs font-bold text-blue-500">kcal/day</span></p>
+            <p className="text-[10px] text-gray-400">Maintenance calories</p>
           </div>
         </div>
 
         <div className="pt-2 text-center">
           <button
             type="button"
-            onClick={() => router.push('/gym/history')}
+            onClick={() => router.push('/workout/personal-info-history')}
             className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center justify-center gap-1 mx-auto"
           >
-            View Full History Logs →
+            View Full Personal Info History Logs →
           </button>
         </div>
       </div>

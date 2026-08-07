@@ -12,7 +12,6 @@ import { CalendarStrip } from './_components/calendar-strip';
 import { WeeklyHabitList } from './_components/weekly-habit-list';
 import { OverallHabitList } from './_components/overall-habit-list';
 import { SidebarDrawerModal } from './_components/sidebar-drawer-modal';
-import { ProgressStats } from './_components/progress-stats';
 import { useUserStore } from '@/store/use-user-store';
 interface HomePageProps {
   initialViewMode?: 'today' | 'weekly' | 'overall';
@@ -110,13 +109,6 @@ export default function Home({ initialViewMode = 'today' }: HomePageProps) {
             />
           )}
         </div>
-
-        {/* Optional Progress Stats Banner */}
-        {homeSettings?.showProgressBanner && viewMode === 'today' && (
-          <div className="my-1">
-            <ProgressStats />
-          </div>
-        )}
 
         {/* Scrollable Daily Routine */}
         <section className="flex-1 space-y-3">

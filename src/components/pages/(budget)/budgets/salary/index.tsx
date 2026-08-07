@@ -336,13 +336,13 @@ export default function SalaryPage() {
                   value={salCurrency}
                   onValueChange={(val) => setSalCurrency(val as CurrencyCode)}
                 >
-                  <SelectTrigger className="w-full h-[46px] rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-xs font-bold">
+                  <SelectTrigger className="w-full h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-sm font-semibold">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="z-[95]">
                     {(Object.keys(CURRENCIES) as CurrencyCode[]).map((c) => (
-                      <SelectItem key={c} value={c} className="text-xs font-bold">
-                        {CURRENCIES[c].flag} {c}
+                      <SelectItem key={c} value={c} className="text-sm font-semibold py-2.5">
+                        <span className="text-base mr-1">{CURRENCIES[c].flag}</span> {c}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -355,13 +355,13 @@ export default function SalaryPage() {
                 Category
               </label>
               <Select value={salCategory} onValueChange={setSalCategory}>
-                <SelectTrigger className="w-full h-[46px] rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-xs font-bold">
+                <SelectTrigger className="w-full h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-sm font-semibold">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="z-[95]">
                   {BUDGET_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.name} value={cat.name} className="text-xs font-bold">
-                      {cat.icon} {cat.name}
+                    <SelectItem key={cat.name} value={cat.name} className="text-sm font-semibold py-2.5">
+                      <span className="text-base mr-1">{cat.icon}</span> {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

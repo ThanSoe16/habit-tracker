@@ -21,6 +21,13 @@ import {
 import { MoneyInput } from '@/components/ui/money-input';
 import { ExportTableModal } from '../../_components/export-table-modal';
 import { cn } from '@/utils/cn';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function CurrencyExchangePage() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -89,14 +96,16 @@ export default function CurrencyExchangePage() {
     setTimeout(() => setSuccessMsg(null), 4000);
   };
 
-  const exchangeEntries = budgetEntries.filter(
-    (e) =>
-      e.type === 'exchange' &&
-      (filterCurrency === 'ALL' ||
-        e.fromCurrency === filterCurrency ||
-        e.toCurrency === filterCurrency ||
-        e.currency === filterCurrency),
-  );
+  const exchangeEntries = budgetEntries
+    .filter(
+      (e) =>
+        e.type === 'exchange' &&
+        (filterCurrency === 'ALL' ||
+          e.fromCurrency === filterCurrency ||
+          e.toCurrency === filterCurrency ||
+          e.currency === filterCurrency),
+    )
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="space-y-5">
@@ -164,29 +173,33 @@ export default function CurrencyExchangePage() {
             </div>
 
             <div className="flex gap-2">
-              <select
+              <Select
                 value={fromCurrency}
-                onChange={(e) => {
-                  const selected = e.target.value as CurrencyCode;
+                onValueChange={(val) => {
+                  const selected = val as CurrencyCode;
                   setFromCurrency(selected);
                   if (selected === toCurrency) {
                     setToCurrency(selected === 'USDT' ? 'THB' : 'USDT');
                   }
                 }}
-                className="px-3 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none"
               >
-                {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
-                  <option key={code} value={code}>
-                    {CURRENCIES[code].flag} {code}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-36 h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-sm font-semibold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="z-[95]">
+                  {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
+                    <SelectItem key={code} value={code} className="text-sm font-semibold py-2.5">
+                      <span className="text-base mr-1">{CURRENCIES[code].flag}</span> {code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <MoneyInput
                 placeholder="Amount to send..."
                 value={fromAmount}
                 setValue={setFromAmount}
-                className="flex-1 px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="flex-1 px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
           </div>
@@ -220,23 +233,27 @@ export default function CurrencyExchangePage() {
             </label>
 
             <div className="flex gap-2">
-              <select
+              <Select
                 value={toCurrency}
-                onChange={(e) => {
-                  const selected = e.target.value as CurrencyCode;
+                onValueChange={(val) => {
+                  const selected = val as CurrencyCode;
                   setToCurrency(selected);
                   if (selected === fromCurrency) {
                     setFromCurrency(selected === 'USDT' ? 'THB' : 'USDT');
                   }
                 }}
-                className="px-3 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none"
               >
-                {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
-                  <option key={code} value={code}>
-                    {CURRENCIES[code].flag} {code}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-36 h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-sm font-semibold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="z-[95]">
+                  {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
+                    <SelectItem key={code} value={code} className="text-sm font-semibold py-2.5">
+                      <span className="text-base mr-1">{CURRENCIES[code].flag}</span> {code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <div className="flex-1 px-4 py-3 bg-blue-50/70 dark:bg-blue-950/40 rounded-2xl border border-blue-200/60 dark:border-blue-900/60 flex items-center justify-between">
                 <span className="text-xs font-black text-blue-700 dark:text-blue-300 tabular-nums">

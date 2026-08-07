@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Download, X, Image as ImageIcon } from 'lucide-react';
+import { Download, X, FileText, Image as ImageIcon } from 'lucide-react';
 import { toPng } from 'html-to-image';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { toast } from 'sonner';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { formatCurrency, CurrencyCode, CURRENCIES } from '@/store/use-budget-store';
 import { cn } from '@/utils/cn';
@@ -36,20 +39,126 @@ export function ExportTableModal({
   const tableRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleDownload = async () => {
+  const handleDownloadPdf = async () => {
+    try {
+      setIsExporting(true);
+
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      // 1. Document Header Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(17, 24, 39); // #111827
+      doc.text(title, 14, 18);
+
+      // 2. Subtitle & Metadata
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(107, 114, 128); // #6B7280
+      doc.text(subtitle, 14, 24);
+
+      doc.setFontSize(9);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}  |  Total Records: ${rows.length}`, 14, 29);
+
+      // 3. Table Rows Data
+      const tableHeaders = [['Date', 'From / Title', 'Category / Type', 'Amount']];
+      const tableBody = rows.map((row) => [
+        row.date,
+        row.from,
+        row.categoryOrType,
+        `${row.isPositive ? '+' : '-'}${formatCurrency(row.amount, row.currency)}`,
+      ]);
+
+      // 4. Render Clean Vector Table
+      autoTable(doc, {
+        startY: 34,
+        head: tableHeaders,
+        body: tableBody,
+        theme: 'plain',
+        styles: {
+          font: 'helvetica',
+          fontSize: 9,
+          cellPadding: 3,
+          textColor: [31, 41, 55],
+          lineColor: [229, 231, 235],
+          lineWidth: 0.2,
+        },
+        headStyles: {
+          fillColor: [243, 244, 246], // Light gray header (#F3F4F6)
+          textColor: [17, 24, 39],
+          fontStyle: 'bold',
+          fontSize: 9,
+        },
+        columnStyles: {
+          0: { cellWidth: 30 },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 45 },
+          3: { cellWidth: 45, halign: 'right', fontStyle: 'bold' },
+        },
+      });
+
+      // 5. Summary Net Totals Section at Bottom of Table
+      const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 10 : 220;
+
+      // Check page overflow for summary
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let currentY = finalY;
+      if (currentY + 30 > pageHeight) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(17, 24, 39);
+      doc.text('Net Totals Summary by Currency:', 14, currentY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(55, 65, 81);
+
+      let summaryLineY = currentY + 6;
+      (['USDT', 'THB', 'MMK', 'SGD'] as const).forEach((code) => {
+        const val = totalsPerCurrency[code] || 0;
+        const formatted = formatCurrency(val, code);
+        const sign = val > 0 ? '+' : '';
+        doc.text(`• ${code}: ${sign}${formatted}`, 14, summaryLineY);
+        summaryLineY += 5;
+      });
+
+      doc.save(`${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('PDF statement downloaded successfully!');
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+      toast.error('Failed to generate PDF');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDownloadPng = async () => {
     if (!tableRef.current) return;
     try {
       setIsExporting(true);
+      // Wait for state change to expand full height DOM
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
       const dataUrl = await toPng(tableRef.current, {
         cacheBust: true,
-        pixelRatio: 2, // High resolution image export
+        pixelRatio: 2,
       });
       const link = document.createElement('a');
       link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.png`;
       link.href = dataUrl;
       link.click();
+      toast.success('PNG image downloaded successfully!');
     } catch (err) {
-      console.error('Failed to export image:', err);
+      console.error('Failed to export PNG:', err);
+      toast.error('Failed to generate PNG image');
     } finally {
       setIsExporting(false);
     }
@@ -70,7 +179,7 @@ export function ExportTableModal({
       <DrawerContent className="z-[90] max-w-lg mx-auto bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-t-[36px] p-6 space-y-4 max-h-[90vh] h-auto overflow-y-auto shrink-0">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
           <DrawerTitle className="text-base font-black flex items-center gap-2">
-            <ImageIcon className="w-5 h-5 text-emerald-600" /> Export Table Image
+            <FileText className="w-5 h-5 text-emerald-600" /> Export Financial Statement
           </DrawerTitle>
           <button
             type="button"
@@ -81,7 +190,7 @@ export function ExportTableModal({
           </button>
         </div>
 
-        {/* EXPORTABLE STATEMENT IMAGE CANVAS NODE */}
+        {/* EXPORTABLE STATEMENT CANVAS NODE */}
         <div className="overflow-x-auto no-scrollbar py-2">
           <div
             ref={tableRef}
@@ -118,7 +227,12 @@ export function ExportTableModal({
 
               {/* Table Body Rows */}
               {rows.length > 0 ? (
-                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                <div
+                  className={cn(
+                    'space-y-2 pr-1',
+                    !isExporting && 'max-h-[360px] overflow-y-auto',
+                  )}
+                >
                   {rows.map((row, idx) => (
                     <div
                       key={idx}
@@ -152,7 +266,7 @@ export function ExportTableModal({
               )}
             </div>
 
-            {/* Statement Footer Total Row - 3 SEPARATE CURRENCY TOTALS */}
+            {/* Statement Footer Total Row - 4 SEPARATE CURRENCY TOTALS */}
             <div className="pt-3 border-t border-zinc-800 space-y-2">
               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-wider px-1">
                 Net Totals by Currency
@@ -189,21 +303,32 @@ export function ExportTableModal({
           </div>
         </div>
 
-        {/* Action Button */}
-        <button
-          type="button"
-          disabled={isExporting || rows.length === 0}
-          onClick={handleDownload}
-          className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-500/25 transition-all text-xs flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          {isExporting ? (
-            <span>Generating Image...</span>
-          ) : (
-            <>
-              <Download className="w-4 h-4" /> Download Table Image (PNG)
-            </>
-          )}
-        </button>
+        {/* Action Buttons: PDF (Primary) & PNG (Secondary) */}
+        <div className="space-y-2 pt-1">
+          <button
+            type="button"
+            disabled={isExporting || rows.length === 0}
+            onClick={handleDownloadPdf}
+            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-500/25 transition-all text-xs flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98"
+          >
+            {isExporting ? (
+              <span>Generating PDF Document...</span>
+            ) : (
+              <>
+                <FileText className="w-4 h-4" /> Download Statement (PDF)
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            disabled={isExporting || rows.length === 0}
+            onClick={handleDownloadPng}
+            className="w-full py-3 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-200 font-bold rounded-2xl transition-all text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <ImageIcon className="w-4 h-4 text-gray-500" /> Download Table Image (PNG)
+          </button>
+        </div>
       </DrawerContent>
     </Drawer>
   );

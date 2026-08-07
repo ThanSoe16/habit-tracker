@@ -1,13 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Plus,
-  X,
-  HandCoins,
-  Receipt,
-  CheckCircle2,
-} from 'lucide-react';
+import { Plus, X, HandCoins, Receipt, CheckCircle2 } from 'lucide-react';
 import {
   useBudgetStore,
   CurrencyCode,
@@ -28,6 +22,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { parseISO, format } from 'date-fns';
 
@@ -158,10 +159,14 @@ export default function LoansPage() {
                 'flex-1 py-2 rounded-xl text-xs font-bold transition-all capitalize',
                 filterType === t
                   ? 'bg-gray-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
-                  : 'text-gray-400 hover:text-gray-600'
+                  : 'text-gray-400 hover:text-gray-600',
               )}
             >
-              {t === 'ALL' ? 'All Types' : t === 'lend' ? 'Lent (Money Out)' : 'Borrowed (Money In)'}
+              {t === 'ALL'
+                ? 'All Types'
+                : t === 'lend'
+                  ? 'Lent (Money Out)'
+                  : 'Borrowed (Money In)'}
             </button>
           ))}
         </div>
@@ -177,7 +182,7 @@ export default function LoansPage() {
                   'flex-1 py-1.5 rounded-xl text-[11px] font-bold capitalize transition-all',
                   filterStatus === s
                     ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-gray-400 hover:text-gray-600'
+                    : 'text-gray-400 hover:text-gray-600',
                 )}
               >
                 {s}
@@ -195,7 +200,7 @@ export default function LoansPage() {
                   'px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all',
                   filterCurrency === c
                     ? 'bg-amber-500 text-white shadow-xs'
-                    : 'text-gray-400 hover:text-gray-600'
+                    : 'text-gray-400 hover:text-gray-600',
                 )}
               >
                 {c}
@@ -224,10 +229,14 @@ export default function LoansPage() {
                         'w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 font-extrabold text-white',
                         l.type === 'lend'
                           ? 'bg-amber-500 shadow-amber-500/20'
-                          : 'bg-blue-600 shadow-blue-600/20'
+                          : 'bg-blue-600 shadow-blue-600/20',
                       )}
                     >
-                      {l.type === 'lend' ? <HandCoins className="w-5 h-5" /> : <Receipt className="w-5 h-5" />}
+                      {l.type === 'lend' ? (
+                        <HandCoins className="w-5 h-5" />
+                      ) : (
+                        <Receipt className="w-5 h-5" />
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -240,8 +249,8 @@ export default function LoansPage() {
                             isSettled
                               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
                               : l.status === 'partial'
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400'
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400'
+                                : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400',
                           )}
                         >
                           {isSettled ? 'Settled' : l.status === 'partial' ? 'Partial' : 'Pending'}
@@ -258,7 +267,9 @@ export default function LoansPage() {
                     <span
                       className={cn(
                         'font-black text-base block',
-                        l.type === 'lend' ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400'
+                        l.type === 'lend'
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-blue-600 dark:text-blue-400',
                       )}
                     >
                       {formatCurrency(l.amount, l.currency)}
@@ -273,7 +284,7 @@ export default function LoansPage() {
 
                 {l.note && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-zinc-800/50 p-2.5 rounded-xl italic">
-                    "{l.note}"
+                    {`"${l.note}"`}
                   </p>
                 )}
 
@@ -303,8 +314,12 @@ export default function LoansPage() {
             <HandCoins className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-extrabold text-sm text-gray-900 dark:text-white">No loan records</h3>
-            <p className="text-xs text-gray-400 mt-1">Tap "I Lent" or "I Borrowed" to create a record.</p>
+            <h3 className="font-extrabold text-sm text-gray-900 dark:text-white">
+              No loan records
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              {`Tap "I Lent" or "I Borrowed" to create a record.`}
+            </p>
           </div>
         </div>
       )}
@@ -338,7 +353,9 @@ export default function LoansPage() {
           <form onSubmit={handleCreateSubmit} className="space-y-4">
             <div>
               <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1.5">
-                {loanType === 'lend' ? 'Borrower Name (Who took money)' : 'Lender Name (Who gave money)'}
+                {loanType === 'lend'
+                  ? 'Borrower Name (Who took money)'
+                  : 'Lender Name (Who gave money)'}
               </label>
               <input
                 type="text"
@@ -355,28 +372,25 @@ export default function LoansPage() {
                 <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1.5">
                   Amount
                 </label>
-                <MoneyInput
-                  value={amount}
-                  setValue={setAmount}
-                  placeholder="0.00"
-                />
+                <MoneyInput value={amount} setValue={setAmount} placeholder="0.00" />
               </div>
 
               <div>
                 <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1.5">
                   Currency
                 </label>
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-                  className="w-full h-[50px] px-3 rounded-2xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-xs font-black focus:outline-none"
-                >
-                  {(Object.keys(CURRENCIES) as CurrencyCode[]).map((c) => (
-                    <option key={c} value={c}>
-                      {CURRENCIES[c].flag} {c}
-                    </option>
-                  ))}
-                </select>
+                <Select value={currency} onValueChange={(val) => setCurrency(val as CurrencyCode)}>
+                  <SelectTrigger className="w-full h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-sm font-semibold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[95]">
+                    {(Object.keys(CURRENCIES) as CurrencyCode[]).map((c) => (
+                      <SelectItem key={c} value={c} className="text-sm font-semibold py-2.5">
+                        <span className="text-base mr-1">{CURRENCIES[c].flag}</span> {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -419,7 +433,9 @@ export default function LoansPage() {
               type="submit"
               className={cn(
                 'w-full py-4 rounded-2xl font-black text-sm text-white shadow-lg transition-all active:scale-98',
-                loanType === 'lend' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'
+                loanType === 'lend'
+                  ? 'bg-amber-500 hover:bg-amber-600'
+                  : 'bg-blue-600 hover:bg-blue-700',
               )}
             >
               Save Record & Update Wallet
@@ -457,7 +473,7 @@ export default function LoansPage() {
                   Remaining Unsettled:{' '}
                   {formatCurrency(
                     activeLoanForRepay.amount - (activeLoanForRepay.repaidAmount || 0),
-                    activeLoanForRepay.currency
+                    activeLoanForRepay.currency,
                   )}
                 </p>
               </div>
@@ -466,11 +482,7 @@ export default function LoansPage() {
                 <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1.5">
                   Repayment Amount
                 </label>
-                <MoneyInput
-                  value={repayAmount}
-                  setValue={setRepayAmount}
-                  placeholder="0.00"
-                />
+                <MoneyInput value={repayAmount} setValue={setRepayAmount} placeholder="0.00" />
               </div>
 
               <button

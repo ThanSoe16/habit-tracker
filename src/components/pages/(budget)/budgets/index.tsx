@@ -232,13 +232,13 @@ export default function BudgetMainPage() {
               value={selectedCurrency}
               onValueChange={(val) => setSelectedCurrency(val as CurrencyCode)}
             >
-              <SelectTrigger className="h-8 w-auto px-3 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 border border-gray-200 dark:border-zinc-800 text-slate-950 dark:text-white rounded-full text-xs font-bold gap-1 focus:ring-0 focus:outline-none">
+              <SelectTrigger className="h-9 w-auto px-4 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 border border-gray-200 dark:border-zinc-800 text-slate-950 dark:text-white rounded-full text-sm font-semibold gap-1.5 focus:ring-0 focus:outline-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-zinc-900 text-slate-950 dark:text-white border border-gray-200 dark:border-zinc-800 rounded-2xl z-[100]">
                 {Object.values(CURRENCIES).map((c) => (
-                  <SelectItem key={c.code} value={c.code} className="text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800">
-                    {c.flag} {c.code}
+                  <SelectItem key={c.code} value={c.code} className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                    <span className="text-base mr-1">{c.flag}</span> {c.code}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -532,13 +532,13 @@ export default function BudgetMainPage() {
                   value={balanceAddCurrency}
                   onValueChange={(val) => setBalanceAddCurrency(val as CurrencyCode)}
                 >
-                  <SelectTrigger className="w-full h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-xs font-bold">
+                  <SelectTrigger className="w-full h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-sm font-semibold">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(CURRENCIES).map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.flag} {c.code}
+                      <SelectItem key={c.code} value={c.code} className="text-sm font-semibold py-2.5">
+                        <span className="text-base mr-1">{c.flag}</span> {c.code}
                       </SelectItem>
                     ))}
                   </SelectContent>
