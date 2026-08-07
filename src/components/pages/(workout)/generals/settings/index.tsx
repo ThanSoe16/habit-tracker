@@ -1,17 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Dumbbell, Timer, Tag, CheckCircle2, User, Moon, Sun, Menu } from 'lucide-react';
+import { Dumbbell, Timer, Tag, CheckCircle2, User, Moon, Sun, Hourglass, ChevronRight } from 'lucide-react';
 import { useGymStore } from '@/store/use-gym-store';
 import { useUserStore } from '@/store/use-user-store';
 import { cn } from '@/utils/cn';
+import { RestTimerModal } from './_components/rest-timer-modal';
 
 export default function GymSettingsPage() {
   const { gymSettings, updateGymSettings } = useGymStore();
   const { name, avatarEmoji, theme, setName, setAvatarEmoji, setTheme } = useUserStore();
 
   const [editName, setEditName] = useState(name);
+  const [isRestTimerModalOpen, setIsRestTimerModalOpen] = useState(false);
   const emojiOptions = ['🏋️', '💪', '🏃', '⚡', '🔥', '🎯', '🚀', '🏆'];
+
+  // Format seconds to M:SS (e.g. 180 -> "3:00", 90 -> "1:30")
+  const formatTimerDisplay = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remainderSecs = secs % 60;
+    return `${mins}:${remainderSecs < 10 ? '0' : ''}${remainderSecs}`;
+  };
 
   const restTimerOptions = [
     { value: 30, label: '30s' },
@@ -65,34 +74,44 @@ export default function GymSettingsPage() {
           </div>
         </div>
 
-        {/* Rest Timer Duration */}
+        {/* Rest Timer Duration Card & Modal Trigger */}
         <div className="space-y-2">
-          <div className="flex items-center gap-1.5">
-            <Timer className="w-3.5 h-3.5 text-gray-400" />
-            <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
-              Default Rest Timer Between Sets
-            </label>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Hourglass className="w-3.5 h-3.5 text-blue-500" />
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                Rest Timer Between Sets
+              </label>
+            </div>
+            <span className="text-[11px] font-semibold text-gray-400">Tap to configure</span>
           </div>
-          <div className="grid grid-cols-5 gap-1.5">
-            {restTimerOptions.map((opt) => {
-              const isSelected = gymSettings.restTimerSeconds === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => updateGymSettings({ restTimerSeconds: opt.value })}
-                  className={cn(
-                    'py-2 rounded-xl text-xs font-bold transition-all border text-center',
-                    isSelected
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
-                      : 'bg-gray-50 dark:bg-zinc-800 border-gray-100 dark:border-zinc-700/60 text-gray-700 dark:text-gray-300 hover:bg-gray-100',
-                  )}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsRestTimerModalOpen(true)}
+            className="w-full p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800/80 hover:bg-blue-50/60 dark:hover:bg-zinc-800 border border-gray-100 dark:border-zinc-700/60 flex items-center justify-between transition-all group shadow-xs"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                <Hourglass className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-black text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                  Rest timer
+                </p>
+                <p className="text-xs text-gray-400 font-medium">
+                  Set rest duration between sets
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-base font-black text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-900 px-3 py-1 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-xs tabular-nums">
+                {formatTimerDisplay(gymSettings.restTimerSeconds || 180)}
+              </span>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </button>
         </div>
 
         {/* Default Target Sets */}
@@ -243,6 +262,14 @@ export default function GymSettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Rest Timer Modal (Matching Screenshot) */}
+      <RestTimerModal
+        isOpen={isRestTimerModalOpen}
+        onClose={() => setIsRestTimerModalOpen(false)}
+        initialSeconds={gymSettings.restTimerSeconds || 180}
+        onSave={(seconds) => updateGymSettings({ restTimerSeconds: seconds })}
+      />
     </div>
   );
 }

@@ -1,11 +1,14 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
-import { Plus, Trash2, Moon, Dumbbell, Edit2, Check, RotateCcw, HelpCircle } from 'lucide-react';
+import { Plus, Trash2, Moon, Dumbbell, Edit2, Check, RotateCcw, HelpCircle, SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { useGymStore, Exercise } from '@/store/use-gym-store';
+import { useGymStore, Exercise, PlanExercise, ExerciseSetDetail } from '@/store/use-gym-store';
+import { getExerciseImage } from '@/utils/workout-images';
 import { ExerciseSelectorModal } from '../../workouts/_components/exercise-selector-modal';
 import { ExerciseGuideModal } from '../../workouts/_components/exercise-guide-modal';
+import { AddSetsModal } from './_components/add-sets-modal';
 
 export function PlanEditor() {
   const {
@@ -16,6 +19,7 @@ export function PlanEditor() {
     toggleRestDay,
     addExerciseToDay,
     removeExerciseFromDay,
+    updatePlanExercise,
     applyDefaultDay1Routine,
     applyDefaultDay2Routine,
     applyDefaultDay3Routine,
@@ -28,6 +32,9 @@ export function PlanEditor() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState('');
   const [selectedGuideName, setSelectedGuideName] = useState<string | null>(null);
+
+  // Set Details Configuration Modal State
+  const [selectedSetsExercise, setSelectedSetsExercise] = useState<PlanExercise | null>(null);
 
   const currentDay = weeklyPlan[activeDayIndex] || weeklyPlan[0];
 
@@ -223,6 +230,20 @@ export function PlanEditor() {
                       <div className="w-7 h-7 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center shrink-0">
                         {idx + 1}
                       </div>
+
+                      {/* Exercise Image Thumbnail */}
+                      <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-900 overflow-hidden shrink-0 border border-gray-200 dark:border-zinc-700 relative flex items-center justify-center shadow-xs p-0.5">
+                        {getExerciseImage(ex.name) ? (
+                          <Image
+                            src={getExerciseImage(ex.name)!}
+                            alt={ex.name}
+                            fill
+                            className="object-contain"
+                          />
+                        ) : (
+                          <Dumbbell className="w-4 h-4 text-blue-500" />
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <button
                           type="button"
@@ -252,8 +273,19 @@ export function PlanEditor() {
 
                     <div className="flex items-center gap-1">
                       <button
+                        type="button"
+                        onClick={() => setSelectedSetsExercise(ex)}
+                        className="px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 font-bold text-xs flex items-center gap-1 transition-colors"
+                        title="Set Reps & KG per set"
+                      >
+                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                        <span>Sets & KG</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => removeExerciseFromDay(currentDay.dayIndex, ex.id)}
                         className="w-8 h-8 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors"
+                        title="Remove Exercise"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -278,16 +310,35 @@ export function PlanEditor() {
         </button>
       </div>
 
+      {/* Exercise Selector Modal */}
       <ExerciseSelectorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSelectExercise={handleSelectExercise}
       />
 
+      {/* Exercise How-To Guide Modal */}
       <ExerciseGuideModal
         exerciseName={selectedGuideName}
         isOpen={!!selectedGuideName}
         onClose={() => setSelectedGuideName(null)}
+      />
+
+      {/* Per-Set Reps & KG Modal */}
+      <AddSetsModal
+        isOpen={!!selectedSetsExercise}
+        exercise={selectedSetsExercise}
+        onClose={() => setSelectedSetsExercise(null)}
+        onSave={(setsDetails, targetSets, targetReps, weight) => {
+          if (selectedSetsExercise) {
+            updatePlanExercise(currentDay.dayIndex, selectedSetsExercise.id, {
+              setsDetails,
+              targetSets,
+              targetReps,
+              weight,
+            });
+          }
+        }}
       />
     </div>
   );

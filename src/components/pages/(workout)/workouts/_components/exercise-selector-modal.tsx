@@ -1,8 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { Search, Plus, Check, Dumbbell, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { getExerciseImage } from '@/utils/workout-images';
 import {
   useGymStore,
   PRESET_EXERCISES,
@@ -269,24 +271,40 @@ export function ExerciseSelectorModal({
                 <div
                   key={ex.id}
                   onClick={() => handleChoose(ex)}
-                  className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/40 hover:bg-blue-50/70 dark:hover:bg-zinc-800 border border-gray-100 dark:border-zinc-800 flex items-center justify-between cursor-pointer transition-all group"
+                  className="p-3 rounded-2xl bg-gray-50 dark:bg-zinc-800/40 hover:bg-blue-50/70 dark:hover:bg-zinc-800 border border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-3 cursor-pointer transition-all group"
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                        {ex.name}
-                      </span>
-                      {ex.isCustom && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-semibold">
-                          Custom
-                        </span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-900 overflow-hidden shrink-0 border border-gray-200 dark:border-zinc-700 relative flex items-center justify-center shadow-xs p-0.5">
+                      {getExerciseImage(ex.name) ? (
+                        <Image
+                          src={getExerciseImage(ex.name)!}
+                          alt={ex.name}
+                          fill
+                          className="object-contain"
+                        />
+                      ) : (
+                        <Dumbbell className="w-5 h-5 text-blue-500" />
                       )}
                     </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {ex.category} • Default {ex.defaultSets || 3} sets × {ex.defaultReps || '10'}
-                    </span>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
+                          {ex.name}
+                        </span>
+                        {ex.isCustom && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-semibold shrink-0">
+                            Custom
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block truncate">
+                        {ex.category} • Default {ex.defaultSets || 3} sets × {ex.defaultReps || '10'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 text-gray-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all shadow-sm">
+
+                  <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 text-gray-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all shadow-sm shrink-0">
                     <Plus className="w-4 h-4" />
                   </div>
                 </div>

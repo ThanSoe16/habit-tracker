@@ -24,6 +24,12 @@ export interface Exercise {
   isCustom?: boolean;
 }
 
+export interface ExerciseSetDetail {
+  setNumber: number;
+  reps: number;
+  weightKg: number;
+}
+
 export interface PlanExercise {
   id: string; // unique instance ID in the day's plan
   exerciseId: string;
@@ -32,6 +38,7 @@ export interface PlanExercise {
   targetSets: number;
   targetReps: string; // e.g. "8-12" or "10"
   weight?: string; // e.g. "20kg" or "50lbs"
+  setsDetails?: ExerciseSetDetail[];
 }
 
 export interface PlanDay {
@@ -52,6 +59,7 @@ export interface CompletedExerciseLog {
   targetReps: string;
   weight?: string;
   completed: boolean;
+  setsDetails?: ExerciseSetDetail[];
 }
 
 export interface WorkoutLog {
@@ -66,12 +74,18 @@ export interface WorkoutLog {
 }
 
 export const PRESET_EXERCISES: Exercise[] = [
-  // Chest
+  // Chest & Push-up Variations
   { id: 'ex-1', name: 'Incline Chest Press', category: 'Chest', defaultSets: 4, defaultReps: '8-12' },
   { id: 'ex-2', name: 'Flat Chest Press', category: 'Chest', defaultSets: 4, defaultReps: '8-12' },
   { id: 'ex-3', name: 'Barbell Bench Press', category: 'Chest', defaultSets: 4, defaultReps: '8-10' },
   { id: 'ex-4', name: 'Chest Flyes', category: 'Chest', defaultSets: 3, defaultReps: '12-15' },
-  { id: 'ex-5', name: 'Push-ups', category: 'Chest', defaultSets: 3, defaultReps: '15-20' },
+  { id: 'ex-5', name: 'Standard Push-ups', category: 'Chest', defaultSets: 3, defaultReps: '15-20' },
+  { id: 'ex-35', name: 'Decline Push-ups (Upper Chest)', category: 'Chest', defaultSets: 3, defaultReps: '12-15' },
+  { id: 'ex-36', name: 'Incline Push-ups (Lower Chest)', category: 'Chest', defaultSets: 3, defaultReps: '15-20' },
+  { id: 'ex-37', name: 'Diamond Push-ups (Triceps & Inner Chest)', category: 'Chest', defaultSets: 3, defaultReps: '10-12' },
+  { id: 'ex-38', name: 'Wide-Grip Push-ups (Outer Chest)', category: 'Chest', defaultSets: 3, defaultReps: '12-15' },
+  { id: 'ex-39', name: 'Pike Push-ups (Shoulders)', category: 'Shoulders', defaultSets: 3, defaultReps: '10-12' },
+  { id: 'ex-40', name: 'Archer Push-ups (Unilateral Chest)', category: 'Chest', defaultSets: 3, defaultReps: '8-10 per side' },
   
   // Back
   { id: 'ex-6', name: 'Pull-ups / Lat Pulldown', category: 'Back', defaultSets: 4, defaultReps: '8-12' },
@@ -99,9 +113,16 @@ export const PRESET_EXERCISES: Exercise[] = [
   { id: 'ex-22', name: 'Barbell Bicep Curl', category: 'Arms', defaultSets: 3, defaultReps: '10-12' },
   { id: 'ex-23', name: 'Dumbbell Hammer Curl', category: 'Arms', defaultSets: 3, defaultReps: '10-12' },
 
-  // Core
+  // Core / Abs
   { id: 'ex-24', name: 'Plank', category: 'Core', defaultSets: 3, defaultReps: '60s' },
   { id: 'ex-25', name: 'Hanging Leg Raise', category: 'Core', defaultSets: 3, defaultReps: '12-15' },
+  { id: 'ex-28', name: 'Cable Crunch (Upper Abs)', category: 'Core', defaultSets: 3, defaultReps: '12-15' },
+  { id: 'ex-29', name: 'Russian Twists (Obliques)', category: 'Core', defaultSets: 3, defaultReps: '20' },
+  { id: 'ex-30', name: 'Bicycle Crunches', category: 'Core', defaultSets: 3, defaultReps: '15-20' },
+  { id: 'ex-31', name: 'Ab Wheel Rollout', category: 'Core', defaultSets: 3, defaultReps: '10-12' },
+  { id: 'ex-32', name: 'Mountain Climbers', category: 'Core', defaultSets: 3, defaultReps: '45s' },
+  { id: 'ex-33', name: 'Side Plank (Obliques)', category: 'Core', defaultSets: 3, defaultReps: '45s per side' },
+  { id: 'ex-34', name: 'Reverse Crunch (Lower Abs)', category: 'Core', defaultSets: 3, defaultReps: '12-15' },
 
   // Cardio
   { id: 'ex-26', name: 'Treadmill Running', category: 'Cardio', defaultSets: 1, defaultReps: '20 mins' },

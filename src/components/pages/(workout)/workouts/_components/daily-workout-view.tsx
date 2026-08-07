@@ -1,11 +1,14 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Check, Plus, Minus, Trophy, Calendar, Sparkles, Dumbbell, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useGymStore } from '@/store/use-gym-store';
 import { getLocalDateString } from '@/utils/date-utils';
+import { getExerciseImage } from '@/utils/workout-images';
 import { ExerciseGuideModal } from './exercise-guide-modal';
+import { RestTimerCountdownModal } from './rest-timer-countdown-modal';
 
 interface DailyWorkoutViewProps {
   date?: Date;
@@ -26,6 +29,7 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
   const [notes, setNotes] = useState('');
   const [showCelebration, setShowCelebration] = useState(false);
   const [selectedGuideName, setSelectedGuideName] = useState<string | null>(null);
+  const [activeRestTimerExName, setActiveRestTimerExName] = useState<string | null>(null);
 
   // Initialize or fetch current log
   const log = getWorkoutLogForDate(dateStr) || initializeWorkoutLogForDate(dateStr);
@@ -110,6 +114,8 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
         )}
       </div>
 
+
+
       {/* Exercises Checklist */}
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-4 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-3">
         <div className="flex items-center justify-between px-1">
@@ -130,69 +136,93 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
                   : 'bg-gray-50 dark:bg-zinc-800/40 border-gray-100 dark:border-zinc-800'
               )}
             >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => toggleExerciseDone(dateStr, ex.id)}
-                    className={cn(
-                      'w-6 h-6 rounded-lg flex items-center justify-center transition-all border-2 shrink-0',
-                      ex.completed
-                        ? 'bg-green-600 border-green-600 text-white'
-                        : 'border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-transparent'
-                    )}
-                  >
-                    <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                  </button>
+              {/* TOP ROW: Checkbox + Thumbnail + Title & Category Badges */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => toggleExerciseDone(dateStr, ex.id)}
+                  className={cn(
+                    'w-6 h-6 rounded-lg flex items-center justify-center transition-all border-2 shrink-0',
+                    ex.completed
+                      ? 'bg-green-600 border-green-600 text-white'
+                      : 'border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-transparent'
+                  )}
+                >
+                  <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                </button>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedGuideName(ex.name)}
-                        className="text-left group inline-flex items-center gap-1 flex-wrap"
-                      >
-                        <span
-                          className={cn(
-                            'font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors leading-tight',
-                            ex.completed && 'line-through text-gray-400 dark:text-gray-500'
-                          )}
-                        >
-                          {ex.name}
-                        </span>
-                        <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover:text-blue-600 shrink-0 transition-colors inline-block" />
-                      </button>
-
-                      {gymSettings?.showCategoryBadges && ex.category && (
-                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40 shrink-0">
-                          {ex.category}
-                        </span>
-                      )}
-                    </div>
-
-                    <span className="text-xs text-gray-500 block mt-0.5">
-                      Target: {ex.targetSets} sets × {ex.targetReps} reps
-                      {ex.weight
-                        ? ` • ${ex.weight}${!ex.weight.includes('kg') && !ex.weight.includes('lbs') ? gymSettings?.weightUnit || 'kg' : ''}`
-                        : ''}
-                    </span>
-                  </div>
+                {/* Exercise Image Thumbnail */}
+                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-zinc-900 overflow-hidden shrink-0 border border-gray-200 dark:border-zinc-700 relative flex items-center justify-center shadow-xs p-0.5">
+                  {getExerciseImage(ex.name) ? (
+                    <Image
+                      src={getExerciseImage(ex.name)!}
+                      alt={ex.name}
+                      fill
+                      className="object-contain"
+                    />
+                  ) : (
+                    <Dumbbell className="w-5 h-5 text-blue-500" />
+                  )}
                 </div>
 
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGuideName(ex.name)}
+                      className="text-left group inline-flex items-center gap-1 flex-wrap"
+                    >
+                      <span
+                        className={cn(
+                          'font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors leading-tight',
+                          ex.completed && 'line-through text-gray-400 dark:text-gray-500'
+                        )}
+                      >
+                        {ex.name}
+                      </span>
+                      <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover:text-blue-600 shrink-0 transition-colors inline-block" />
+                    </button>
+
+                    {gymSettings?.showCategoryBadges && ex.category && (
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40 shrink-0">
+                        {ex.category}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* BOTTOM ROW (NEXT LINE ACTIONS): Target Info + Set Counter Actions */}
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                  Target: {ex.targetSets} sets × {ex.targetReps} reps
+                  {ex.weight
+                    ? ` • ${ex.weight}${!ex.weight.includes('kg') && !ex.weight.includes('lbs') ? gymSettings?.weightUnit || 'kg' : ''}`
+                    : ''}
+                </span>
+
                 {/* Set counter buttons */}
-                <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 p-1 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm shrink-0">
+                <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 px-2 py-1 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm shrink-0">
                   <button
+                    type="button"
                     onClick={() => updateCompletedSet(dateStr, ex.id, -1)}
                     disabled={ex.completedSets <= 0}
-                    className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-zinc-700 flex items-center justify-center disabled:opacity-30 text-gray-700 dark:text-gray-200 font-bold text-sm"
+                    className="w-7 h-7 rounded-xl bg-gray-100 dark:bg-zinc-700 flex items-center justify-center disabled:opacity-30 text-gray-700 dark:text-gray-200 font-bold text-sm hover:bg-gray-200 transition-colors"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-xs font-black px-1 min-w-[24px] text-center">
+                  <span className="text-xs font-black px-1 min-w-[24px] text-center text-gray-900 dark:text-white tabular-nums">
                     {ex.completedSets}/{ex.targetSets}
                   </span>
                   <button
-                    onClick={() => updateCompletedSet(dateStr, ex.id, 1)}
-                    className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm"
+                    type="button"
+                    onClick={() => {
+                      updateCompletedSet(dateStr, ex.id, 1);
+                      if (gymSettings?.restTimerSeconds) {
+                        setActiveRestTimerExName(ex.name);
+                      }
+                    }}
+                    className="w-7 h-7 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center font-bold text-sm shadow-xs transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -220,28 +250,36 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
         <button
           onClick={handleFinish}
           className={cn(
-            'w-full py-3.5 rounded-2xl font-black text-sm text-white shadow-xl transition-all flex items-center justify-center gap-2 mt-2',
+            'w-full py-3.5 rounded-2xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2',
             log.completed
-              ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
-              : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
+              ? 'bg-emerald-600 text-white shadow-emerald-500/20 hover:bg-emerald-700'
+              : 'bg-blue-600 text-white shadow-blue-500/20 hover:bg-blue-700'
           )}
         >
-          <Sparkles className="w-4 h-4" />
-          {log.completed ? 'Update Finished Workout 🎉' : 'Finish Today Workout 🎉'}
+          <Trophy className="w-4 h-4" />
+          {log.completed ? 'Workout Completed (Update Notes)' : 'Finish Workout'}
         </button>
       </div>
 
-      {/* Exercise How-To Guide Modal */}
+      {/* Exercise Guide Modal */}
       <ExerciseGuideModal
         exerciseName={selectedGuideName}
         isOpen={!!selectedGuideName}
         onClose={() => setSelectedGuideName(null)}
       />
 
+      {/* Rest Timer Countdown Overlay */}
+      <RestTimerCountdownModal
+        isOpen={!!activeRestTimerExName}
+        onClose={() => setActiveRestTimerExName(null)}
+        exerciseName={activeRestTimerExName || ''}
+        initialSeconds={gymSettings?.restTimerSeconds || 180}
+      />
+
       {/* Celebration Modal / Popup */}
       {showCelebration && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl space-y-4 border border-gray-100 dark:border-zinc-800">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl border border-gray-100 dark:border-zinc-800 animate-in zoom-in-95">
             <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 mx-auto flex items-center justify-center text-3xl shadow-inner">
               🏆
             </div>

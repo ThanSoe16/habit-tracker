@@ -1,7 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { getExerciseGuide } from '@/utils/exercise-guide-data';
+import { getExerciseImage } from '@/utils/workout-images';
 import { Dumbbell, Lightbulb, ExternalLink, Target, CheckCircle2 } from 'lucide-react';
 
 interface ExerciseGuideModalProps {
@@ -18,6 +20,7 @@ export function ExerciseGuideModal({
   if (!exerciseName) return null;
 
   const guide = getExerciseGuide(exerciseName);
+  const exerciseImg = getExerciseImage(exerciseName);
   const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
     `${guide.name} exercise form tutorial`
   )}`;
@@ -38,11 +41,25 @@ export function ExerciseGuideModal({
             </div>
 
             <DrawerTitle className="text-2xl font-black tracking-tight text-gray-900 dark:text-white flex items-center justify-center gap-2">
-              {guide.name} <Dumbbell className="w-5 h-5 text-blue-600 shrink-0" />
+              {guide.name}
             </DrawerTitle>
           </DrawerHeader>
 
-          <div className="space-y-5 pt-4">
+          {/* Large Exercise Photo Banner */}
+          {exerciseImg && (
+            <div className="w-full h-80 sm:h-96 rounded-3xl overflow-hidden relative shadow-lg my-3 border border-gray-100 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 p-2">
+              <Image
+                src={exerciseImg}
+                alt={guide.name}
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+          )}
+
+          {/* Content Body */}
+          <div className="py-4 space-y-4">
             {/* Quick Meta Badges */}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-700/60 space-y-1">
