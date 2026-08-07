@@ -61,7 +61,11 @@ export function BottomNav() {
               pathname === '/' ||
               pathname.startsWith('/habits') ||
               pathname.startsWith('/home') ||
-              (pathname.startsWith('/generals') && !pathname.startsWith('/workout') && !pathname.startsWith('/mood')) ||
+              (pathname.startsWith('/generals') &&
+                !pathname.startsWith('/workout') &&
+                !pathname.startsWith('/mood') &&
+                !pathname.startsWith('/store') &&
+                !pathname.startsWith('/budget')) ||
               pathname === '/report' ||
               pathname === '/settings';
           } else if (item.href === '/workout/today') {
@@ -73,6 +77,14 @@ export function BottomNav() {
             isActive =
               pathname.startsWith('/mood') ||
               pathname.startsWith('/mood-generals');
+          } else if (item.href === '/store') {
+            isActive =
+              pathname.startsWith('/store') ||
+              pathname.startsWith('/store-generals');
+          } else if (item.href === '/budget') {
+            isActive =
+              pathname.startsWith('/budget') ||
+              pathname.startsWith('/budget-generals');
           } else {
             isActive = pathname.startsWith(item.href);
           }
