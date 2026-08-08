@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/utils/cn';
 import {
   Plus,
   TrendingDown,
@@ -16,6 +17,7 @@ import {
   PieChart,
   Activity,
   Pencil,
+  Calendar,
   Coins,
   Music,
   Tv,
@@ -151,11 +153,11 @@ export default function BudgetMainPage() {
     toast.success(`Successfully deposited ${formatCurrency(numericAmount, balanceAddCurrency)}`);
   };
 
-  // Sort expenses descending by date
-  const sortedExpenses = [...expenses].sort(
+  // Sort transactions descending by date
+  const sortedTransactions = [...budgetEntries].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
-  const recentExpenses = sortedExpenses.slice(0, 10);
+  const recentTransactions = sortedTransactions.slice(0, 10);
 
   // Helper to render icon for expense item
   const getExpenseIcon = (catName: string, title: string) => {
@@ -325,48 +327,72 @@ export default function BudgetMainPage() {
           </button>
         </div>
 
-        {recentExpenses.length > 0 ? (
-          <div className="space-y-3">
-            {recentExpenses.map((exp) => (
+        {recentTransactions.length > 0 ? (
+          <div className="space-y-2.5">
+            {recentTransactions.map((exp) => (
               <div
                 key={exp.id}
-                className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-900/90 border border-gray-100 dark:border-zinc-800 shadow-xs flex items-center justify-between gap-3 hover:border-gray-200 dark:hover:border-zinc-700 transition-colors"
+                className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-900/90 border border-gray-100 dark:border-zinc-800 shadow-2xs flex flex-col gap-2.5 hover:border-gray-200 dark:hover:border-zinc-700 transition-colors"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  {getExpenseIcon(exp.category, exp.title)}
+                {/* Top Row: Icon + Title + Category & Amount */}
+                <div className="flex items-center justify-between gap-3 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {getExpenseIcon(exp.category, exp.title)}
 
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-xs text-gray-900 dark:text-white truncate">
-                      {exp.title || exp.category}
-                    </h3>
-                    <p className="text-[10px] font-medium text-gray-400 dark:text-gray-400 mt-0.5">
-                      {exp.date} {exp.note ? `• ${exp.note}` : ''}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-black text-xs text-gray-900 dark:text-white truncate">
+                        {exp.title || exp.category}
+                      </h3>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-white dark:bg-zinc-800 text-gray-500 dark:text-gray-300 border border-gray-200/60 dark:border-zinc-700 inline-block mt-0.5">
+                        {exp.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 text-right">
+                    <span
+                      className={cn(
+                        'font-black text-sm tabular-nums',
+                        exp.type === 'income'
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : exp.type === 'exchange'
+                          ? 'text-indigo-600 dark:text-indigo-400'
+                          : 'text-red-500 dark:text-red-400',
+                      )}
+                    >
+                      {exp.type === 'income' ? '+' : '-'}{formatCurrency(exp.amount, exp.currency)}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-black text-xs text-gray-900 dark:text-white tabular-nums">
-                    -{formatCurrency(exp.amount, exp.currency)}
-                  </span>
+                {/* Next Line: Date & Action Buttons (Edit + Delete) */}
+                <div className="flex items-center justify-between border-t border-gray-200/60 dark:border-zinc-800/80 pt-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 dark:text-gray-400">
+                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                    <span>{exp.date}{exp.note ? ` • ${exp.note}` : ''}</span>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditExpense(exp)}
-                    className="w-7 h-7 rounded-full bg-white dark:bg-zinc-800 text-gray-400 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center justify-center transition-colors shadow-xs"
-                    title="Edit Expense"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditExpense(exp)}
+                      className="px-2.5 py-1 rounded-xl bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-[11px] font-extrabold flex items-center gap-1 border border-gray-200/60 dark:border-zinc-700 transition-colors shadow-2xs"
+                      title="Edit Expense"
+                    >
+                      <Pencil className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTargetExpense({ id: exp.id, name: exp.title || exp.category })}
-                    className="w-7 h-7 rounded-full bg-white dark:bg-zinc-800 text-gray-400 dark:text-zinc-300 hover:text-red-500 flex items-center justify-center transition-colors shadow-xs"
-                    title="Delete Expense"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTargetExpense({ id: exp.id, name: exp.title || exp.category })}
+                      className="px-2.5 py-1 rounded-xl bg-white dark:bg-zinc-800 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 text-[11px] font-extrabold flex items-center gap-1 border border-gray-200/60 dark:border-zinc-700 transition-colors shadow-2xs"
+                      title="Delete Expense"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

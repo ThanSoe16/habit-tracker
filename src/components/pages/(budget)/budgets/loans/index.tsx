@@ -147,42 +147,45 @@ export default function LoansPage() {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="space-y-2">
-        <div className="bg-white dark:bg-zinc-900 p-1.5 rounded-2xl border border-gray-100 dark:border-zinc-800 flex gap-1">
+      {/* Filters Design (Unified Rose System) */}
+      <div className="space-y-2.5">
+        {/* Row 1: Type Filter */}
+        <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-1.5 rounded-full border border-gray-100 dark:border-zinc-800 shadow-xs">
           {(['ALL', 'lend', 'borrow'] as const).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setFilterType(t)}
               className={cn(
-                'flex-1 py-2 rounded-xl text-xs font-bold transition-all capitalize',
+                'flex-1 py-2 rounded-full text-xs font-black transition-all cursor-pointer text-center',
                 filterType === t
-                  ? 'bg-gray-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
-                  : 'text-gray-400 hover:text-gray-600',
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20'
+                  : 'text-gray-400 hover:text-gray-900 dark:hover:text-white',
               )}
             >
               {t === 'ALL'
                 ? 'All Types'
                 : t === 'lend'
-                  ? 'Lent (Money Out)'
-                  : 'Borrowed (Money In)'}
+                  ? 'Lent (Out)'
+                  : 'Borrowed (In)'}
             </button>
           ))}
         </div>
 
-        <div className="flex gap-2">
-          <div className="flex-1 bg-white dark:bg-zinc-900 p-1 rounded-2xl border border-gray-100 dark:border-zinc-800 flex gap-1">
+        {/* Row 2: Status & Currency Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Status Filter */}
+          <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-1.5 rounded-full border border-gray-100 dark:border-zinc-800 shadow-xs">
             {(['ALL', 'pending', 'repaid'] as const).map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setFilterStatus(s)}
                 className={cn(
-                  'flex-1 py-1.5 rounded-xl text-[11px] font-bold capitalize transition-all',
+                  'flex-1 py-2 rounded-full text-xs font-black capitalize transition-all cursor-pointer text-center',
                   filterStatus === s
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-gray-400 hover:text-gray-600',
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20'
+                    : 'text-gray-400 hover:text-gray-900 dark:hover:text-white',
                 )}
               >
                 {s}
@@ -190,17 +193,18 @@ export default function LoansPage() {
             ))}
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 p-1 rounded-2xl border border-gray-100 dark:border-zinc-800 flex gap-1">
+          {/* Currency Filter */}
+          <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-1.5 rounded-full border border-gray-100 dark:border-zinc-800 shadow-xs">
             {(['ALL', 'USDT', 'THB', 'MMK', 'SGD'] as const).map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setFilterCurrency(c)}
                 className={cn(
-                  'px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all',
+                  'flex-1 py-2 rounded-full text-xs font-black transition-all cursor-pointer text-center',
                   filterCurrency === c
-                    ? 'bg-amber-500 text-white shadow-xs'
-                    : 'text-gray-400 hover:text-gray-600',
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20'
+                    : 'text-gray-400 hover:text-gray-900 dark:hover:text-white',
                 )}
               >
                 {c}

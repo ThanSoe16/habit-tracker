@@ -36,6 +36,13 @@ import {
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const PRESET_RELATIONS = ['Mom', 'Dad', 'Sister', 'Brother', 'Wife', 'Husband'];
 
@@ -148,130 +155,110 @@ export default function FamilyBudgetPage() {
     }
   });
 
-  const totalReceived = familyTransactions
+  const totalReceived = filteredTxs
     .filter((t) => t.type === 'received')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalGivenBack = familyTransactions
+  const totalGivenBack = filteredTxs
     .filter((t) => t.type === 'given')
     .reduce((sum, t) => sum + t.amount, 0);
 
   const netFamilyTotal = totalReceived - totalGivenBack;
 
+  const allPeopleList = Array.from(
+    new Set([
+      ...Object.keys(personSummary),
+      ...familyTransactions.map((t) => t.person),
+    ]),
+  );
+
   return (
     <div className="space-y-5">
-      {/* HERO CARD */}
-      <div className="bg-gradient-to-br from-pink-600 via-rose-600 to-purple-800 text-white rounded-3xl p-6 shadow-xl shadow-pink-600/20 space-y-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-pink-200 flex items-center gap-1">
-              <Heart className="w-3.5 h-3.5 fill-pink-300" /> Family Money Transfers (MMK)
-            </p>
-            <h2 className="text-xl font-black tracking-tight mt-0.5">
-              Household Funds & Mom Transfers
-            </h2>
+      {/* HERO BALANCE CARD (MATCHING DESIGN SYSTEM HEADER CARD) */}
+      <div className="bg-white dark:bg-black text-slate-950 dark:text-white rounded-[32px] p-6 shadow-xl border border-gray-200/80 dark:border-zinc-800 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">
+              Family Money Transfers (MMK)
+            </span>
           </div>
-          <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-xs font-black rounded-full border border-white/20">
-            {familyTransactions.length} Logged
-          </span>
-        </div>
-
-        <p className="text-xs text-pink-100 font-medium leading-relaxed">
-          Record MMK money received from mom/family or returned to them. Summary calculations reflect family transfer records.
-        </p>
-
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20 text-center">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/15">
-            <p className="text-[9px] font-black text-pink-200 uppercase tracking-wider">Total Received</p>
-            <p className="text-xs font-black truncate mt-0.5 text-emerald-300 tabular-nums">
-              +{formatCurrency(totalReceived, 'MMK')}
-            </p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/15">
-            <p className="text-[9px] font-black text-pink-200 uppercase tracking-wider">Total Back</p>
-            <p className="text-xs font-black truncate mt-0.5 text-rose-300 tabular-nums">
-              -{formatCurrency(totalGivenBack, 'MMK')}
-            </p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/15">
-            <p className="text-[9px] font-black text-pink-200 uppercase tracking-wider">Net Total</p>
-            <p className="text-xs font-black truncate mt-0.5 text-white tabular-nums">
-              {netFamilyTotal >= 0 ? '+' : ''}{formatCurrency(netFamilyTotal, 'MMK')}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 1: PERSON-BY-PERSON NET HOLDING CARDS (MMK) */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xs font-black uppercase tracking-wider text-gray-400">
-            Net Family Balances in MMK
-          </h2>
           <button
             type="button"
             onClick={handleOpenCreateDrawer}
-            className="text-xs font-black text-pink-600 dark:text-pink-400 hover:underline"
+            className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-full flex items-center gap-1 shadow-md shadow-rose-500/20 transition-all cursor-pointer"
           >
-            + Record Money
+            <Plus className="w-3.5 h-3.5" /> Record Money
           </button>
         </div>
 
-        {Object.keys(personSummary).length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {Object.keys(personSummary).map((pName) => {
-              const netAmount = personSummary[pName];
-              return (
-                <div
-                  key={pName}
-                  onClick={() => setFilterPerson(pName === filterPerson ? 'ALL' : pName)}
-                  className={cn(
-                    'p-4 rounded-3xl bg-white dark:bg-zinc-900 border transition-all cursor-pointer space-y-2 shadow-xs',
-                    filterPerson === pName
-                      ? 'border-pink-500 ring-2 ring-pink-500/20'
-                      : 'border-gray-100 dark:border-zinc-800 hover:border-gray-200',
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 flex items-center justify-center text-xs font-black">
-                      <User className="w-4 h-4" />
-                    </div>
-                    <h3 className="font-extrabold text-xs text-gray-900 dark:text-white truncate">
-                      {pName}
-                    </h3>
-                  </div>
+        {/* Person Selector Dropdown Pill (Matching Currency Select Box Design) */}
+        <div className="flex justify-center pt-1 pb-1">
+          <Select
+            value={filterPerson}
+            onValueChange={(val) => setFilterPerson(val)}
+          >
+            <SelectTrigger className="h-9 w-auto px-4 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 border border-gray-200 dark:border-zinc-800 text-slate-950 dark:text-white rounded-full text-sm font-semibold gap-1.5 focus:ring-0 focus:outline-none cursor-pointer">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-zinc-900 text-slate-950 dark:text-white border border-gray-200 dark:border-zinc-800 rounded-2xl z-[100]">
+              <SelectItem value="ALL" className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                👥 All Family Members
+              </SelectItem>
+              {allPeopleList.map((pName) => (
+                <SelectItem key={pName} value={pName} className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                  👤 {pName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-                  <div className="pt-1 text-[12px] font-black tabular-nums">
-                    <p
-                      className={
-                        netAmount >= 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-rose-600 dark:text-rose-400'
-                      }
-                    >
-                      {netAmount >= 0 ? '+' : ''}
-                      {formatCurrency(netAmount, 'MMK')}
-                    </p>
-                    <span className="text-[9px] font-bold text-gray-400">
-                      {netAmount >= 0 ? 'Net Holding' : 'Net Returned'}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="p-5 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-center space-y-2">
-            <p className="text-xs text-gray-400 font-bold">
-              No family money records yet. Tap &quot;+ Record Money&quot; to log funds!
+        {/* 3 SUMMARY TILES: TOTAL RECEIVED, TOTAL BACK, NET TOTAL */}
+        <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-gray-100 dark:border-zinc-800 text-center">
+          <div className="bg-gray-50 dark:bg-zinc-900 rounded-2xl p-3 border border-gray-100 dark:border-zinc-800 space-y-1">
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-wider">
+              Total Received
+            </p>
+            <p className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">
+              +{formatCurrency(totalReceived, 'MMK')}
             </p>
           </div>
-        )}
+
+          <div className="bg-gray-50 dark:bg-zinc-900 rounded-2xl p-3 border border-gray-100 dark:border-zinc-800 space-y-1">
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-wider">
+              Total Back
+            </p>
+            <p className="text-xs sm:text-sm font-black text-red-500 dark:text-red-400 tabular-nums whitespace-nowrap">
+              -{formatCurrency(totalGivenBack, 'MMK')}
+            </p>
+          </div>
+
+          <div className="bg-gray-50 dark:bg-zinc-900 rounded-2xl p-3 border border-gray-100 dark:border-zinc-800 space-y-1">
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-wider">
+              Net Total
+            </p>
+            <p
+              className={cn(
+                'text-xs sm:text-sm font-black tabular-nums whitespace-nowrap',
+                netFamilyTotal > 0
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : netFamilyTotal < 0
+                  ? 'text-red-500 dark:text-red-400'
+                  : 'text-slate-950 dark:text-white',
+              )}
+            >
+              {netFamilyTotal > 0 ? '+' : ''}
+              {formatCurrency(netFamilyTotal, 'MMK')}
+            </p>
+          </div>
+        </div>
       </div>
+
+
 
       {/* SECTION 2: FAMILY TRANSACTIONS HISTORY TABLE */}
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
-        <div className="flex items-center justify-between pb-1 border-b border-gray-100 dark:border-zinc-800">
+        <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 flex items-center justify-center">
               <Users className="w-4.5 h-4.5" />
@@ -281,16 +268,13 @@ export default function FamilyBudgetPage() {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsExportModalOpen(true)}
-              className="px-2.5 py-1 rounded-xl bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 text-xs font-black flex items-center gap-1 hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" /> Export Image
-            </button>
-            <span className="text-xs font-black text-pink-600 dark:text-pink-400">🇲🇲 MMK Only</span>
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3 py-1.5 rounded-xl bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 text-xs font-black flex items-center gap-1.5 hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors shrink-0 whitespace-nowrap cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" /> Export Statement
+          </button>
         </div>
 
         {filteredTxs.length > 0 ? (
@@ -298,51 +282,48 @@ export default function FamilyBudgetPage() {
             {filteredTxs.map((tx) => (
               <div
                 key={tx.id}
-                className="p-3.5 bg-gray-50 dark:bg-zinc-800/60 rounded-2xl flex items-center justify-between gap-3 border border-gray-100 dark:border-zinc-700/60"
+                className="p-3.5 bg-gray-50 dark:bg-zinc-800/60 rounded-2xl space-y-2 border border-gray-100 dark:border-zinc-700/60"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 text-white font-black text-sm',
-                      tx.type === 'received' ? 'bg-emerald-500' : 'bg-rose-500',
-                    )}
-                  >
-                    {tx.type === 'received' ? (
-                      <ArrowDownLeft className="w-5 h-5" />
-                    ) : (
-                      <ArrowUpRight className="w-5 h-5" />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <p className="font-extrabold text-xs text-gray-900 dark:text-white leading-snug">
-                        {tx.type === 'received'
-                          ? `Received from ${tx.person}`
-                          : `Given back to ${tx.person}`}
-                      </p>
-                      <span
-                        className={cn(
-                          'text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0',
-                          tx.type === 'received'
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
-                            : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400',
-                        )}
-                      >
-                        {tx.type === 'received' ? 'Received' : 'Given'}
-                      </span>
+                {/* Top Row: Icon + Title + Pill (Left) & Amount (Right) */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={cn(
+                        'w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 text-white font-black text-sm',
+                        tx.type === 'received' ? 'bg-emerald-500' : 'bg-rose-500',
+                      )}
+                    >
+                      {tx.type === 'received' ? (
+                        <ArrowDownLeft className="w-4 h-4" />
+                      ) : (
+                        <ArrowUpRight className="w-4 h-4" />
+                      )}
                     </div>
 
-                    <p className="text-[10px] font-bold text-gray-400 mt-0.5">
-                      {tx.date} {tx.note ? `• ${tx.note}` : ''}
-                    </p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-extrabold text-xs text-gray-900 dark:text-white truncate">
+                          {tx.type === 'received'
+                            ? `Received from ${tx.person}`
+                            : `Given back to ${tx.person}`}
+                        </p>
+                        <span
+                          className={cn(
+                            'text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0',
+                            tx.type === 'received'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
+                              : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400',
+                          )}
+                        >
+                          {tx.type === 'received' ? 'Received' : 'Given'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 shrink-0">
                   <span
                     className={cn(
-                      'font-black text-xs tabular-nums',
+                      'font-black text-sm tabular-nums shrink-0',
                       tx.type === 'received'
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : 'text-rose-600 dark:text-rose-400',
@@ -351,24 +332,32 @@ export default function FamilyBudgetPage() {
                     {tx.type === 'received' ? '+' : '-'}
                     {formatCurrency(tx.amount, tx.currency)}
                   </span>
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditDrawer(tx)}
-                    className="w-7 h-7 rounded-full bg-white dark:bg-zinc-700 text-gray-400 hover:text-pink-600 flex items-center justify-center transition-colors"
-                    title="Edit Record"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
+                {/* Bottom Row: Date + Note (Left) & Edit/Delete Actions (Right) */}
+                <div className="flex items-center justify-between pt-1.5 border-t border-gray-200/50 dark:border-zinc-700/40 text-[10px] font-bold text-gray-400">
+                  <span className="truncate">
+                    {tx.date} {tx.note ? `• ${tx.note}` : ''}
+                  </span>
 
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTxId(tx.id)}
-                    className="w-7 h-7 rounded-full bg-white dark:bg-zinc-700 text-gray-400 hover:text-red-500 flex items-center justify-center transition-colors"
-                    title="Delete Record"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditDrawer(tx)}
+                      className="p-1 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                      title="Edit Record"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTxId(tx.id)}
+                      className="p-1 text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                      title="Delete Record"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

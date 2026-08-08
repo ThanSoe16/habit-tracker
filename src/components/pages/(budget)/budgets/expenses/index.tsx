@@ -7,6 +7,8 @@ import {
   Trash2,
   X,
   Check,
+  Pencil,
+  Calendar,
 } from 'lucide-react';
 import {
   useBudgetStore,
@@ -14,6 +16,7 @@ import {
   CurrencyCode,
   CURRENCIES,
   formatCurrency,
+  BudgetEntry,
 } from '@/store/use-budget-store';
 import { cn } from '@/utils/cn';
 import { MoneyInput } from '@/components/ui/money-input';
@@ -42,7 +45,9 @@ export default function ExpensesPage() {
   const [filterCurrency, setFilterCurrency] = useState<'ALL' | CurrencyCode>('ALL');
   const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
 
-  const { budgetEntries, addExpense, deleteBudgetEntry } = useBudgetStore();
+  const { budgetEntries, addExpense, deleteBudgetEntry, walletBalances } = useBudgetStore();
+
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
 
   // Expense Form State
   const [expTitle, setExpTitle] = useState('');
@@ -51,10 +56,40 @@ export default function ExpensesPage() {
   const [expCategory, setExpCategory] = useState('Food & Groceries');
   const [expDate, setExpDate] = useState(new Date().toISOString().split('T')[0]);
 
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('USDT');
+
+  const currentBalance = walletBalances[selectedCurrency] || 0;
+  const parsedExpAmount = parseFloat(expAmount) || 0;
+  const isOverBudget = parsedExpAmount > (walletBalances[expCurrency] || 0) && !editingEntryId;
+
+  const resetExpenseForm = () => {
+    setEditingEntryId(null);
+    setExpTitle('');
+    setExpAmount('');
+    setExpCurrency('USDT');
+    setExpCategory('Food & Groceries');
+    setExpDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const handleOpenEditExpense = (entry: BudgetEntry) => {
+    setEditingEntryId(entry.id);
+    setExpTitle(entry.title);
+    setExpAmount(entry.amount.toString());
+    setExpCurrency(entry.currency);
+    setExpCategory(entry.category);
+    setExpDate(entry.date);
+    setIsExpenseDrawerOpen(true);
+  };
+
   const handleExpenseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const amt = parseFloat(expAmount);
     if (!expTitle.trim() || isNaN(amt) || amt <= 0) return;
+    if (isOverBudget) return;
+
+    if (editingEntryId) {
+      deleteBudgetEntry(editingEntryId);
+    }
 
     addExpense({
       title: expTitle.trim(),
@@ -64,8 +99,7 @@ export default function ExpensesPage() {
       date: expDate,
     });
 
-    setExpTitle('');
-    setExpAmount('');
+    resetExpenseForm();
     setIsExpenseDrawerOpen(false);
   };
 
@@ -97,62 +131,45 @@ export default function ExpensesPage() {
 
   return (
     <div className="space-y-5">
-      {/* HERO CARD: EXPENSE & ACTIVITY OVERVIEW */}
-      <div className="bg-gradient-to-br from-rose-600 via-pink-600 to-red-800 text-white rounded-3xl p-6 shadow-xl shadow-rose-600/20 space-y-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-rose-200 flex items-center gap-1">
-              <TrendingDown className="w-3.5 h-3.5" /> Spending & Activity Summary
-            </p>
-            <h2 className="text-xl font-black tracking-tight mt-0.5">
-              Total Expenses Overview
-            </h2>
-          </div>
+      {/* 1. HERO BALANCE CARD (MATCHING MAIN DASHBOARD HEADER STYLE WITHOUT 4 NAV BUTTONS) */}
+      <div className="bg-white dark:bg-black text-slate-950 dark:text-white rounded-[32px] p-6 shadow-xl border border-gray-200/80 dark:border-zinc-800 space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">Current Balance</span>
           <button
             type="button"
             onClick={() => setIsExpenseDrawerOpen(true)}
-            className="px-3 py-1 bg-white/20 hover:bg-white/30 backdrop-blur-md text-xs font-black rounded-full border border-white/20 flex items-center gap-1 transition-all"
+            className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-full flex items-center gap-1 shadow-md shadow-rose-500/20 transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Log Expense
           </button>
         </div>
 
-        <p className="text-xs text-rose-100 font-medium leading-relaxed">
-          Summary of all logged expenses across active currencies. Logged expenses automatically deduct from your wallet balances.
-        </p>
+        <div className="text-center space-y-2 pt-1 pb-2">
+          <h1 className="text-4xl font-black tracking-tight text-slate-950 dark:text-white tabular-nums">
+            {formatCurrency(currentBalance, selectedCurrency)}
+          </h1>
 
-        <div className="grid grid-cols-4 gap-2 pt-2 border-t border-white/20 text-center">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/15">
-            <p className="text-[9px] font-black text-rose-200 uppercase tracking-wider">
-              USDT Spent
-            </p>
-            <p className="text-[11px] font-black truncate mt-0.5 text-white tabular-nums">
-              -{formatCurrency(totalExpensePerCurrency.USDT || 0, 'USDT')}
-            </p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/15">
-            <p className="text-[9px] font-black text-rose-200 uppercase tracking-wider">
-              THB Spent
-            </p>
-            <p className="text-[11px] font-black truncate mt-0.5 text-white tabular-nums">
-              -{formatCurrency(totalExpensePerCurrency.THB || 0, 'THB')}
-            </p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/15">
-            <p className="text-[9px] font-black text-rose-200 uppercase tracking-wider">
-              MMK Spent
-            </p>
-            <p className="text-[11px] font-black truncate mt-0.5 text-white tabular-nums">
-              -{formatCurrency(totalExpensePerCurrency.MMK || 0, 'MMK')}
-            </p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/15">
-            <p className="text-[9px] font-black text-rose-200 uppercase tracking-wider">
-              SGD Spent
-            </p>
-            <p className="text-[11px] font-black truncate mt-0.5 text-white tabular-nums">
-              -{formatCurrency(totalExpensePerCurrency.SGD || 0, 'SGD')}
-            </p>
+          {/* Currency Dropdown Selector Pill */}
+          <div className="flex justify-center pt-1">
+            <Select
+              value={selectedCurrency}
+              onValueChange={(val) => {
+                const code = val as CurrencyCode;
+                setSelectedCurrency(code);
+                setExpCurrency(code);
+              }}
+            >
+              <SelectTrigger className="h-9 w-auto px-4 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 border border-gray-200 dark:border-zinc-800 text-slate-950 dark:text-white rounded-full text-sm font-semibold gap-1.5 focus:ring-0 focus:outline-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-zinc-900 text-slate-950 dark:text-white border border-gray-200 dark:border-zinc-800 rounded-2xl z-[100]">
+                {Object.values(CURRENCIES).map((c) => (
+                  <SelectItem key={c.code} value={c.code} className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                    <span className="text-base mr-1">{c.flag}</span> {c.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -192,50 +209,69 @@ export default function ExpensesPage() {
             {filteredEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="bg-gray-50 dark:bg-zinc-800/60 rounded-2xl p-4 border border-gray-100 dark:border-zinc-700/60 flex items-center justify-between gap-3 group hover:border-rose-300 dark:hover:border-rose-800 transition-all"
+                className="bg-gray-50 dark:bg-zinc-800/60 rounded-2xl p-3.5 border border-gray-100 dark:border-zinc-700/60 flex flex-col gap-2.5 group hover:border-rose-300 dark:hover:border-rose-800 transition-all shadow-2xs"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-2xl bg-gray-200/60 dark:bg-zinc-700/60 text-gray-800 dark:text-gray-200 flex items-center justify-center text-xl shrink-0 border border-gray-200/40 dark:border-zinc-600">
-                    {getCategoryEmoji(entry.category)}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-black text-sm text-gray-900 dark:text-white truncate">
-                      {entry.title}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-zinc-700 text-gray-500 dark:text-gray-300 border border-gray-200/60 dark:border-zinc-600">
+                {/* Top Row: Icon + Title + Category & Amount */}
+                <div className="flex items-center justify-between gap-3 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-gray-200/60 dark:bg-zinc-700/60 text-gray-800 dark:text-gray-200 flex items-center justify-center text-lg shrink-0 border border-gray-200/40 dark:border-zinc-600">
+                      {getCategoryEmoji(entry.category)}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-black text-sm text-gray-900 dark:text-white truncate">
+                        {entry.title}
+                      </h3>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-white dark:bg-zinc-700 text-gray-500 dark:text-gray-300 border border-gray-200/60 dark:border-zinc-600 inline-block mt-0.5">
                         {entry.category}
-                      </span>
-                      <span className="text-[11px] font-medium text-gray-400">
-                        {entry.date}
                       </span>
                     </div>
                   </div>
+
+                  <div className="shrink-0 text-right">
+                    <span
+                      className={cn(
+                        'font-black text-base tabular-nums',
+                        entry.type === 'income'
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : entry.type === 'exchange'
+                            ? 'text-indigo-600 dark:text-indigo-400'
+                            : 'text-red-500 dark:text-red-400',
+                      )}
+                    >
+                      {entry.type === 'income' ? '+' : entry.type === 'expense' ? '-' : '💱'}
+                      {formatCurrency(entry.amount, entry.currency)}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <span
-                    className={cn(
-                      'font-black text-sm tabular-nums',
-                      entry.type === 'income'
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : entry.type === 'exchange'
-                          ? 'text-indigo-600 dark:text-indigo-400'
-                          : 'text-rose-600 dark:text-rose-400',
-                    )}
-                  >
-                    {entry.type === 'income' ? '+' : entry.type === 'expense' ? '-' : '💱'}
-                    {formatCurrency(entry.amount, entry.currency)}
-                  </span>
+                {/* Next Line: Date & Action Buttons (Edit + Delete) */}
+                <div className="flex items-center justify-between border-t border-gray-200/60 dark:border-zinc-700/50 pt-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 dark:text-gray-400">
+                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                    <span>{entry.date}</span>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setDeleteEntryId(entry.id)}
-                    className="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 text-gray-400 hover:text-red-500 flex items-center justify-center transition-colors"
-                    title="Delete activity log"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditExpense(entry)}
+                      className="px-2.5 py-1 rounded-xl bg-white dark:bg-zinc-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-[11px] font-extrabold flex items-center gap-1 border border-gray-200/60 dark:border-zinc-600 transition-colors shadow-2xs"
+                      title="Edit Expense"
+                    >
+                      <Pencil className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setDeleteEntryId(entry.id)}
+                      className="px-2.5 py-1 rounded-xl bg-white dark:bg-zinc-700 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 text-[11px] font-extrabold flex items-center gap-1 border border-gray-200/60 dark:border-zinc-600 transition-colors shadow-2xs"
+                      title="Delete Expense"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -273,6 +309,17 @@ export default function ExpensesPage() {
             >
               <X className="w-4 h-4" />
             </button>
+          </div>
+
+          {/* Current Balance Info */}
+          <div className={cn(
+            'flex items-center justify-between px-4 py-2.5 rounded-2xl border text-xs font-bold',
+            isOverBudget
+              ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400'
+              : 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400'
+          )}>
+            <span>{CURRENCIES[expCurrency].flag} {expCurrency} Balance</span>
+            <span className="font-black text-sm">{formatCurrency(currentBalance, expCurrency)}</span>
           </div>
 
           <form onSubmit={handleExpenseSubmit} className="space-y-4">
@@ -350,9 +397,21 @@ export default function ExpensesPage() {
               <DatePicker value={expDate} onChange={setExpDate} />
             </div>
 
+            {isOverBudget && parsedExpAmount > 0 && (
+              <p className="text-[11px] font-bold text-red-500 text-center">
+                ⚠️ Amount exceeds your {expCurrency} balance of {formatCurrency(currentBalance, expCurrency)}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-2xl shadow-lg shadow-rose-500/25 transition-all text-xs flex items-center justify-center gap-2 mt-2"
+              disabled={isOverBudget && parsedExpAmount > 0}
+              className={cn(
+                'w-full py-3.5 font-extrabold rounded-2xl shadow-lg transition-all text-xs flex items-center justify-center gap-2 mt-2',
+                isOverBudget && parsedExpAmount > 0
+                  ? 'bg-gray-300 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400 cursor-not-allowed shadow-none'
+                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/25'
+              )}
             >
               <Check className="w-4 h-4" /> Save Expense
             </button>

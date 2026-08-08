@@ -271,7 +271,7 @@ export function ExportTableModal({
               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-wider px-1">
                 Net Totals by Currency
               </p>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => {
                   const val = totalsPerCurrency[code] || 0;
                   return (
