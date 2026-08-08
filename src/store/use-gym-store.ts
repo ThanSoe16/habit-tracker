@@ -22,6 +22,7 @@ export interface Exercise {
   defaultSets?: number;
   defaultReps?: string;
   isCustom?: boolean;
+  imageUrl?: string | null;
 }
 
 export interface ExerciseSetDetail {
@@ -298,7 +299,9 @@ interface GymStore {
   addExerciseToDay: (dayIndex: number, exercise: Exercise, sets?: number, reps?: string, weight?: string) => void;
   removeExerciseFromDay: (dayIndex: number, planExerciseId: string) => void;
   updatePlanExercise: (dayIndex: number, planExerciseId: string, updates: Partial<PlanExercise>) => void;
-  addCustomExercise: (name: string, category: ExerciseCategory, defaultSets?: number, defaultReps?: string) => Exercise;
+  addCustomExercise: (name: string, category: ExerciseCategory, defaultSets?: number, defaultReps?: string, imageUrl?: string | null) => Exercise;
+  updateCustomExercise: (id: string, updates: Partial<Exercise>) => void;
+  deleteCustomExercise: (id: string) => void;
   applyDefaultDay1Routine: () => void;
   applyDefaultDay2Routine: () => void;
   applyDefaultDay3Routine: () => void;
@@ -474,17 +477,57 @@ export const useGymStore = create<GymStore>()((set, get) => ({
         });
       },
 
-      addCustomExercise: (name, category, defaultSets = 3, defaultReps = '10') => {
+      addCustomExercise: (name, category, defaultSets = 4, defaultReps = '8-12') => {
         const newEx: Exercise = {
           id: `custom-${crypto.randomUUID()}`,
-          name,
+          name: name.trim(),
           category,
           defaultSets,
           defaultReps,
           isCustom: true,
         };
         set((state) => ({ customExercises: [...state.customExercises, newEx] }));
+        gymService.upsertCustomExercise(newEx);
         return newEx;
+      },
+
+      updateCustomExercise: (id, updates) => {
+        set((state) => {
+          const updatedCustom = state.customExercises.map((ex) =>
+            ex.id === id ? { ...ex, ...updates } : ex
+          );
+          const updatedPlan = state.weeklyPlan.map((day) => ({
+            ...day,
+            exercises: day.exercises.map((e) =>
+              e.exerciseId === id || e.id === id
+                ? {
+                    ...e,
+                    name: updates.name ?? e.name,
+                    category: updates.category ?? e.category,
+                    targetSets: updates.defaultSets ?? e.targetSets,
+                    targetReps: updates.defaultReps ?? e.targetReps,
+                  }
+                : e
+            ),
+          }));
+          return {
+            customExercises: updatedCustom,
+            weeklyPlan: updatedPlan,
+          };
+        });
+        const updated = get().customExercises.find((ex) => ex.id === id);
+        if (updated) gymService.upsertCustomExercise(updated);
+      },
+
+      deleteCustomExercise: (id) => {
+        set((state) => ({
+          customExercises: state.customExercises.filter((ex) => ex.id !== id),
+          weeklyPlan: state.weeklyPlan.map((day) => ({
+            ...day,
+            exercises: day.exercises.filter((e) => e.exerciseId !== id && e.id !== id),
+          })),
+        }));
+        gymService.deleteCustomExercise(id);
       },
 
       applyDefaultDay1Routine: () => {
@@ -590,20 +633,55 @@ export const useGymStore = create<GymStore>()((set, get) => ({
       },
 
       getWorkoutLogForDate: (dateStr) => {
-        return get().history[dateStr] || null;
+        const state = get();
+        const existing = state.history[dateStr];
+        if (existing) return existing;
+
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        const jsDay = dateObj.getDay();
+        const mappedDayIndex = jsDay === 0 ? 6 : jsDay - 1;
+        const dayPlan = state.weeklyPlan[mappedDayIndex] || state.weeklyPlan[0];
+
+        if (!dayPlan || dayPlan.isRestDay) {
+          return {
+            id: `rest-${dateStr}`,
+            date: dateStr,
+            dayIndex: mappedDayIndex,
+            dayTitle: dayPlan?.title || 'Rest Day',
+            completed: false,
+            exercises: [],
+          };
+        }
+
+        return {
+          id: `temp-${dateStr}`,
+          date: dateStr,
+          dayIndex: dayPlan.dayIndex,
+          dayTitle: dayPlan.title,
+          completed: false,
+          exercises: dayPlan.exercises.map((ex) => ({
+            id: ex.id,
+            exerciseId: ex.exerciseId,
+            name: ex.name,
+            category: ex.category,
+            targetSets: ex.targetSets,
+            completedSets: 0,
+            targetReps: ex.targetReps,
+            weight: ex.weight,
+            completed: false,
+          })),
+        };
       },
 
       initializeWorkoutLogForDate: (dateStr, dayIndex) => {
         const state = get();
         const dateObj = new Date(dateStr + 'T00:00:00');
-        const jsDay = dateObj.getDay(); // 0 is Sun, 1 is Mon...
-        // Map Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
+        const jsDay = dateObj.getDay();
         const mappedDayIndex = dayIndex !== undefined ? dayIndex : (jsDay === 0 ? 6 : jsDay - 1);
         const dayPlan = state.weeklyPlan[mappedDayIndex] || state.weeklyPlan[0];
 
         const existingLog = state.history[dateStr];
         if (existingLog) {
-          // If log exists and is not completed yet, update exercises from the latest dayPlan
           if (!existingLog.completed) {
             const updatedExercises = dayPlan.exercises.map((ex) => {
               const prevEx = existingLog.exercises.find((e) => e.id === ex.id || e.exerciseId === ex.exerciseId);
@@ -658,9 +736,9 @@ export const useGymStore = create<GymStore>()((set, get) => ({
           })),
         };
 
-        set((state) => ({
+        set((s) => ({
           history: {
-            ...state.history,
+            ...s.history,
             [dateStr]: initialLog,
           },
         }));

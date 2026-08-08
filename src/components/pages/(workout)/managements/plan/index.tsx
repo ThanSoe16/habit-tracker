@@ -224,8 +224,9 @@ export function PlanEditor() {
                 {currentDay.exercises.map((ex, idx) => (
                   <div
                     key={ex.id}
-                    className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-3 group"
+                    className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 space-y-3 group"
                   >
+                    {/* Top Row: Number, Image & Name */}
                     <div className="flex items-center gap-3">
                       <div className="w-7 h-7 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center shrink-0">
                         {idx + 1}
@@ -238,57 +239,65 @@ export function PlanEditor() {
                             src={getExerciseImage(ex.name)!}
                             alt={ex.name}
                             fill
+                            unoptimized
                             className="object-contain"
                           />
                         ) : (
-                          <Dumbbell className="w-4 h-4 text-blue-500" />
+                          <Dumbbell className="w-5 h-5 text-blue-500" />
                         )}
                       </div>
+
                       <div className="flex-1 min-w-0">
                         <button
                           type="button"
                           onClick={() => setSelectedGuideName(ex.name)}
-                          className="text-left group/title inline-flex items-center gap-1 flex-wrap"
+                          className="text-left group/title inline-flex items-center gap-1.5 flex-wrap"
                         >
                           <span className="font-bold text-sm text-gray-900 dark:text-white group-hover/title:text-blue-600 transition-colors leading-tight">
                             {ex.name}
                           </span>
                           <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover/title:text-blue-600 shrink-0 transition-colors inline-block" />
                         </button>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                          <span className="font-semibold px-1.5 py-0.5 rounded bg-gray-200/60 dark:bg-zinc-700/60 text-[10px]">
+                        <div className="mt-0.5">
+                          <span className="font-semibold px-2 py-0.5 rounded-md bg-gray-200/60 dark:bg-zinc-700/60 text-[10px] text-gray-600 dark:text-gray-300">
                             {ex.category}
                           </span>
-                          <span>
-                            {ex.targetSets} sets × {ex.targetReps} reps
-                          </span>
-                          {ex.weight && (
-                            <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                              ({ex.weight})
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSetsExercise(ex)}
-                        className="px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 font-bold text-xs flex items-center gap-1 transition-colors"
-                        title="Set Reps & KG per set"
-                      >
-                        <SlidersHorizontal className="w-3.5 h-3.5" />
-                        <span>Sets & KG</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeExerciseFromDay(currentDay.dayIndex, ex.id)}
-                        className="w-8 h-8 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors"
-                        title="Remove Exercise"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    {/* Next Line: Sets/Reps Summary & Action Buttons */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-200/60 dark:border-zinc-700/40">
+                      <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1.5">
+                        <span>{ex.targetSets} sets × {ex.targetReps} reps</span>
+                        {ex.weight && (
+                          <span className="text-blue-600 dark:text-blue-400 font-bold">
+                            • {ex.weight}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedSetsExercise(ex)}
+                          className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs"
+                          title="Set Reps & KG per set"
+                        >
+                          <SlidersHorizontal className="w-3.5 h-3.5" />
+                          <span>Sets & KG</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => removeExerciseFromDay(currentDay.dayIndex, ex.id)}
+                          className="px-2.5 py-1.5 rounded-xl text-red-500 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center gap-1 text-xs font-semibold transition-colors"
+                          title="Delete Exercise"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

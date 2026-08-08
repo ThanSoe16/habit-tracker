@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Dumbbell, Timer, Tag, CheckCircle2, User, Moon, Sun, Hourglass, ChevronRight } from 'lucide-react';
 import { useGymStore } from '@/store/use-gym-store';
 import { useUserStore } from '@/store/use-user-store';

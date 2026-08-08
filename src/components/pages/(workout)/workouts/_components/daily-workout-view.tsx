@@ -31,8 +31,8 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
   const [selectedGuideName, setSelectedGuideName] = useState<string | null>(null);
   const [activeRestTimerExName, setActiveRestTimerExName] = useState<string | null>(null);
 
-  // Initialize or fetch current log
-  const log = getWorkoutLogForDate(dateStr) || initializeWorkoutLogForDate(dateStr);
+  // Purely fetch current log for date without setState in render
+  const log = getWorkoutLogForDate(dateStr);
 
   useEffect(() => {
     if (log && log.notes) {

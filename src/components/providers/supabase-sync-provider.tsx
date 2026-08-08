@@ -19,53 +19,39 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
   const { setName } = useUserStore();
 
   useEffect(() => {
-    // 1. Auth check & session listener
+    // 1. Initial auth check
     async function checkAuthStatus() {
-      const { data } = await supabase.auth.getSession();
-      const user = data?.session?.user || null;
+      try {
+        const { data } = await supabase.auth.getSession();
+        const user = data?.session?.user || null;
 
-      if (user) {
-        setIsAuthenticated(true);
-        const nameFromMeta = user.user_metadata?.name || user.email?.split('@')[0];
-        if (nameFromMeta) setName(nameFromMeta);
-
-        // If user is already logged in and attempts to access /login, redirect to /budget
-        if (pathname === '/login' || pathname === '/auth/login') {
-          router.replace('/budget');
+        if (user) {
+          setIsAuthenticated(true);
+          const nameFromMeta = user.user_metadata?.name || user.email?.split('@')[0];
+          if (nameFromMeta) setName(nameFromMeta);
+        } else {
+          setIsAuthenticated(false);
         }
-      } else {
-        setIsAuthenticated(false);
-        // If user is not logged in and attempts to access protected page, redirect to /login
-        const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-        if (!isPublicPath) {
-          router.replace('/login');
-        }
+      } catch (err) {
+        console.warn('Auth check error:', err);
       }
     }
 
     checkAuthStatus();
 
-    // Subscribe to Supabase Auth state changes
+    // 2. Subscribe to Supabase Auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user || null;
       if (user) {
         setIsAuthenticated(true);
         const nameFromMeta = user.user_metadata?.name || user.email?.split('@')[0];
         if (nameFromMeta) setName(nameFromMeta);
-
-        if (pathname === '/login' || pathname === '/auth/login') {
-          router.replace('/budget');
-        }
       } else {
         setIsAuthenticated(false);
-        const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-        if (!isPublicPath) {
-          router.replace('/login');
-        }
       }
     });
 
-    // 2. Data store sync
+    // 3. Data store sync
     async function syncAllStores() {
       try {
         await Promise.allSettled([
@@ -84,7 +70,7 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
 
     syncAllStores();
 
-    // Subscribe to realtime database changes
+    // 4. Subscribe to realtime database changes
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -120,7 +106,7 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
       supabase.removeChannel(channel);
       authListener.subscription.unsubscribe();
     };
-  }, [pathname, router, setName]);
+  }, [setName]);
 
   return <>{children}</>;
 }

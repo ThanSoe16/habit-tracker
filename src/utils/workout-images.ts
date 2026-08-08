@@ -1,71 +1,73 @@
+const STORAGE_BASE_URL = 'https://znuymeaxcxjsmrafvlht.supabase.co/storage/v1/object/public/workout-images';
+
 export const EXERCISE_IMAGES_MAP: Record<string, string> = {
   // Chest
-  'Incline Chest Press': '/work-out/chests/incline-chest.png',
-  'Flat Chest Press': '/work-out/chests/flat-chest.png',
-  'Barbell Bench Press': '/work-out/chests/incline-chest.png',
-  'Chest Flyes': '/work-out/chests/chest-flyes.png',
+  'Incline Chest Press': `${STORAGE_BASE_URL}/chests/incline-chest.webp`,
+  'Flat Chest Press': `${STORAGE_BASE_URL}/chests/flat-chest.webp`,
+  'Barbell Bench Press': `${STORAGE_BASE_URL}/chests/incline-chest.webp`,
+  'Chest Flyes': `${STORAGE_BASE_URL}/chests/chest-flyes.webp`,
 
   // Push-ups
-  'Push-ups': '/work-out/push-ups/standard-push-up.png',
-  'Standard Push-ups': '/work-out/push-ups/standard-push-up.png',
-  'Decline Push-ups (Upper Chest)': '/work-out/push-ups/decline-push-up.png',
-  'Incline Push-ups (Lower Chest)': '/work-out/push-ups/incline-push-up.png',
-  'Diamond Push-ups (Triceps & Inner Chest)': '/work-out/push-ups/diamond-push-up.png',
-  'Wide-Grip Push-ups (Outer Chest)': '/work-out/push-ups/wide-grip-push-ups.png',
-  'Pike Push-ups (Shoulders)': '/work-out/push-ups/pike-push-up.png',
-  'Archer Push-ups (Unilateral Chest)': '/work-out/push-ups/standard-push-up.png',
+  'Push-ups': `${STORAGE_BASE_URL}/push-ups/standard-push-up.webp`,
+  'Standard Push-ups': `${STORAGE_BASE_URL}/push-ups/standard-push-up.webp`,
+  'Decline Push-ups (Upper Chest)': `${STORAGE_BASE_URL}/push-ups/decline-push-up.webp`,
+  'Incline Push-ups (Lower Chest)': `${STORAGE_BASE_URL}/push-ups/incline-push-up.webp`,
+  'Diamond Push-ups (Triceps & Inner Chest)': `${STORAGE_BASE_URL}/push-ups/diamond-push-up.webp`,
+  'Wide-Grip Push-ups (Outer Chest)': `${STORAGE_BASE_URL}/push-ups/wide-grip-push-ups.webp`,
+  'Pike Push-ups (Shoulders)': `${STORAGE_BASE_URL}/push-ups/pike-push-up.webp`,
+  'Archer Push-ups (Unilateral Chest)': `${STORAGE_BASE_URL}/push-ups/standard-push-up.webp`,
 
   // Back
-  'Pull-ups / Lat Pulldown': '/work-out/back/pull-down.png',
-  'Vertical Pull (Lat Pulldown)': '/work-out/back/pull-down.png',
-  'Barbell Bent-Over Row': '/work-out/back/barbell-bent-over-row.png',
-  'Horizontal Pull (Seated Row)': '/work-out/back/seated-cable-row.png',
-  'Seated Cable Row': '/work-out/back/seated-cable-row.png',
-  'Horizontal Pull (Chest-Supported Row)': '/work-out/back/barbell-bent-over-row.png',
-  'Single-Arm Dumbbell Row': '/work-out/back/single-arm-dumbbell-row.png',
+  'Pull-ups / Lat Pulldown': `${STORAGE_BASE_URL}/back/pull-down.webp`,
+  'Vertical Pull (Lat Pulldown)': `${STORAGE_BASE_URL}/back/pull-down.webp`,
+  'Barbell Bent-Over Row': `${STORAGE_BASE_URL}/back/barbell-bent-over-row.webp`,
+  'Horizontal Pull (Seated Row)': `${STORAGE_BASE_URL}/back/seated-cable-row.webp`,
+  'Seated Cable Row': `${STORAGE_BASE_URL}/back/seated-cable-row.webp`,
+  'Horizontal Pull (Chest-Supported Row)': `${STORAGE_BASE_URL}/back/barbell-bent-over-row.webp`,
+  'Single-Arm Dumbbell Row': `${STORAGE_BASE_URL}/back/single-arm-dumbbell-row.webp`,
 
   // Legs
-  'Barbell Squats': '/work-out/chests/barbell-squats.png',
-  'Squat Pattern (Barbell Squat)': '/work-out/chests/barbell-squats.png',
-  'Leg Press': '/work-out/legs/leg-press.png',
-  'Romanian Deadlift': '/work-out/legs/deadlift.png',
-  'RDL (Romanian Deadlift)': '/work-out/legs/deadlift.png',
-  'Leg Extension': '/work-out/legs/leg-extension.png',
-  'Lying Leg Curl': '/work-out/legs/lying-leg-curl.png',
-  'Leg Curl': '/work-out/legs/lying-leg-curl.png',
-  'Hamstring Curl': '/work-out/legs/lying-leg-curl.png',
-  'Calf Raises': '/work-out/legs/calf-raises.png',
-  'Split Squat (Bulgarian / Dumbbell)': '/work-out/legs/bulgarian-split-squat.png',
+  'Barbell Squats': `${STORAGE_BASE_URL}/legs/barbell-squats.webp`,
+  'Squat Pattern (Barbell Squat)': `${STORAGE_BASE_URL}/legs/barbell-squats.webp`,
+  'Leg Press': `${STORAGE_BASE_URL}/legs/leg-press.webp`,
+  'Romanian Deadlift': `${STORAGE_BASE_URL}/legs/deadlift.webp`,
+  'RDL (Romanian Deadlift)': `${STORAGE_BASE_URL}/legs/deadlift.webp`,
+  'Leg Extension': `${STORAGE_BASE_URL}/legs/leg-extension.webp`,
+  'Lying Leg Curl': `${STORAGE_BASE_URL}/legs/lying-leg-curl.webp`,
+  'Leg Curl': `${STORAGE_BASE_URL}/legs/lying-leg-curl.webp`,
+  'Hamstring Curl': `${STORAGE_BASE_URL}/legs/lying-leg-curl.webp`,
+  'Calf Raises': `${STORAGE_BASE_URL}/legs/calf-raises.webp`,
+  'Split Squat (Bulgarian / Dumbbell)': `${STORAGE_BASE_URL}/legs/bulgarian-split-squat.webp`,
 
   // Shoulders
-  'Shoulder Press': '/work-out/shoulders/shoulder-press.png',
-  'Lateral Raises': '/work-out/shoulders/lateral-raises.png',
-  'Face Pulls': '/work-out/back/face-pulls.png',
-  'Rear Delt Flyes / Reverse Fly': '/work-out/back/face-pulls.png',
-  'Front Dumbbell Raise': '/work-out/shoulders/front-dumbbell-raise.png',
+  'Shoulder Press': `${STORAGE_BASE_URL}/shoulders/shoulder-press.webp`,
+  'Lateral Raises': `${STORAGE_BASE_URL}/shoulders/lateral-raises.webp`,
+  'Face Pulls': `${STORAGE_BASE_URL}/back/face-pulls.webp`,
+  'Rear Delt Flyes / Reverse Fly': `${STORAGE_BASE_URL}/back/face-pulls.webp`,
+  'Front Dumbbell Raise': `${STORAGE_BASE_URL}/shoulders/front-dumbbell-raise.webp`,
 
   // Arms
-  'Triceps Overhead Extension': '/work-out/triceps/triceps-overhead-extension.png',
-  'Triceps Pushdown': '/work-out/triceps/triceps-pushdown.png',
-  'Barbell Bicep Curl': '/work-out/biceps/barbell-bicep-curl.png',
-  'Preacher Bicep Curl': '/work-out/biceps/barbell-bicep-curl.png',
-  'Dumbbell Hammer Curl': '/work-out/biceps/dumbbell-hammer-curl.png',
-  'Incline Dumbbell Bicep Curl': '/work-out/biceps/dumbbell-hammer-curl.png',
+  'Triceps Overhead Extension': `${STORAGE_BASE_URL}/triceps/triceps-overhead-extension.webp`,
+  'Triceps Pushdown': `${STORAGE_BASE_URL}/triceps/triceps-pushdown.webp`,
+  'Barbell Bicep Curl': `${STORAGE_BASE_URL}/biceps/barbell-bicep-curl.webp`,
+  'Preacher Bicep Curl': `${STORAGE_BASE_URL}/biceps/barbell-bicep-curl.webp`,
+  'Dumbbell Hammer Curl': `${STORAGE_BASE_URL}/biceps/dumbbell-hammer-curl.webp`,
+  'Incline Dumbbell Bicep Curl': `${STORAGE_BASE_URL}/biceps/dumbbell-hammer-curl.webp`,
 
   // Core / Abs
-  'Plank': '/work-out/core-abs/plank.png',
-  'Hanging Leg Raise': '/work-out/core-abs/hanging-leg-raise.png',
-  'Cable Crunch (Upper Abs)': '/work-out/core-abs/cable-crunch.png',
-  'Russian Twists (Obliques)': '/work-out/core-abs/russian-twists.png',
-  'Bicycle Crunches': '/work-out/core-abs/russian-twists.png',
-  'Ab Wheel Rollout': '/work-out/core-abs/ab-wheel-rollout.png',
-  'Mountain Climbers': '/work-out/core-abs/mountain-climbers.png',
-  'Side Plank (Obliques)': '/work-out/core-abs/plank.png',
-  'Reverse Crunch (Lower Abs)': '/work-out/core-abs/reverse-crunch.png',
+  'Plank': `${STORAGE_BASE_URL}/core-abs/plank.webp`,
+  'Hanging Leg Raise': `${STORAGE_BASE_URL}/core-abs/hanging-leg-raise.webp`,
+  'Cable Crunch (Upper Abs)': `${STORAGE_BASE_URL}/core-abs/cable-crunch.webp`,
+  'Russian Twists (Obliques)': `${STORAGE_BASE_URL}/core-abs/russian-twists.webp`,
+  'Bicycle Crunches': `${STORAGE_BASE_URL}/core-abs/russian-twists.webp`,
+  'Ab Wheel Rollout': `${STORAGE_BASE_URL}/core-abs/ab-wheel-rollout.webp`,
+  'Mountain Climbers': `${STORAGE_BASE_URL}/core-abs/mountain-climbers.webp`,
+  'Side Plank (Obliques)': `${STORAGE_BASE_URL}/core-abs/plank.webp`,
+  'Reverse Crunch (Lower Abs)': `${STORAGE_BASE_URL}/core-abs/reverse-crunch.webp`,
 
   // Cardio
-  'Treadmill Running': '/work-out/core-abs/treadmill-running.png',
-  'Stationary Cycling': '/work-out/core-abs/stationary-cycling.png',
+  'Treadmill Running': `${STORAGE_BASE_URL}/core-abs/treadmill-running.webp`,
+  'Stationary Cycling': `${STORAGE_BASE_URL}/core-abs/stationary-cycling.webp`,
 };
 
 export function getExerciseImage(
@@ -90,14 +92,14 @@ export function getExerciseImage(
     }
   }
 
-  if (lower.includes('chest') || lower.includes('press')) return '/work-out/chests/flat-chest.png';
-  if (lower.includes('push')) return '/work-out/push-ups/standard-push-up.png';
-  if (lower.includes('pull') || lower.includes('row')) return '/work-out/back/pull-down.png';
-  if (lower.includes('squat') || lower.includes('leg')) return '/work-out/legs/leg-press.png';
-  if (lower.includes('shoulder') || lower.includes('delt')) return '/work-out/shoulders/shoulder-press.png';
-  if (lower.includes('bicep') || lower.includes('curl')) return '/work-out/biceps/barbell-bicep-curl.png';
-  if (lower.includes('tricep')) return '/work-out/triceps/triceps-pushdown.png';
-  if (lower.includes('ab') || lower.includes('crunch') || lower.includes('plank')) return '/work-out/core-abs/plank.png';
+  if (lower.includes('chest') || lower.includes('press')) return `${STORAGE_BASE_URL}/chests/flat-chest.webp`;
+  if (lower.includes('push')) return `${STORAGE_BASE_URL}/push-ups/standard-push-up.webp`;
+  if (lower.includes('pull') || lower.includes('row')) return `${STORAGE_BASE_URL}/back/pull-down.webp`;
+  if (lower.includes('squat') || lower.includes('leg')) return `${STORAGE_BASE_URL}/legs/leg-press.webp`;
+  if (lower.includes('shoulder') || lower.includes('delt')) return `${STORAGE_BASE_URL}/shoulders/shoulder-press.webp`;
+  if (lower.includes('bicep') || lower.includes('curl')) return `${STORAGE_BASE_URL}/biceps/barbell-bicep-curl.webp`;
+  if (lower.includes('tricep')) return `${STORAGE_BASE_URL}/triceps/triceps-pushdown.webp`;
+  if (lower.includes('ab') || lower.includes('crunch') || lower.includes('plank')) return `${STORAGE_BASE_URL}/core-abs/plank.webp`;
 
   return null;
 }

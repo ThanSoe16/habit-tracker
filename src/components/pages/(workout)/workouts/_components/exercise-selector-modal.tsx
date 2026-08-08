@@ -1,16 +1,14 @@
 'use client';
 
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { useState } from 'react';
-import { Search, Plus, Check, Dumbbell, X } from 'lucide-react';
+import { Search, Plus, Dumbbell, X, Edit2, Trash2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { getExerciseImage } from '@/utils/workout-images';
-import {
-  useGymStore,
-  PRESET_EXERCISES,
-  ExerciseCategory,
-  Exercise,
-} from '@/store/use-gym-store';
+import { Exercise, PRESET_EXERCISES, ExerciseCategory, useGymStore } from '@/store/use-gym-store';
+import { ExerciseFormModal } from './exercise-form-modal';
+import { ConfirmationDialog } from '@/components/shared/dialog/confirmation-dialog';
+import { toast } from 'sonner';
 
 interface ExerciseSelectorModalProps {
   isOpen: boolean;
@@ -18,7 +16,7 @@ interface ExerciseSelectorModalProps {
   onSelectExercise: (exercise: Exercise, sets: number, reps: string, weight?: string) => void;
 }
 
-const CATEGORIES: Array<ExerciseCategory | 'All'> = [
+const CATEGORIES: ('All' | ExerciseCategory)[] = [
   'All',
   'Chest',
   'Back',
@@ -27,6 +25,7 @@ const CATEGORIES: Array<ExerciseCategory | 'All'> = [
   'Arms',
   'Core',
   'Cardio',
+  'Other',
 ];
 
 export function ExerciseSelectorModal({
@@ -34,35 +33,40 @@ export function ExerciseSelectorModal({
   onClose,
   onSelectExercise,
 }: ExerciseSelectorModalProps) {
-  const { customExercises, addCustomExercise } = useGymStore();
+  const { customExercises, deleteCustomExercise } = useGymStore();
+
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'All'>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedEx, setSelectedEx] = useState<Exercise | null>(null);
-  
+
   // Quick set/rep configuration before adding
-  const [sets, setSets] = useState(3);
-  const [reps, setReps] = useState('10-12');
+  const [sets, setSets] = useState(4);
+  const [reps, setReps] = useState('8-12');
   const [weight, setWeight] = useState('');
 
-  // Custom Exercise Form state
-  const [showAddCustom, setShowAddCustom] = useState(false);
-  const [customName, setCustomName] = useState('');
-  const [customCat, setCustomCat] = useState<ExerciseCategory>('Chest');
+  // CRUD modal state
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [editingEx, setEditingEx] = useState<Exercise | null>(null);
+  const [deletingEx, setDeletingEx] = useState<Exercise | null>(null);
 
   if (!isOpen) return null;
 
-  const allExercises = [...PRESET_EXERCISES, ...customExercises];
+  // Combine built-in presets and user-created custom exercises
+  const allExercises: Exercise[] = [...customExercises, ...PRESET_EXERCISES];
 
   const filteredExercises = allExercises.filter((ex) => {
-    const matchesCat = selectedCategory === 'All' || ex.category === selectedCategory;
-    const matchesSearch = ex.name.toLowerCase().includes(search.toLowerCase());
-    return matchesCat && matchesSearch;
+    const matchesCategory = selectedCategory === 'All' || ex.category === selectedCategory;
+    const matchesSearch =
+      !search.trim() ||
+      ex.name.toLowerCase().includes(search.trim().toLowerCase()) ||
+      ex.category.toLowerCase().includes(search.trim().toLowerCase());
+    return matchesCategory && matchesSearch;
   });
 
   const handleChoose = (ex: Exercise) => {
     setSelectedEx(ex);
-    setSets(ex.defaultSets || 3);
-    setReps(ex.defaultReps || '10');
+    setSets(ex.defaultSets || 4);
+    setReps(ex.defaultReps || '8-12');
     setWeight('');
   };
 
@@ -73,13 +77,11 @@ export function ExerciseSelectorModal({
     onClose();
   };
 
-  const handleCreateCustom = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customName.trim()) return;
-    const created = addCustomExercise(customName.trim(), customCat, 3, '10');
-    setCustomName('');
-    setShowAddCustom(false);
-    handleChoose(created);
+  const handleConfirmDelete = () => {
+    if (!deletingEx) return;
+    deleteCustomExercise(deletingEx.id);
+    toast.success(`'${deletingEx.name}' deleted successfully`);
+    setDeletingEx(null);
   };
 
   return (
@@ -91,16 +93,31 @@ export function ExerciseSelectorModal({
             <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <Dumbbell className="w-4 h-4" />
             </div>
-            <h3 className="font-bold text-lg">
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
               {selectedEx ? `Configure: ${selectedEx.name}` : 'Select Exercise'}
             </h3>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:text-gray-800 dark:hover:text-white flex items-center justify-center transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {!selectedEx && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingEx(null);
+                  setIsFormModalOpen(true);
+                }}
+                className="px-2.5 py-1 text-xs font-bold rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 flex items-center gap-1 transition-colors"
+                title="Create New Exercise"
+              >
+                <Plus className="w-3.5 h-3.5" /> New
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 hover:text-gray-800 dark:hover:text-white flex items-center justify-center transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {selectedEx ? (
@@ -186,7 +203,7 @@ export function ExerciseSelectorModal({
         ) : (
           /* Exercise Selection List */
           <div className="flex-1 flex flex-col min-h-0">
-            {/* Search & Custom exercise prompt */}
+            {/* Search */}
             <div className="p-4 border-b border-gray-100 dark:border-zinc-800 space-y-3 shrink-0">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -208,7 +225,7 @@ export function ExerciseSelectorModal({
                     className={cn(
                       'px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap transition-all',
                       selectedCategory === cat
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-blue-600 text-white shadow-sm'
                         : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
                     )}
                   >
@@ -220,99 +237,119 @@ export function ExerciseSelectorModal({
 
             {/* List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {showAddCustom ? (
-                <form onSubmit={handleCreateCustom} className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-2xl space-y-3">
-                  <h4 className="font-bold text-sm">Add New Custom Exercise</h4>
-                  <input
-                    type="text"
-                    value={customName}
-                    onChange={(e) => setCustomName(e.target.value)}
-                    placeholder="Exercise name (e.g. Cable Kickbacks)"
-                    className="w-full px-3 py-2 text-sm rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700"
-                    autoFocus
-                  />
-                  <div className="flex gap-2">
-                    <select
-                      value={customCat}
-                      onChange={(e) => setCustomCat(e.target.value as ExerciseCategory)}
-                      className="flex-1 px-3 py-2 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700"
-                    >
-                      {CATEGORIES.filter((c) => c !== 'All').map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddCustom(false)}
-                      className="px-3 py-2 bg-gray-200 dark:bg-zinc-700 text-xs font-semibold rounded-xl"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <button
-                  onClick={() => setShowAddCustom(true)}
-                  className="w-full py-2.5 px-4 border border-dashed border-blue-400 dark:border-blue-600 rounded-2xl text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-2 transition-colors"
-                >
-                  <Plus className="w-4 h-4" /> Create Custom Exercise
-                </button>
-              )}
-
-              {filteredExercises.map((ex) => (
-                <div
-                  key={ex.id}
-                  onClick={() => handleChoose(ex)}
-                  className="p-3 rounded-2xl bg-gray-50 dark:bg-zinc-800/40 hover:bg-blue-50/70 dark:hover:bg-zinc-800 border border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-3 cursor-pointer transition-all group"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-900 overflow-hidden shrink-0 border border-gray-200 dark:border-zinc-700 relative flex items-center justify-center shadow-xs p-0.5">
-                      {getExerciseImage(ex.name) ? (
-                        <Image
-                          src={getExerciseImage(ex.name)!}
-                          alt={ex.name}
-                          fill
-                          className="object-contain"
-                        />
-                      ) : (
-                        <Dumbbell className="w-5 h-5 text-blue-500" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
-                          {ex.name}
-                        </span>
-                        {ex.isCustom && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-semibold shrink-0">
-                            Custom
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 block truncate">
-                        {ex.category} • Default {ex.defaultSets || 3} sets × {ex.defaultReps || '10'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 text-gray-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all shadow-sm shrink-0">
-                    <Plus className="w-4 h-4" />
-                  </div>
+              {filteredExercises.length === 0 ? (
+                <div className="text-center py-8 px-4 text-xs text-gray-400">
+                  No exercises found.
                 </div>
-              ))}
+              ) : (
+                filteredExercises.map((ex) => {
+                  const imageSrc = getExerciseImage(ex.name, ex.imageUrl);
+                  return (
+                    <div
+                      key={ex.id}
+                      className="p-3 rounded-2xl bg-gray-50 dark:bg-zinc-800/40 hover:bg-blue-50/70 dark:hover:bg-zinc-800 border border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-3 transition-all group"
+                    >
+                      <div
+                        onClick={() => handleChoose(ex)}
+                        className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-900 overflow-hidden shrink-0 border border-gray-200 dark:border-zinc-700 relative flex items-center justify-center shadow-xs p-0.5">
+                          {imageSrc ? (
+                            <Image
+                              src={imageSrc}
+                              alt={ex.name}
+                              fill
+                              unoptimized
+                              className="object-contain"
+                            />
+                          ) : (
+                            <Dumbbell className="w-5 h-5 text-blue-500" />
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate block">
+                              {ex.name}
+                            </span>
+                            {ex.isCustom && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold shrink-0">
+                                Custom
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block truncate">
+                            {ex.category} • Default {ex.defaultSets || 4} sets × {ex.defaultReps || '8-12'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action buttons (Edit, Delete if custom, Add) */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingEx(ex);
+                            setIsFormModalOpen(true);
+                          }}
+                          className="w-7 h-7 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center transition-colors"
+                          title="Edit exercise"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        {ex.isCustom && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingEx(ex);
+                            }}
+                            className="w-7 h-7 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors"
+                            title="Delete exercise"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleChoose(ex)}
+                          className="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 text-gray-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all shadow-sm ml-1"
+                          title="Select exercise"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Create / Edit Exercise Modal */}
+      <ExerciseFormModal
+        isOpen={isFormModalOpen}
+        onClose={() => {
+          setIsFormModalOpen(false);
+          setEditingEx(null);
+        }}
+        initialData={editingEx}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={!!deletingEx}
+        onClose={() => setDeletingEx(null)}
+        title="Delete Exercise"
+        desc={`Are you sure you want to delete '${deletingEx?.name}'? This action cannot be undone.`}
+        isDelete={true}
+        enableDeleteIcon={true}
+        confirmText="Delete Exercise"
+        onPress={handleConfirmDelete}
+      />
     </div>
   );
 }
