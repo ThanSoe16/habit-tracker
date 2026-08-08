@@ -322,6 +322,8 @@ export interface BodyMetricRow {
   height_cm?: number;
   weight_kg: number;
   target_weight_kg?: number;
+  dob?: string;
+  gender?: 'Male' | 'Female' | 'Other';
   body_fat_pct?: number;
   muscle_mass_kg?: number;
   fitness_goal?: string;
@@ -351,6 +353,8 @@ export const gymBodyMetricsService = {
       height_cm: row.height_cm,
       weight_kg: row.weight_kg,
       target_weight_kg: row.target_weight_kg,
+      dob: row.dob,
+      gender: row.gender,
       body_fat_pct: row.body_fat_pct,
       muscle_mass_kg: row.muscle_mass_kg,
       fitness_goal: row.fitness_goal,

@@ -1,10 +1,10 @@
-import GymProfilePage from '@/components/pages/(workout)/workouts/personal-info';
+import EditGymProfilePage from '@/components/pages/(workout)/managements/edit-personal-info';
 import { Suspense } from 'react';
 
-export default function WorkoutTodayPageRoute() {
+export default function EditPersonalInfoPageRoute() {
   return (
     <Suspense>
-      <GymProfilePage />
+      <EditGymProfilePage />
     </Suspense>
   );
 }

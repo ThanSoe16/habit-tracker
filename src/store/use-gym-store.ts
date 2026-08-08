@@ -265,6 +265,24 @@ const syncUncompletedLogsWithPlan = (
 
 export interface GymSettings {
   weightUnit: 'kg' | 'lbs';
+  heightUnit: 'cm' | 'ft-in';
+  heightCm: number;
+  heightFt: number;
+  heightIn: number;
+  startWeightKg: number;
+  currentWeightKg: number;
+  targetWeightKg: number;
+  targetDeadline: string;
+  weeklyPace: string;
+  reminderDays: string[];
+  reminderFrequency: string;
+  dob: string; // YYYY-MM-DD
+  gender: 'Male' | 'Female' | 'Other';
+  fitnessGoal: string;
+  bodyFatPct?: number;
+  activityLevel: string;
+  hydrationGoalMl: number;
+  dailyHydrationLogs: Record<string, number>; // dateKey -> ml
   restTimerSeconds: number;
   autoFinishWorkout: boolean;
   showCategoryBadges: boolean;
@@ -273,11 +291,61 @@ export interface GymSettings {
 
 export const DEFAULT_GYM_SETTINGS: GymSettings = {
   weightUnit: 'kg',
+  heightUnit: 'cm',
+  heightCm: 175,
+  heightFt: 5,
+  heightIn: 9,
+  startWeightKg: 75,
+  currentWeightKg: 75,
+  targetWeightKg: 72,
+  targetDeadline: 'Jun 13',
+  weeklyPace: 'Fast (1.10lbs/wk)',
+  reminderDays: ['Mo', 'Tu', 'We'],
+  reminderFrequency: 'Active Daily',
+  dob: '1998-05-15',
+  gender: 'Male',
+  fitnessGoal: 'Muscle Gain',
+  bodyFatPct: 18,
+  activityLevel: 'Moderately Active',
+  hydrationGoalMl: 2500,
+  dailyHydrationLogs: {},
   restTimerSeconds: 60,
   autoFinishWorkout: false,
   showCategoryBadges: true,
   defaultTargetSets: 4,
 };
+
+export function cmToFtIn(cm: number): { feet: number; inches: number } {
+  const totalInches = cm / 2.54;
+  const feet = Math.floor(totalInches / 12);
+  const inches = Math.round(totalInches % 12);
+  return { feet, inches };
+}
+
+export function ftInToCm(feet: number, inches: number): number {
+  return Math.round((feet * 12 + inches) * 2.54);
+}
+
+export function kgToLbs(kg: number): number {
+  return Math.round(kg * 2.20462 * 10) / 10;
+}
+
+export function lbsToKg(lbs: number): number {
+  return Math.round((lbs / 2.20462) * 10) / 10;
+}
+
+export function calculateAge(dobStr?: string): number | null {
+  if (!dobStr) return null;
+  const birth = new Date(dobStr);
+  if (isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : null;
+}
 
 interface GymStore {
   weeklyPlan: PlanDay[];
@@ -291,6 +359,10 @@ interface GymStore {
   // Actions
   fetchFromSupabase: () => Promise<void>;
   updateGymSettings: (updates: Partial<GymSettings>) => void;
+  setWeightGoal: (updates: Partial<GymSettings>) => void;
+  setHydrationGoal: (goalMl: number) => void;
+  logWaterIntake: (dateStr: string, deltaMl: number) => void;
+  setDailyWaterIntake: (dateStr: string, totalMl: number) => void;
   addBodyMetricLog: (log: BodyMetricRow) => Promise<void>;
   deleteBodyMetricLog: (id: string) => Promise<void>;
   setActiveDayIndex: (index: number) => void;
@@ -379,6 +451,42 @@ export const useGymStore = create<GymStore>()((set, get) => ({
       updateGymSettings: (updates) => {
         set((state) => {
           const newSettings = { ...state.gymSettings, ...updates };
+          gymService.saveGymSettings(newSettings);
+          return { gymSettings: newSettings };
+        });
+      },
+
+      setWeightGoal: (updates) => {
+        set((state) => {
+          const newSettings = { ...state.gymSettings, ...updates };
+          gymService.saveGymSettings(newSettings);
+          return { gymSettings: newSettings };
+        });
+      },
+
+      setHydrationGoal: (goalMl) => {
+        set((state) => {
+          const newSettings = { ...state.gymSettings, hydrationGoalMl: goalMl };
+          gymService.saveGymSettings(newSettings);
+          return { gymSettings: newSettings };
+        });
+      },
+
+      logWaterIntake: (dateStr, deltaMl) => {
+        set((state) => {
+          const current = state.gymSettings.dailyHydrationLogs[dateStr] || 0;
+          const updated = Math.max(0, current + deltaMl);
+          const newLogs = { ...state.gymSettings.dailyHydrationLogs, [dateStr]: updated };
+          const newSettings = { ...state.gymSettings, dailyHydrationLogs: newLogs };
+          gymService.saveGymSettings(newSettings);
+          return { gymSettings: newSettings };
+        });
+      },
+
+      setDailyWaterIntake: (dateStr, totalMl) => {
+        set((state) => {
+          const newLogs = { ...state.gymSettings.dailyHydrationLogs, [dateStr]: totalMl };
+          const newSettings = { ...state.gymSettings, dailyHydrationLogs: newLogs };
           gymService.saveGymSettings(newSettings);
           return { gymSettings: newSettings };
         });

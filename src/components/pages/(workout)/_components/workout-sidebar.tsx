@@ -29,6 +29,8 @@ import {
   BarChart2,
   Edit,
   Scale,
+  Target,
+  Droplets,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
