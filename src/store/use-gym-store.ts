@@ -1,9 +1,23 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { getLocalDateString } from '@/utils/date-utils';
 import { gymService, gymBodyMetricsService, BodyMetricRow } from '@/lib/supabase/services';
+
+const workoutLogSaveQueues = new Map<string, Promise<void>>();
+
+function saveWorkoutLog(dateStr: string, log: WorkoutLog) {
+  const previousSave = workoutLogSaveQueues.get(dateStr) ?? Promise.resolve();
+  const nextSave = previousSave
+    .catch(() => undefined)
+    .then(() => gymService.upsertWorkoutLog(dateStr, log));
+
+  workoutLogSaveQueues.set(dateStr, nextSave);
+  void nextSave.finally(() => {
+    if (workoutLogSaveQueues.get(dateStr) === nextSave) {
+      workoutLogSaveQueues.delete(dateStr);
+    }
+  });
+}
 
 export type ExerciseCategory =
   | 'Chest'
@@ -855,6 +869,10 @@ export const useGymStore = create<GymStore>()((set, get) => ({
       },
 
       updateCompletedSet: (dateStr, planExerciseId, deltaSets) => {
+        if (!get().history[dateStr]) {
+          get().initializeWorkoutLogForDate(dateStr);
+        }
+
         set((state) => {
           const log = state.history[dateStr];
           if (!log) return state;
@@ -884,9 +902,16 @@ export const useGymStore = create<GymStore>()((set, get) => ({
             },
           };
         });
+
+        const updatedLog = get().history[dateStr];
+        if (updatedLog) saveWorkoutLog(dateStr, updatedLog);
       },
 
       toggleExerciseDone: (dateStr, planExerciseId) => {
+        if (!get().history[dateStr]) {
+          get().initializeWorkoutLogForDate(dateStr);
+        }
+
         set((state) => {
           const log = state.history[dateStr];
           if (!log) return state;
@@ -915,9 +940,16 @@ export const useGymStore = create<GymStore>()((set, get) => ({
             },
           };
         });
+
+        const updatedLog = get().history[dateStr];
+        if (updatedLog) saveWorkoutLog(dateStr, updatedLog);
       },
 
       finishWorkout: (dateStr, notes) => {
+        if (!get().history[dateStr]) {
+          get().initializeWorkoutLogForDate(dateStr);
+        }
+
         set((state) => {
           const log = state.history[dateStr];
           if (!log) return state;
@@ -939,6 +971,9 @@ export const useGymStore = create<GymStore>()((set, get) => ({
             },
           };
         });
+
+        const updatedLog = get().history[dateStr];
+        if (updatedLog) saveWorkoutLog(dateStr, updatedLog);
       },
 
       deleteWorkoutLog: (dateStr) => {
@@ -950,4 +985,3 @@ export const useGymStore = create<GymStore>()((set, get) => ({
         gymService.deleteWorkoutLog(dateStr);
       },
     }));
-

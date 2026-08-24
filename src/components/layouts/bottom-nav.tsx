@@ -52,7 +52,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-50 pointer-events-none flex justify-center px-4">
+    <div className="fixed bottom-4 left-0 right-0 z-40 pointer-events-none flex justify-center px-4">
       <div className="pointer-events-auto bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-gray-100 dark:border-zinc-800 shadow-2xl shadow-blue-900/15 dark:shadow-black/80 rounded-full px-3 py-2 flex items-center justify-between gap-1 max-w-[340px] w-full transition-colors duration-300">
         {NAV_ITEMS.map((item) => {
           let isActive = false;
@@ -74,17 +74,11 @@ export function BottomNav() {
               pathname.startsWith('/managements') ||
               pathname.startsWith('/workout-generals');
           } else if (item.href === '/mood/today' || item.href === '/mood') {
-            isActive =
-              pathname.startsWith('/mood') ||
-              pathname.startsWith('/mood-generals');
+            isActive = pathname.startsWith('/mood') || pathname.startsWith('/mood-generals');
           } else if (item.href === '/store') {
-            isActive =
-              pathname.startsWith('/store') ||
-              pathname.startsWith('/store-generals');
+            isActive = pathname.startsWith('/store') || pathname.startsWith('/store-generals');
           } else if (item.href === '/budget') {
-            isActive =
-              pathname.startsWith('/budget') ||
-              pathname.startsWith('/budget-generals');
+            isActive = pathname.startsWith('/budget') || pathname.startsWith('/budget-generals');
           } else {
             isActive = pathname.startsWith(item.href);
           }

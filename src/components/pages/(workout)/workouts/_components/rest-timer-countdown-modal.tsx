@@ -1,69 +1,77 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Hourglass, Pause, Play, Plus, X, SkipForward, Volume2 } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Hourglass, Pause, Play, Plus, X, SkipForward } from 'lucide-react';
 
 interface RestTimerCountdownModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onComplete: () => void;
   exerciseName?: string;
   initialSeconds?: number;
+}
+
+function playBeep() {
+  try {
+    const audioCtx = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    )();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.6);
+  } catch {
+    // Audio fallback silent
+  }
 }
 
 export function RestTimerCountdownModal({
   isOpen,
   onClose,
+  onComplete,
   exerciseName = 'Exercise',
   initialSeconds = 180,
 }: RestTimerCountdownModalProps) {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
+  const [totalDuration, setTotalDuration] = useState(initialSeconds);
   const [isRunning, setIsRunning] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
-  const totalDurationRef = useRef(initialSeconds);
+  const completionHandledRef = useRef(false);
+
+  const completeRest = useCallback(() => {
+    if (completionHandledRef.current) return;
+    completionHandledRef.current = true;
+    onComplete();
+  }, [onComplete]);
 
   useEffect(() => {
-    setTimeLeft(initialSeconds);
-    totalDurationRef.current = initialSeconds;
-    setIsRunning(true);
-    setIsMinimized(false);
-  }, [initialSeconds, isOpen]);
+    if (!isOpen || !isRunning || timeLeft <= 0) return;
 
-  // Audio Beep when countdown hits 0
-  const playBeep = () => {
-    try {
-      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.6);
-    } catch {
-      // Audio fallback silent
-    }
-  };
+    const timeout = window.setTimeout(() => {
+      if (timeLeft === 1) {
+        setTimeLeft(0);
+        setIsRunning(false);
+        playBeep();
+        completeRest();
+        return;
+      }
 
-  useEffect(() => {
-    if (!isOpen || !isRunning) return;
-
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setIsRunning(false);
-          playBeep();
-          return 0;
-        }
-        return prev - 1;
-      });
+      setTimeLeft(timeLeft - 1);
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [isOpen, isRunning]);
+    return () => window.clearTimeout(timeout);
+  }, [completeRest, isOpen, isRunning, timeLeft]);
+
+  const handleSkip = () => {
+    completeRest();
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -75,20 +83,23 @@ export function RestTimerCountdownModal({
 
   const handleAdd30s = () => {
     setTimeLeft((prev) => prev + 30);
-    totalDurationRef.current += 30;
+    setTotalDuration((prev) => prev + 30);
   };
 
   const progressPercent =
-    totalDurationRef.current > 0
-      ? Math.max(0, Math.min(100, (timeLeft / totalDurationRef.current) * 100))
+    totalDuration > 0
+      ? Math.max(0, Math.min(100, (timeLeft / totalDuration) * 100))
       : 0;
 
   // Floating Minimized Pill View
   if (isMinimized) {
     return (
-      <div className="fixed bottom-20 right-4 z-50 bg-zinc-900 text-white rounded-full px-4 py-2.5 shadow-2xl border border-zinc-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+      <div className="fixed bottom-20 right-4 z-60 bg-zinc-900 text-white rounded-full px-4 py-2.5 shadow-2xl border border-zinc-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
         <div className="flex items-center gap-2">
-          <Hourglass className="w-4 h-4 text-blue-400 animate-spin" style={{ animationDuration: '3s' }} />
+          <Hourglass
+            className="w-4 h-4 text-blue-400 animate-spin"
+            style={{ animationDuration: '3s' }}
+          />
           <span className="text-sm font-black tabular-nums">{formatTime(timeLeft)}</span>
         </div>
 
@@ -121,9 +132,9 @@ export function RestTimerCountdownModal({
 
   // Full Overlay / Sheet View
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all animate-in fade-in">
+    <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all animate-in fade-in">
       <div
-        className="w-full max-w-md bg-zinc-900 text-white rounded-t-[36px] sm:rounded-[36px] p-6 space-y-6 shadow-2xl border border-zinc-800 animate-in slide-in-from-bottom-6"
+        className="w-full max-w-md bg-zinc-900 text-white rounded-t-[36px] sm:rounded-[36px] p-6 pb-16 sm:pb-6 space-y-6 shadow-2xl border border-zinc-800 animate-in slide-in-from-bottom-6"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
@@ -161,9 +172,12 @@ export function RestTimerCountdownModal({
 
         {/* Circular Ring Timer Display */}
         <div className="flex flex-col items-center justify-center py-4 relative">
-          <div className="w-52 h-52 rounded-full relative flex items-center justify-center bg-zinc-950/80 border-4 border-zinc-800 shadow-inner">
+          <div className="w-64 h-64 rounded-full relative flex items-center justify-center bg-zinc-950/80 border-4 border-zinc-800 shadow-inner sm:w-52 sm:h-52">
             {/* SVG Ring Progress */}
-            <svg className="w-full h-full transform -rotate-90 absolute inset-0">
+            <svg
+              className="w-full h-full transform -rotate-90 absolute inset-0"
+              viewBox="0 0 208 208"
+            >
               <circle
                 cx="104"
                 cy="104"
@@ -193,7 +207,7 @@ export function RestTimerCountdownModal({
                 {formatTime(timeLeft)}
               </span>
               <span className="text-xs font-bold text-blue-400 uppercase tracking-widest block">
-                {timeLeft === 0 ? 'Rest Complete! 🎉' : 'Resting'}
+                {timeLeft === 0 ? 'Rest Complete!' : 'Resting'}
               </span>
             </div>
           </div>
@@ -230,7 +244,7 @@ export function RestTimerCountdownModal({
           {/* Skip Rest */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleSkip}
             className="py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-md shadow-blue-500/20"
           >
             <SkipForward className="w-4 h-4" /> Skip
