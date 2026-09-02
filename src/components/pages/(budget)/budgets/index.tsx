@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import {
@@ -60,8 +60,16 @@ import { toast } from 'sonner';
 export default function BudgetMainPage() {
   const router = useRouter();
 
+  const defaultCurrency = useBudgetStore((state) => state.currency);
+
   // Active Currency Selection State for Hero Balance
-  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('USDT');
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>(defaultCurrency);
+
+  // Zustand persistence and cloud sync can restore the preference after the
+  // component's first render, so keep the hero selection aligned with it.
+  useEffect(() => {
+    setSelectedCurrency(defaultCurrency);
+  }, [defaultCurrency]);
 
   // Drawers & Dialogs State
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);

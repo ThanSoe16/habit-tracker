@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { TabToggle } from './tab-toggle';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
+import { calculateHabitDurationDays, calculateHabitEndDate } from '@/utils/habit-end-condition';
 
 export const HabitEndCondition = ({ form }: { form: any }) => {
   const {
@@ -15,6 +16,23 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
 
   const endHabitEnabled = watch('endHabitEnabled');
   const endHabitMode = watch('endHabitMode');
+  const startDate = watch('startDate');
+
+  const updateFromEndDate = (endDate: string) => {
+    form.setValue('endHabitDate', endDate, { shouldDirty: true, shouldValidate: true });
+    form.setValue('endHabitDays', calculateHabitDurationDays(startDate, endDate), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const updateFromDuration = (durationDays: number) => {
+    form.setValue('endHabitDays', durationDays, { shouldDirty: true, shouldValidate: true });
+    form.setValue('endHabitDate', calculateHabitEndDate(startDate, durationDays), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
 
   return (
     <div className="space-y-4 pt-2 border-t border-gray-100">
@@ -44,7 +62,14 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
               render={({ field }) => (
                 <TabToggle
                   value={field.value}
-                  setValue={field.onChange}
+                  setValue={(mode) => {
+                    field.onChange(mode);
+                    if (mode === 'days') {
+                      updateFromDuration(form.getValues('endHabitDays'));
+                    } else {
+                      updateFromEndDate(form.getValues('endHabitDate'));
+                    }
+                  }}
                   options={[
                     { value: 'date', label: 'By Date' },
                     { value: 'days', label: 'By Days' },
@@ -64,7 +89,7 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
                     date={field.value ? parseISO(field.value) : undefined}
                     onChange={(newDate) => {
                       if (newDate) {
-                        field.onChange(format(newDate, 'yyyy-MM-dd'));
+                        updateFromEndDate(format(newDate, 'yyyy-MM-dd'));
                       }
                     }}
                     placeholder="End date"
@@ -83,7 +108,8 @@ export const HabitEndCondition = ({ form }: { form: any }) => {
                     type="number"
                     placeholder="Number of days"
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    min={1}
+                    onChange={(e) => updateFromDuration(Number.parseInt(e.target.value, 10) || 0)}
                   />
                 )}
               />

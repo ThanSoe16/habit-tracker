@@ -11,24 +11,48 @@ interface RestTimerCountdownModalProps {
   initialSeconds?: number;
 }
 
-function playBeep() {
+const REST_COMPLETE_SOUND = '/noti-sound.mp3';
+
+function playFallbackChime() {
   try {
     const audioCtx = new (
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     )();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.6);
+
+    const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5, 1318.51, 1046.5];
+
+    notes.forEach((frequency, index) => {
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const startTime = audioCtx.currentTime + index * 0.55;
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      gain.gain.setValueAtTime(0.001, startTime);
+      gain.gain.linearRampToValueAtTime(1, startTime + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5);
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + 0.5);
+    });
+
+    window.setTimeout(() => void audioCtx.close(), 5000);
   } catch {
     // Audio fallback silent
   }
+}
+
+function playCompletionSound(audio: HTMLAudioElement | null) {
+  if (!audio) {
+    playFallbackChime();
+    return;
+  }
+
+  audio.currentTime = 0;
+  audio.volume = 1;
+  audio.play().catch(() => playFallbackChime());
 }
 
 export function RestTimerCountdownModal({
@@ -43,6 +67,23 @@ export function RestTimerCountdownModal({
   const [isRunning, setIsRunning] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
   const completionHandledRef = useRef(false);
+  const completionAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const audio = new Audio(REST_COMPLETE_SOUND);
+    audio.preload = 'auto';
+    audio.volume = 1;
+    audio.load();
+    completionAudioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      completionAudioRef.current = null;
+    };
+  }, [isOpen]);
 
   const completeRest = useCallback(() => {
     if (completionHandledRef.current) return;
@@ -57,7 +98,7 @@ export function RestTimerCountdownModal({
       if (timeLeft === 1) {
         setTimeLeft(0);
         setIsRunning(false);
-        playBeep();
+        playCompletionSound(completionAudioRef.current);
         completeRest();
         return;
       }

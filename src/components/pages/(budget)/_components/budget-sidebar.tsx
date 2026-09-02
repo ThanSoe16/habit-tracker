@@ -29,6 +29,7 @@ import {
   Sun,
   Moon,
   LogOut,
+  Gem,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -47,6 +48,7 @@ export function BudgetAppSidebar() {
   const isSalaryActive = pathname === '/budget/salary';
   const isExchangeActive = pathname === '/budget/exchange';
   const isLoansActive = pathname === '/budget/loans';
+  const isGoldActive = pathname === '/budget/gold';
   const isReportsActive = pathname === '/budget-generals/reports';
   const isSettingsActive = pathname === '/budget-generals/settings';
 
@@ -123,6 +125,16 @@ export function BudgetAppSidebar() {
             setOpenMobile(false);
           },
           isActive: isLoansActive,
+        },
+        {
+          id: 'budget-gold',
+          label: 'Gold Holdings',
+          icon: Gem,
+          action: () => {
+            router.push('/budget/gold');
+            setOpenMobile(false);
+          },
+          isActive: isGoldActive,
         },
       ],
     },

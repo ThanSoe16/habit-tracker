@@ -17,6 +17,7 @@ interface MoodStore {
   isLoaded: boolean;
   fetchFromSupabase: () => Promise<void>;
   setMood: (date: Date, mood: { label: string; emoji: string }, tag?: string) => void;
+  clearHistory: () => Promise<void>;
   getMood: (date: Date) => MoodEntry | null;
 }
 
@@ -60,6 +61,11 @@ export const useMoodStore = create<MoodStore>()((set, get) => ({
     }));
 
     moodService.upsertMood(dateKey, entry);
+  },
+
+  clearHistory: async () => {
+    await moodService.deleteAllMoods();
+    set({ history: {} });
   },
 
   getMood: (date) => {

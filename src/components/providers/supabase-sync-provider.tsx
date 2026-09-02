@@ -1,23 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useHabitStore } from '@/store/use-habit-store';
 import { useUserStore } from '@/store/use-user-store';
 import { useMoodStore } from '@/store/use-mood-store';
 import { useGymStore } from '@/store/use-gym-store';
 import { useBudgetStore } from '@/store/use-budget-store';
-
-const PUBLIC_PATHS = ['/login', '/auth/login', '/manifest.json', '/favicon.ico', '/sw.js'];
+import { useMediaStore } from '@/store/use-media-store';
 
 export function SupabaseSyncProvider({ children }: { children: React.ReactNode }) {
-  const [synced, setSynced] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const pathname = usePathname();
-  const router = useRouter();
-  const { setName } = useUserStore();
-
   useEffect(() => {
     // 1. Initial auth check
     async function checkAuthStatus() {
@@ -26,11 +18,8 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
         const user = data?.session?.user || null;
 
         if (user) {
-          setIsAuthenticated(true);
           const nameFromMeta = user.user_metadata?.name || user.email?.split('@')[0];
-          if (nameFromMeta) setName(nameFromMeta);
-        } else {
-          setIsAuthenticated(false);
+          if (nameFromMeta) useUserStore.setState({ name: nameFromMeta });
         }
       } catch (err) {
         console.warn('Auth check error:', err);
@@ -43,11 +32,9 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user || null;
       if (user) {
-        setIsAuthenticated(true);
         const nameFromMeta = user.user_metadata?.name || user.email?.split('@')[0];
-        if (nameFromMeta) setName(nameFromMeta);
-      } else {
-        setIsAuthenticated(false);
+        if (nameFromMeta) useUserStore.setState({ name: nameFromMeta });
+        void syncAllStores();
       }
     });
 
@@ -60,11 +47,10 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
           useMoodStore.getState().fetchFromSupabase(),
           useGymStore.getState().fetchFromSupabase(),
           useBudgetStore.getState().fetchFromSupabase(),
+          useMediaStore.getState().fetchFromSupabase(),
         ]);
       } catch (err) {
         console.warn('Error during Supabase synchronization:', err);
-      } finally {
-        setSynced(true);
       }
     }
 
@@ -73,40 +59,44 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     // 4. Subscribe to realtime database changes
     const channel = supabase
       .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public' },
-        (payload) => {
-          const table = payload.table;
-          if (table === 'habits' || table === 'custom_units') {
-            useHabitStore.getState().fetchFromSupabase();
-          } else if (table === 'user_profiles') {
-            useUserStore.getState().fetchFromSupabase();
-          } else if (table === 'mood_entries') {
-            useMoodStore.getState().fetchFromSupabase();
-          } else if (table === 'gym_plans' || table === 'gym_custom_exercises' || table === 'workout_logs') {
-            useGymStore.getState().fetchFromSupabase();
-          } else if (
-            table === 'current_budget' ||
-            table === 'family_budgets' ||
-            table === 'incomes' ||
-            table === 'expenses' ||
-            table === 'monthly_salary' ||
-            table === 'budget_settings' ||
-            table === 'loans' ||
-            table === 'budget_state'
-          ) {
-            useBudgetStore.getState().fetchFromSupabase();
-          }
+      .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+        const table = payload.table;
+        if (table === 'habits' || table === 'custom_units') {
+          useHabitStore.getState().fetchFromSupabase();
+        } else if (table === 'user_profiles') {
+          useUserStore.getState().fetchFromSupabase();
+        } else if (table === 'mood_entries') {
+          useMoodStore.getState().fetchFromSupabase();
+        } else if (table === 'media_items') {
+          useMediaStore.getState().fetchFromSupabase();
+        } else if (
+          table === 'gym_plans' ||
+          table === 'gym_custom_exercises' ||
+          table === 'gym_body_metrics' ||
+          table === 'workout_logs'
+        ) {
+          useGymStore.getState().fetchFromSupabase();
+        } else if (
+          table === 'current_budget' ||
+          table === 'family_budgets' ||
+          table === 'incomes' ||
+          table === 'expenses' ||
+          table === 'currency_exchanges' ||
+          table === 'monthly_salary' ||
+          table === 'budget_settings' ||
+          table === 'loans' ||
+          table === 'budget_state'
+        ) {
+          useBudgetStore.getState().fetchFromSupabase();
         }
-      )
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
       authListener.subscription.unsubscribe();
     };
-  }, [setName]);
+  }, []);
 
   return <>{children}</>;
 }

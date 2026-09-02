@@ -17,6 +17,8 @@ export function isHabitRequiredOnDate(
     startDate?: string;
     createdAt?: string;
     type?: 'habit' | 'task';
+    endHabitDate?: string;
+    endHabitDays?: number;
   },
   date: Date,
 ): boolean {
@@ -31,6 +33,18 @@ export function isHabitRequiredOnDate(
         : getLocalDateString());
     return dateStr === targetDate;
   }
+
+  const startDate =
+    habit.startDate ||
+    (habit.createdAt ? new Date(habit.createdAt).toLocaleDateString('en-CA') : undefined);
+  if (startDate && dateStr < startDate) return false;
+
+  const endDate =
+    habit.endHabitDate ||
+    (startDate && habit.endHabitDays
+      ? calculateHabitEndDate(startDate, habit.endHabitDays)
+      : undefined);
+  if (endDate && dateStr > endDate) return false;
 
   // Specific dates mode
   if (habit.frequency === 'specific') {
@@ -58,3 +72,4 @@ export function isHabitRequiredOnDate(
   const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
   return habit.repeatDays.includes(dayOfWeek);
 }
+import { calculateHabitEndDate } from '@/utils/habit-end-condition';

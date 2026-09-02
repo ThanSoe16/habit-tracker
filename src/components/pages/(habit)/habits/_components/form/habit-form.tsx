@@ -18,6 +18,7 @@ import { GoalDrawerModal } from './goal-drawer-modal';
 import { useRouter } from 'next/navigation';
 import { X, ChevronRight, Target } from 'lucide-react';
 import { normalize24HourTime } from '@/utils/time-utils';
+import { calculateHabitDurationDays, calculateHabitEndDate } from '@/utils/habit-end-condition';
 
 const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const router = useRouter();
@@ -42,6 +43,10 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const timeUnit = watch('timeUnit') || 'min';
   const goalValue = watch('goalValue') || 1;
   const unit = watch('unit') || (unitType === 'time' ? 'Minutes' : 'Count');
+  const endHabitEnabled = watch('endHabitEnabled');
+  const endHabitMode = watch('endHabitMode');
+  const endHabitDate = watch('endHabitDate');
+  const endHabitDays = watch('endHabitDays');
 
   return (
     <div className="flex flex-col p-4 space-y-6 pb-8 w-full max-w-lg mx-auto bg-background dark:bg-zinc-950 min-h-screen">
@@ -167,7 +172,8 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                     <p className="text-xs font-semibold text-gray-400">Measurement & Target</p>
                     <p className="text-sm font-bold text-gray-900 dark:text-white capitalize">
                       {unitType === 'simple' && 'Yes/No (Done/Undone + Remark)'}
-                      {unitType === 'duration' && `Duration: ${goalValue} mins (${timerMode === 'down' ? 'Count Down' : 'Count Up'})`}
+                      {unitType === 'duration' &&
+                        `Duration: ${goalValue} mins (${timerMode === 'down' ? 'Count Down' : 'Count Up'})`}
                       {unitType === 'time' && `Time: ${goalValue} ${timeUnit}`}
                       {unitType === 'count' && `Count: ${goalValue} ${unit} / day`}
                     </p>
@@ -203,7 +209,24 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                     date={field.value ? parseISO(field.value) : undefined}
                     onChange={(newDate) => {
                       if (newDate) {
-                        field.onChange(format(newDate, 'yyyy-MM-dd'));
+                        const nextStartDate = format(newDate, 'yyyy-MM-dd');
+                        field.onChange(nextStartDate);
+
+                        if (endHabitEnabled) {
+                          if (endHabitMode === 'days') {
+                            setValue(
+                              'endHabitDate',
+                              calculateHabitEndDate(nextStartDate, endHabitDays),
+                              { shouldDirty: true, shouldValidate: true },
+                            );
+                          } else {
+                            setValue(
+                              'endHabitDays',
+                              calculateHabitDurationDays(nextStartDate, endHabitDate),
+                              { shouldDirty: true, shouldValidate: true },
+                            );
+                          }
+                        }
                       }
                     }}
                   />
@@ -356,7 +379,10 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
               {reminders && (
                 <div className="space-y-3 pt-1">
                   <Field data-invalid={!!errors.reminderTime}>
-                    <FieldLabel htmlFor="form-reminderTime" className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                    <FieldLabel
+                      htmlFor="form-reminderTime"
+                      className="text-xs font-bold text-gray-700 dark:text-gray-300"
+                    >
                       Alarm Time
                     </FieldLabel>
 
@@ -372,7 +398,11 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                           onChange={(e) => {
                             const val = e.target.value;
                             field.onChange(val);
-                            setValue('reminderTime', val, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                            setValue('reminderTime', val, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            });
                           }}
                         />
                       )}
@@ -408,7 +438,11 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                             const hh = Math.floor(alarmMins / 60) % 24;
                             const mm = alarmMins % 60;
                             const timeStr = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-                            setValue('reminderTime', timeStr, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                            setValue('reminderTime', timeStr, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            });
                           }}
                           className="px-3 py-1.5 bg-blue-50 dark:bg-zinc-800 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold hover:bg-blue-100 dark:hover:bg-zinc-700 transition-colors border border-blue-100 dark:border-zinc-700"
                         >
@@ -422,7 +456,11 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                   <div className="bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 p-3 rounded-2xl flex items-center gap-2.5 text-xs text-blue-700 dark:text-blue-300 font-medium">
                     <span className="text-base">🔔</span>
                     <span>
-                      Alarm will trigger at <strong className="font-bold">{normalize24HourTime(watch('reminderTime'))}</strong> to give you enough time before starting.
+                      Alarm will trigger at{' '}
+                      <strong className="font-bold">
+                        {normalize24HourTime(watch('reminderTime'))}
+                      </strong>{' '}
+                      to give you enough time before starting.
                     </span>
                   </div>
                 </div>

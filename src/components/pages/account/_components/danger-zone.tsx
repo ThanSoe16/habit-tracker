@@ -2,25 +2,20 @@
 
 import { useState } from 'react';
 import { useHabitStore } from '@/store/use-habit-store';
+import { useMoodStore } from '@/store/use-mood-store';
 import { Trash2 } from 'lucide-react';
 
 export function DangerZone() {
   const [showConfirm, setShowConfirm] = useState(false);
   const habitStore = useHabitStore();
+  const clearMoodHistory = useMoodStore((state) => state.clearHistory);
 
-  const handleReset = () => {
-    // Clear all habits
-    habitStore.habits.forEach((h) => {
-      habitStore.removeHabit(h.id);
-    });
-
-    // Clear mood history by setting empty
-    // Since there's no clearAll, we'll clear localStorage directly
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('habit-tracker-data');
-      localStorage.removeItem('mood-tracker-storage');
-      window.location.reload();
+  const handleReset = async () => {
+    for (const habit of habitStore.habits) {
+      await habitStore.removeHabit(habit.id);
     }
+    await clearMoodHistory();
+    setShowConfirm(false);
   };
 
   return (

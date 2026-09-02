@@ -10,7 +10,13 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     joined_at TEXT,
     reminders_enabled BOOLEAN DEFAULT false,
     daily_reminder_time TEXT DEFAULT '08:00',
+    ringtone TEXT DEFAULT 'chime',
+    custom_ringtone_url TEXT,
+    vibration_enabled BOOLEAN DEFAULT true,
     theme TEXT DEFAULT 'light',
+    home_settings JSONB DEFAULT '{}'::jsonb,
+    mood_settings JSONB DEFAULT '{"enableNotes": true, "showStreak": true}'::jsonb,
+    gym_settings JSONB DEFAULT '{}'::jsonb,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
@@ -42,6 +48,7 @@ CREATE TABLE IF NOT EXISTS public.habits (
     time_unit TEXT,
     history JSONB DEFAULT '{}'::jsonb,
     streak INT DEFAULT 0,
+    sort_order INT,
     created_at TEXT,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
@@ -104,6 +111,7 @@ CREATE TABLE IF NOT EXISTS public.gym_custom_exercises (
     default_sets INT DEFAULT 3,
     default_reps TEXT DEFAULT '10',
     is_custom BOOLEAN DEFAULT true,
+    image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 

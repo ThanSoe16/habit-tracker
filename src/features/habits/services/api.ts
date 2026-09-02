@@ -1,9 +1,9 @@
 import { habitsService } from '@/lib/supabase/services';
-import { HabitFilterParams, HabitData, Habit } from '../types';
+import { HabitFilterParams, Habit } from '../types';
 
 const habitsApiService = {
   getHabits: async (params?: HabitFilterParams): Promise<Habit[]> => {
-    const habits = await habitsService.fetchHabits();
+    const habits = (await habitsService.fetchHabits()) ?? [];
     return habits.filter((h) => {
       if (params?.type && h.type !== params.type) return false;
       if (params?.frequency && h.frequency !== params.frequency) return false;
@@ -13,7 +13,7 @@ const habitsApiService = {
   },
 
   getHabitById: async (id: string): Promise<Habit | undefined> => {
-    const habits = await habitsService.fetchHabits();
+    const habits = (await habitsService.fetchHabits()) ?? [];
     return habits.find((h) => h.id === id);
   },
 

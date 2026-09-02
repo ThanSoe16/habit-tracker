@@ -28,15 +28,29 @@ export interface HabitRow {
   time_unit?: string | null;
   history?: Record<string, any> | null;
   streak?: number | null;
+  sort_order?: number | null;
   created_at?: string | null;
 }
 
 export const habitsService = {
-  async fetchHabits(): Promise<Habit[]> {
-    const { data, error } = await supabase.from('habits').select('*');
+  async fetchHabits(): Promise<Habit[] | null> {
+    let { data, error } = await supabase
+      .from('habits')
+      .select('*')
+      .order('sort_order', { ascending: true });
+
+    // Keep habit creation working while the sort_order migration is being deployed.
+    if (error) {
+      const fallback = await supabase.from('habits').select('*').order('created_at', {
+        ascending: true,
+      });
+      data = fallback.data;
+      error = fallback.error;
+    }
+
     if (error) {
       console.warn('Error fetching habits from Supabase:', error.message);
-      return [];
+      return null;
     }
     if (!data) return [];
     return data.map((row: HabitRow) => ({
@@ -62,10 +76,11 @@ export const habitsService = {
       history: row.history || {},
       streak: row.streak || 0,
       createdAt: row.created_at || new Date().toISOString(),
+      sortOrder: row.sort_order ?? undefined,
     }));
   },
 
-  async upsertHabit(habit: Habit): Promise<void> {
+  async upsertHabit(habit: Habit): Promise<boolean> {
     const payload: HabitRow = {
       id: habit.id,
       name: habit.name,
@@ -89,11 +104,23 @@ export const habitsService = {
       history: habit.history,
       streak: habit.streak,
       created_at: habit.createdAt,
+      sort_order: habit.sortOrder ?? null,
     };
-    const { error } = await supabase.from('habits').upsert(payload, { onConflict: 'id' });
+    let { error } = await supabase.from('habits').upsert(payload, { onConflict: 'id' });
+
+    // Older databases may not have sort_order until the latest migration is applied.
+    if (error && error.message.includes('sort_order')) {
+      const legacyPayload: Partial<HabitRow> = { ...payload };
+      delete legacyPayload.sort_order;
+      const fallback = await supabase.from('habits').upsert(legacyPayload, { onConflict: 'id' });
+      error = fallback.error;
+    }
+
     if (error) {
       console.warn('Error upserting habit to Supabase:', error.message);
+      return false;
     }
+    return true;
   },
 
   async deleteHabit(id: string): Promise<void> {
@@ -146,6 +173,10 @@ export const userService = {
     dailyReminderTime: string;
     theme: 'light' | 'dark';
     homeSettings?: Record<string, any>;
+    ringtone?: string;
+    customRingtoneUrl?: string;
+    vibrationEnabled?: boolean;
+    moodSettings?: Record<string, any>;
   }) {
     const payload = {
       id: 'default_user',
@@ -156,6 +187,10 @@ export const userService = {
       daily_reminder_time: profile.dailyReminderTime,
       theme: profile.theme,
       home_settings: profile.homeSettings,
+      ringtone: profile.ringtone || 'chime',
+      custom_ringtone_url: profile.customRingtoneUrl || null,
+      vibration_enabled: profile.vibrationEnabled ?? true,
+      mood_settings: profile.moodSettings || {},
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'id' });
@@ -195,8 +230,15 @@ export const moodService = {
       timestamp: entry.timestamp,
       updated_at: new Date().toISOString(),
     };
-    const { error } = await supabase.from('mood_entries').upsert(payload, { onConflict: 'date_key' });
+    const { error } = await supabase
+      .from('mood_entries')
+      .upsert(payload, { onConflict: 'date_key' });
     if (error) console.warn('Error upserting mood entry to Supabase:', error.message);
+  },
+
+  async deleteAllMoods(): Promise<void> {
+    const { error } = await supabase.from('mood_entries').delete().neq('date_key', '');
+    if (error) console.warn('Error deleting mood entries from Supabase:', error.message);
   },
 };
 
@@ -244,6 +286,7 @@ export const gymService = {
       defaultSets: row.default_sets,
       defaultReps: row.default_reps,
       isCustom: row.is_custom,
+      imageUrl: row.image_url || undefined,
     }));
   },
 
@@ -255,8 +298,11 @@ export const gymService = {
       default_sets: exercise.defaultSets || 3,
       default_reps: exercise.defaultReps || '10',
       is_custom: exercise.isCustom ?? true,
+      image_url: exercise.imageUrl || null,
     };
-    const { error } = await supabase.from('gym_custom_exercises').upsert(payload, { onConflict: 'id' });
+    const { error } = await supabase
+      .from('gym_custom_exercises')
+      .upsert(payload, { onConflict: 'id' });
     if (error) console.warn('Error upserting custom exercise:', error.message);
   },
 
@@ -286,7 +332,9 @@ export const gymService = {
       workout_data: log,
       updated_at: new Date().toISOString(),
     };
-    const { error } = await supabase.from('workout_logs').upsert(payload, { onConflict: 'date_key' });
+    const { error } = await supabase
+      .from('workout_logs')
+      .upsert(payload, { onConflict: 'date_key' });
     if (error) console.warn('Error upserting workout log to Supabase:', error.message);
   },
 
@@ -394,7 +442,7 @@ export interface MediaItemRow {
 }
 
 export const mediaItemsService = {
-  async fetchMediaEntries(): Promise<MediaEntry[]> {
+  async fetchMediaEntries(): Promise<MediaEntry[] | null> {
     const { data, error } = await supabase
       .from('media_items')
       .select('*')
@@ -403,7 +451,7 @@ export const mediaItemsService = {
 
     if (error) {
       console.warn('Error fetching media_items from Supabase:', error.message);
-      return [];
+      return null;
     }
     if (!data) return [];
     return data.map((row: MediaItemRow) => ({
@@ -435,7 +483,7 @@ export const mediaItemsService = {
 
     const { data, error } = await supabase
       .from('media_items')
-      .insert(payload)
+      .upsert(payload, { onConflict: 'id' })
       .select('*')
       .single();
 
@@ -460,13 +508,31 @@ export const mediaItemsService = {
     const { error } = await supabase.from('media_items').delete().eq('id', id);
     if (error) console.warn('Error deleting media item:', error.message);
   },
+
+  async updateMediaEntry(id: string, updates: Partial<MediaEntry>): Promise<void> {
+    const payload: Partial<MediaItemRow> = {};
+    if (updates.type !== undefined) payload.type = updates.type;
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.dataUrl !== undefined) payload.data_url = updates.dataUrl;
+    if (updates.thumbnailUrl !== undefined) payload.thumbnail_url = updates.thumbnailUrl || null;
+    if (updates.fileSize !== undefined) payload.file_size = updates.fileSize;
+    if (updates.duration !== undefined) payload.duration = updates.duration;
+    if (updates.mimeType !== undefined) payload.mime_type = updates.mimeType;
+    if (updates.createdAt !== undefined) payload.created_at = updates.createdAt;
+
+    const { error } = await supabase.from('media_items').update(payload).eq('id', id);
+    if (error) console.warn('Error updating media item:', error.message);
+  },
 };
 
 /**
  * Uploads a media File or Blob to Supabase Storage bucket 'media_store'
  * and returns the clean public URL (e.g. https://.../storage/v1/object/public/media_store/...)
  */
-export async function uploadMediaToStorage(fileOrBlob: Blob | File, filename?: string): Promise<string> {
+export async function uploadMediaToStorage(
+  fileOrBlob: Blob | File,
+  filename?: string,
+): Promise<string> {
   try {
     const ext =
       filename?.split('.').pop() ||
@@ -477,21 +543,17 @@ export async function uploadMediaToStorage(fileOrBlob: Blob | File, filename?: s
           : 'jpg');
     const filePath = `store/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
 
-    const { error } = await supabase.storage
-      .from('media_store')
-      .upload(filePath, fileOrBlob, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: fileOrBlob.type || 'application/octet-stream',
-      });
+    const { error } = await supabase.storage.from('media_store').upload(filePath, fileOrBlob, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: fileOrBlob.type || 'application/octet-stream',
+    });
 
     if (error) {
       console.warn('Supabase storage upload warning:', error.message);
     }
 
-    const { data: publicUrlData } = supabase.storage
-      .from('media_store')
-      .getPublicUrl(filePath);
+    const { data: publicUrlData } = supabase.storage.from('media_store').getPublicUrl(filePath);
 
     return publicUrlData?.publicUrl || '';
   } catch (err) {
@@ -516,6 +578,7 @@ export const budgetService = {
     budgetEntries?: any[];
     familyTransactions?: any[];
     loans?: any[];
+    goldHoldings?: any[];
     lastProcessedMonth?: string;
     currency?: string;
   } | null> {
@@ -525,17 +588,21 @@ export const budgetService = {
         familyRes,
         incomesRes,
         expensesRes,
+        exchangesRes,
         salaryRes,
         settingsRes,
         loansRes,
+        goldRes,
       ] = await Promise.all([
         supabase.from('current_budget').select('*'),
         supabase.from('family_budgets').select('*'),
         supabase.from('incomes').select('*'),
         supabase.from('expenses').select('*'),
+        supabase.from('currency_exchanges').select('*'),
         supabase.from('monthly_salary').select('*'),
         supabase.from('budget_settings').select('*').eq('id', 'default_settings').maybeSingle(),
         supabase.from('loans').select('*'),
+        supabase.from('gold_holdings').select('*'),
       ]);
 
       const walletBalances: WalletBalances = { USDT: 0, THB: 0, MMK: 0, SGD: 0 };
@@ -580,6 +647,19 @@ export const budgetService = {
       }));
 
       const budgetEntries = [...incomesList, ...expensesList];
+      const exchangeEntries = (exchangesRes.data || []).map((exchange: any) => ({
+        id: exchange.id,
+        title: exchange.title,
+        amount: Number(exchange.from_amount),
+        currency: exchange.from_currency,
+        type: 'exchange' as const,
+        category: 'Currency Exchange',
+        date: exchange.date,
+        fromCurrency: exchange.from_currency,
+        fromAmount: Number(exchange.from_amount),
+        toCurrency: exchange.to_currency,
+        toAmount: Number(exchange.to_amount),
+      }));
 
       const monthlySalaries = (salaryRes.data || []).map((s: any) => ({
         id: s.id,
@@ -605,12 +685,27 @@ export const budgetService = {
         note: l.note || undefined,
       }));
 
+      const goldHoldings = (goldRes?.data || []).map((holding: any) => ({
+        id: holding.id,
+        kyat: Number(holding.kyat || 0),
+        pae: Number(holding.pae || 0),
+        yway: Number(holding.yway || 0),
+        buyPrice: Number(holding.buy_price),
+        currency: holding.currency,
+        purchaseDate: holding.purchase_date,
+        note: holding.note || undefined,
+        status: holding.status,
+        sellPrice: holding.sell_price == null ? undefined : Number(holding.sell_price),
+        soldDate: holding.sold_date || undefined,
+      }));
+
       return {
         walletBalances,
         monthlySalaries,
-        budgetEntries,
+        budgetEntries: [...budgetEntries, ...exchangeEntries],
         familyTransactions,
         loans,
+        goldHoldings,
         lastProcessedMonth: settingsRes.data?.last_processed_month || '',
         currency: settingsRes.data?.default_currency || 'USDT',
       };
@@ -625,6 +720,8 @@ export const budgetService = {
     monthlySalaries: any[];
     budgetEntries: any[];
     familyTransactions: any[];
+    loans?: any[];
+    goldHoldings?: any[];
     currency?: string;
     lastProcessedMonth?: string;
   }): Promise<void> {
@@ -685,6 +782,22 @@ export const budgetService = {
         await supabase.from('expenses').upsert(expensePayloads, { onConflict: 'id' });
       }
 
+      const exchangeEntries = state.budgetEntries.filter((entry) => entry.type === 'exchange');
+      const exchangePayloads = exchangeEntries.map((exchange) => ({
+        id: exchange.id,
+        title: exchange.title,
+        from_currency: exchange.fromCurrency || exchange.currency,
+        from_amount: exchange.fromAmount || exchange.amount,
+        to_currency: exchange.toCurrency,
+        to_amount: exchange.toAmount,
+        rate:
+          exchange.fromAmount && exchange.toAmount ? exchange.toAmount / exchange.fromAmount : null,
+        date: exchange.date,
+      }));
+      if (exchangePayloads.length > 0) {
+        await supabase.from('currency_exchanges').upsert(exchangePayloads, { onConflict: 'id' });
+      }
+
       // 5. Save Monthly Salary
       const salaryPayloads = state.monthlySalaries.map((s) => ({
         id: s.id,
@@ -700,6 +813,39 @@ export const budgetService = {
         await supabase.from('monthly_salary').upsert(salaryPayloads, { onConflict: 'id' });
       }
 
+      const loanPayloads = (state.loans || []).map((loan) => ({
+        id: loan.id,
+        type: loan.type,
+        person_name: loan.personName,
+        amount: loan.amount,
+        currency: loan.currency,
+        status: loan.status || 'pending',
+        repaid_amount: loan.repaidAmount || 0,
+        due_date: loan.dueDate || null,
+        date: loan.date,
+        note: loan.note || null,
+      }));
+      if (loanPayloads.length > 0) {
+        await supabase.from('loans').upsert(loanPayloads, { onConflict: 'id' });
+      }
+
+      const goldPayloads = (state.goldHoldings || []).map((holding) => ({
+        id: holding.id,
+        kyat: holding.kyat,
+        pae: holding.pae,
+        yway: holding.yway,
+        buy_price: holding.buyPrice,
+        currency: holding.currency,
+        purchase_date: holding.purchaseDate,
+        note: holding.note || null,
+        status: holding.status,
+        sell_price: holding.sellPrice ?? null,
+        sold_date: holding.soldDate || null,
+      }));
+      if (goldPayloads.length > 0) {
+        await supabase.from('gold_holdings').upsert(goldPayloads, { onConflict: 'id' });
+      }
+
       // 6. Save Budget Settings
       await supabase.from('budget_settings').upsert(
         {
@@ -708,7 +854,7 @@ export const budgetService = {
           last_processed_month: state.lastProcessedMonth || '',
           updated_at: new Date().toISOString(),
         },
-        { onConflict: 'id' }
+        { onConflict: 'id' },
       );
     } catch (err) {
       console.warn('Error saving 6 budget tables to Supabase:', err);
@@ -743,6 +889,8 @@ export const budgetService = {
         await supabase.from('incomes').delete().eq('id', id);
       } else if (type === 'expense') {
         await supabase.from('expenses').delete().eq('id', id);
+      } else if (type === 'exchange') {
+        await supabase.from('currency_exchanges').delete().eq('id', id);
       } else {
         await Promise.all([
           supabase.from('incomes').delete().eq('id', id),
@@ -782,14 +930,24 @@ export const budgetService = {
     }
   },
 
+  async deleteGoldHolding(id: string): Promise<void> {
+    try {
+      await supabase.from('gold_holdings').delete().eq('id', id);
+    } catch (err) {
+      console.warn('Error deleting gold holding from Supabase:', err);
+    }
+  },
+
   async clearAllBudgetData(): Promise<void> {
     try {
       await Promise.all([
         supabase.from('family_budgets').delete().neq('id', ''),
         supabase.from('incomes').delete().neq('id', ''),
         supabase.from('expenses').delete().neq('id', ''),
+        supabase.from('currency_exchanges').delete().neq('id', ''),
         supabase.from('monthly_salary').delete().neq('id', ''),
         supabase.from('loans').delete().neq('id', ''),
+        supabase.from('gold_holdings').delete().neq('id', ''),
       ]);
     } catch (err) {
       console.warn('Error clearing budget data from Supabase:', err);

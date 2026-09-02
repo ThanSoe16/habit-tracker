@@ -92,19 +92,33 @@ export interface LoanTransaction {
   note?: string;
 }
 
+export interface GoldHolding {
+  id: string;
+  kyat: number;
+  pae: number;
+  yway: number;
+  buyPrice: number;
+  currency: CurrencyCode;
+  purchaseDate: string; // YYYY-MM-DD
+  note?: string;
+  status: 'holding' | 'sold';
+  sellPrice?: number;
+  soldDate?: string; // YYYY-MM-DD
+}
+
 export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
-  'USDT_THB': 35.5,
-  'THB_USDT': 1 / 35.5,
-  'USDT_MMK': 4500,
-  'MMK_USDT': 1 / 4500,
-  'THB_MMK': 126.7,
-  'MMK_THB': 1 / 126.7,
-  'USDT_SGD': 1.35,
-  'SGD_USDT': 1 / 1.35,
-  'SGD_THB': 26.3,
-  'THB_SGD': 1 / 26.3,
-  'SGD_MMK': 3330,
-  'MMK_SGD': 1 / 3330,
+  USDT_THB: 35.5,
+  THB_USDT: 1 / 35.5,
+  USDT_MMK: 4500,
+  MMK_USDT: 1 / 4500,
+  THB_MMK: 126.7,
+  MMK_THB: 1 / 126.7,
+  USDT_SGD: 1.35,
+  SGD_USDT: 1 / 1.35,
+  SGD_THB: 26.3,
+  THB_SGD: 1 / 26.3,
+  SGD_MMK: 3330,
+  MMK_SGD: 1 / 3330,
 };
 
 export const BUDGET_CATEGORIES = [
@@ -129,6 +143,7 @@ interface BudgetStoreState {
   budgetEntries: BudgetEntry[];
   familyTransactions: FamilyTransaction[];
   loans: LoanTransaction[];
+  goldHoldings: GoldHolding[];
   lastProcessedMonth: string; // YYYY-MM
   currency: CurrencyCode;
   setCurrency: (currency: CurrencyCode) => void;
@@ -158,6 +173,11 @@ interface BudgetStoreState {
   updateLoan: (id: string, updates: Partial<LoanTransaction>) => void;
   deleteLoan: (id: string) => void;
   repayLoan: (id: string, payAmount: number) => void;
+
+  // Actions for Gold Holdings
+  buyGold: (holding: Omit<GoldHolding, 'id' | 'status'>) => void;
+  sellGold: (id: string, sellPrice: number, soldDate: string) => void;
+  deleteGoldHolding: (id: string) => void;
 
   // Currency Exchange
   executeCurrencyExchange: (params: {
@@ -240,6 +260,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
       budgetEntries: DEFAULT_ENTRIES,
       familyTransactions: [],
       loans: [],
+      goldHoldings: [],
       lastProcessedMonth: '',
       currency: 'USDT',
 
@@ -255,10 +276,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
 
       addMonthlySalary: (salary) =>
         set((state) => ({
-          monthlySalaries: [
-            { ...salary, id: crypto.randomUUID() },
-            ...state.monthlySalaries,
-          ],
+          monthlySalaries: [{ ...salary, id: crypto.randomUUID() }, ...state.monthlySalaries],
         })),
 
       updateMonthlySalary: (id, updates) =>
@@ -276,7 +294,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
             return {
               ...sal,
               isEnabled: nextState,
-              disabledReason: nextState ? undefined : (reason || sal.disabledReason),
+              disabledReason: nextState ? undefined : reason || sal.disabledReason,
             };
           }),
         })),
@@ -370,7 +388,8 @@ export const useBudgetStore = create<BudgetStoreState>()(
 
           if (target.type === 'expense') {
             // Refund expense back to wallet
-            updatedBalances[target.currency] = (updatedBalances[target.currency] || 0) + target.amount;
+            updatedBalances[target.currency] =
+              (updatedBalances[target.currency] || 0) + target.amount;
           } else if (target.type === 'income') {
             // Deduct credited income from wallet
             updatedBalances[target.currency] = Math.max(
@@ -408,18 +427,14 @@ export const useBudgetStore = create<BudgetStoreState>()(
           let updatedBal = state.walletBalances[tx.currency] || 0;
           if (addToBudget) {
             updatedBal =
-              tx.type === 'received'
-                ? updatedBal + tx.amount
-                : Math.max(0, updatedBal - tx.amount);
+              tx.type === 'received' ? updatedBal + tx.amount : Math.max(0, updatedBal - tx.amount);
           }
 
           const newEntry: BudgetEntry | null = addToBudget
             ? {
                 id: entryId!,
                 title:
-                  tx.type === 'received'
-                    ? `Received from ${tx.person}`
-                    : `Given to ${tx.person}`,
+                  tx.type === 'received' ? `Received from ${tx.person}` : `Given to ${tx.person}`,
                 amount: tx.amount,
                 currency: tx.currency,
                 type: tx.type === 'received' ? 'income' : 'expense',
@@ -444,9 +459,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
                 }
               : state.walletBalances,
             familyTransactions: [newFamilyTx, ...(state.familyTransactions || [])],
-            budgetEntries: newEntry
-              ? [newEntry, ...state.budgetEntries]
-              : state.budgetEntries,
+            budgetEntries: newEntry ? [newEntry, ...state.budgetEntries] : state.budgetEntries,
           };
         }),
 
@@ -522,7 +535,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
           return {
             walletBalances: updatedBalances,
             familyTransactions: (state.familyTransactions || []).map((tx) =>
-              tx.id === id ? updatedFamilyTx : tx
+              tx.id === id ? updatedFamilyTx : tx,
             ),
             budgetEntries: updatedBudgetEntries,
           };
@@ -596,7 +609,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
       updateLoan: (id, updates) =>
         set((state) => {
           const updatedLoans = (state.loans || []).map((l) =>
-            l.id === id ? { ...l, ...updates } : l
+            l.id === id ? { ...l, ...updates } : l,
           );
           const target = updatedLoans.find((l) => l.id === id);
           if (target) {
@@ -648,9 +661,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
           // Repaying a lent loan = money comes back (credit)
           // Repaying a borrowed debt = paying back money (deduct)
           const updatedBal =
-            target.type === 'lend'
-              ? currentBal + payAmount
-              : Math.max(0, currentBal - payAmount);
+            target.type === 'lend' ? currentBal + payAmount : Math.max(0, currentBal - payAmount);
 
           const updatedLoan: LoanTransaction = {
             ...target,
@@ -666,6 +677,68 @@ export const useBudgetStore = create<BudgetStoreState>()(
               [target.currency]: updatedBal,
             },
             loans: (state.loans || []).map((l) => (l.id === id ? updatedLoan : l)),
+          };
+        }),
+
+      buyGold: (holding) =>
+        set((state) => {
+          const currentBalance = state.walletBalances[holding.currency] || 0;
+          if (holding.buyPrice <= 0 || currentBalance < holding.buyPrice) return state;
+
+          const newHolding: GoldHolding = {
+            ...holding,
+            id: crypto.randomUUID(),
+            status: 'holding',
+          };
+
+          return {
+            walletBalances: {
+              ...state.walletBalances,
+              [holding.currency]: currentBalance - holding.buyPrice,
+            },
+            goldHoldings: [newHolding, ...(state.goldHoldings || [])],
+          };
+        }),
+
+      sellGold: (id, sellPrice, soldDate) =>
+        set((state) => {
+          const target = (state.goldHoldings || []).find((holding) => holding.id === id);
+          if (!target || target.status === 'sold' || sellPrice <= 0) return state;
+
+          const soldHolding: GoldHolding = {
+            ...target,
+            status: 'sold',
+            sellPrice,
+            soldDate,
+          };
+
+          return {
+            walletBalances: {
+              ...state.walletBalances,
+              [target.currency]: (state.walletBalances[target.currency] || 0) + sellPrice,
+            },
+            goldHoldings: (state.goldHoldings || []).map((holding) =>
+              holding.id === id ? soldHolding : holding,
+            ),
+          };
+        }),
+
+      deleteGoldHolding: (id) =>
+        set((state) => {
+          const target = (state.goldHoldings || []).find((holding) => holding.id === id);
+          if (!target) return state;
+
+          const saleCredit = target.status === 'sold' ? target.sellPrice || 0 : 0;
+          const restoredBalance =
+            (state.walletBalances[target.currency] || 0) + target.buyPrice - saleCredit;
+          budgetService.deleteGoldHolding?.(id);
+
+          return {
+            walletBalances: {
+              ...state.walletBalances,
+              [target.currency]: Math.max(0, restoredBalance),
+            },
+            goldHoldings: (state.goldHoldings || []).filter((holding) => holding.id !== id),
           };
         }),
 
@@ -708,6 +781,8 @@ export const useBudgetStore = create<BudgetStoreState>()(
             monthlySalaries: [],
             budgetEntries: [],
             familyTransactions: [],
+            loans: [],
+            goldHoldings: [],
             lastProcessedMonth: '',
           };
         }),
@@ -718,6 +793,10 @@ export const useBudgetStore = create<BudgetStoreState>()(
           monthlySalaries: data.monthlySalaries || state.monthlySalaries,
           budgetEntries: data.budgetEntries || state.budgetEntries,
           familyTransactions: data.familyTransactions || state.familyTransactions,
+          loans: data.loans || state.loans,
+          goldHoldings: data.goldHoldings || state.goldHoldings,
+          lastProcessedMonth: data.lastProcessedMonth ?? state.lastProcessedMonth,
+          currency: data.currency || state.currency,
         })),
 
       fetchFromSupabase: async () => {
@@ -728,6 +807,10 @@ export const useBudgetStore = create<BudgetStoreState>()(
             monthlySalaries: remoteData.monthlySalaries || state.monthlySalaries,
             budgetEntries: remoteData.budgetEntries || state.budgetEntries,
             familyTransactions: remoteData.familyTransactions || state.familyTransactions,
+            loans: remoteData.loans || [],
+            goldHoldings: remoteData.goldHoldings || [],
+            lastProcessedMonth: remoteData.lastProcessedMonth || '',
+            currency: (remoteData.currency as CurrencyCode) || state.currency,
           }));
         }
       },
@@ -739,6 +822,10 @@ export const useBudgetStore = create<BudgetStoreState>()(
           monthlySalaries: state.monthlySalaries,
           budgetEntries: state.budgetEntries,
           familyTransactions: state.familyTransactions,
+          loans: state.loans,
+          goldHoldings: state.goldHoldings,
+          currency: state.currency,
+          lastProcessedMonth: state.lastProcessedMonth,
         });
       },
     }),
@@ -749,11 +836,31 @@ export const useBudgetStore = create<BudgetStoreState>()(
 );
 
 // Auto-sync budget changes to Supabase cloud
-useBudgetStore.subscribe((state) => {
-  budgetService.saveBudgetData({
+useBudgetStore.subscribe((state, previousState) => {
+  const currentCloudData = {
     walletBalances: state.walletBalances,
     monthlySalaries: state.monthlySalaries,
     budgetEntries: state.budgetEntries,
     familyTransactions: state.familyTransactions,
+    loans: state.loans,
+    goldHoldings: state.goldHoldings,
+    currency: state.currency,
+    lastProcessedMonth: state.lastProcessedMonth,
+  };
+  const previousCloudData = {
+    walletBalances: previousState.walletBalances,
+    monthlySalaries: previousState.monthlySalaries,
+    budgetEntries: previousState.budgetEntries,
+    familyTransactions: previousState.familyTransactions,
+    loans: previousState.loans,
+    goldHoldings: previousState.goldHoldings,
+    currency: previousState.currency,
+    lastProcessedMonth: previousState.lastProcessedMonth,
+  };
+
+  if (JSON.stringify(currentCloudData) === JSON.stringify(previousCloudData)) return;
+
+  budgetService.saveBudgetData({
+    ...currentCloudData,
   });
 });

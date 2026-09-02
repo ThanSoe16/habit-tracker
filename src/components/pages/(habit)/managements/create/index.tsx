@@ -6,10 +6,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { COLORS, EMOJIS } from '@/features/habits/data';
 import { useHabitStore } from '@/store/use-habit-store';
 import { useRouter } from 'next/navigation';
+import { getLocalDateString } from '@/utils/date-utils';
+import { calculateHabitEndDate } from '@/utils/habit-end-condition';
 
 const CreateHabitPage = () => {
   const router = useRouter();
   const addHabit = useHabitStore((state) => state.addHabit);
+  const startDate = getLocalDateString();
 
   const form = useForm<HabitData>({
     resolver: zodResolver(habitSchema),
@@ -17,7 +20,7 @@ const CreateHabitPage = () => {
       name: '',
       color: COLORS[0],
       emoji: EMOJIS[0],
-      startDate: new Date().toISOString().split('T')[0],
+      startDate,
       type: 'habit',
       frequencyTab: 'daily',
       selectedDays: [1, 2, 3, 4, 5, 6, 0],
@@ -27,7 +30,7 @@ const CreateHabitPage = () => {
       timeOfDay: 'morning',
       endHabitEnabled: true,
       endHabitMode: 'date',
-      endHabitDate: '2026-12-31',
+      endHabitDate: calculateHabitEndDate(startDate, 365),
       endHabitDays: 365,
       reminders: false,
       reminderTime: '07:00',

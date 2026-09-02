@@ -1,15 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Smile,
-  Bell,
-  BookOpen,
-  Flame,
-  User,
-  Moon,
-  Sun,
-} from 'lucide-react';
+import { Smile, Bell, BookOpen, Flame, User, Moon, Sun } from 'lucide-react';
 import { useUserStore } from '@/store/use-user-store';
 import { cn } from '@/utils/cn';
 
@@ -20,18 +12,18 @@ export default function MoodGeneralsSettingsPage() {
     theme,
     remindersEnabled,
     dailyReminderTime,
+    moodSettings,
     setName,
     setAvatarEmoji,
     setTheme,
     setRemindersEnabled,
     setDailyReminderTime,
+    updateMoodSettings,
   } = useUserStore();
 
   const [editName, setEditName] = useState(name);
   const [moodReminders, setMoodReminders] = useState(remindersEnabled);
   const [moodReminderTime, setMoodReminderTime] = useState(dailyReminderTime || '20:00');
-  const [enableNotes, setEnableNotes] = useState(true);
-  const [showStreak, setShowStreak] = useState(true);
 
   const emojiOptions = ['😊', '😎', '🧘', '🌟', '🕊️', '🌈', '🎯', '🔥'];
 
@@ -98,8 +90,8 @@ export default function MoodGeneralsSettingsPage() {
           </div>
           <input
             type="checkbox"
-            checked={enableNotes}
-            onChange={(e) => setEnableNotes(e.target.checked)}
+            checked={moodSettings.enableNotes}
+            onChange={(e) => updateMoodSettings({ enableNotes: e.target.checked })}
             className="w-5 h-5 accent-indigo-600 rounded cursor-pointer"
           />
         </div>
@@ -117,8 +109,8 @@ export default function MoodGeneralsSettingsPage() {
           </div>
           <input
             type="checkbox"
-            checked={showStreak}
-            onChange={(e) => setShowStreak(e.target.checked)}
+            checked={moodSettings.showStreak}
+            onChange={(e) => updateMoodSettings({ showStreak: e.target.checked })}
             className="w-5 h-5 accent-indigo-600 rounded cursor-pointer"
           />
         </div>
@@ -135,9 +127,7 @@ export default function MoodGeneralsSettingsPage() {
 
         {/* Avatar Emoji */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
-            Avatar Icon
-          </label>
+          <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Avatar Icon</label>
           <div className="flex flex-wrap gap-2">
             {emojiOptions.map((emoji) => (
               <button
@@ -159,9 +149,7 @@ export default function MoodGeneralsSettingsPage() {
 
         {/* Name Input */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
-            Display Name
-          </label>
+          <label className="text-xs font-bold text-gray-700 dark:text-gray-300">Display Name</label>
           <input
             type="text"
             value={editName}
@@ -174,9 +162,7 @@ export default function MoodGeneralsSettingsPage() {
 
         {/* Theme Selector */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
-            App Theme
-          </label>
+          <label className="text-xs font-bold text-gray-700 dark:text-gray-300">App Theme</label>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"

@@ -30,21 +30,29 @@ interface MediaStoreState {
   fetchFromSupabase: () => Promise<void>;
   addMediaEntry: (entry: MediaEntry) => Promise<void>;
   deleteMediaEntry: (id: string) => Promise<void>;
-  updateMediaEntry: (id: string, updates: Partial<MediaEntry>) => void;
+  updateMediaEntry: (id: string, updates: Partial<MediaEntry>) => Promise<void>;
 }
 
 export const useMediaStore = create<MediaStoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       mediaEntries: [],
       isLoaded: false,
 
       fetchFromSupabase: async () => {
         try {
           const entries = await mediaItemsService.fetchMediaEntries();
-          if (entries && entries.length > 0) {
+          if (entries === null) {
+            set({ isLoaded: true });
+          } else if (entries.length > 0) {
             set({ mediaEntries: entries, isLoaded: true });
           } else {
+            const localEntries = get().mediaEntries;
+            if (localEntries.length > 0) {
+              await Promise.all(
+                localEntries.map((entry) => mediaItemsService.insertMediaEntry(entry)),
+              );
+            }
             set({ isLoaded: true });
           }
         } catch (err) {
@@ -67,12 +75,12 @@ export const useMediaStore = create<MediaStoreState>()(
         await mediaItemsService.deleteMediaEntry(id);
       },
 
-      updateMediaEntry: (id, updates) =>
+      updateMediaEntry: async (id, updates) => {
         set((state) => ({
-          mediaEntries: state.mediaEntries.map((e) =>
-            e.id === id ? { ...e, ...updates } : e,
-          ),
-        })),
+          mediaEntries: state.mediaEntries.map((e) => (e.id === id ? { ...e, ...updates } : e)),
+        }));
+        await mediaItemsService.updateMediaEntry(id, updates);
+      },
     }),
     {
       name: 'media-store',

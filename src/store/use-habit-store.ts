@@ -1,7 +1,6 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/date-utils';
 import { habitsService } from '@/lib/supabase/services';
 
@@ -33,6 +32,7 @@ export interface Habit {
   >; // key is YYYY-MM-DD
   streak: number;
   createdAt: string;
+  sortOrder?: number;
 }
 
 interface HabitStore {
@@ -129,178 +129,185 @@ const calculateStreak = (habit: Habit, history: Habit['history']): number => {
 };
 
 export const useHabitStore = create<HabitStore>()((set, get) => ({
-      habits: [],
-      customUnits: [],
-      isLoaded: false,
+  habits: [],
+  customUnits: [],
+  isLoaded: false,
 
-      fetchFromSupabase: async () => {
-        try {
-          const remoteHabits = await habitsService.fetchHabits();
-          const remoteUnits = await habitsService.fetchCustomUnits();
-          
-          set({
-            habits: remoteHabits,
-            customUnits: remoteUnits,
-            isLoaded: true,
-          });
-        } catch (e) {
-          console.warn('Failed to fetch habits from Supabase:', e);
-          set({ isLoaded: true });
-        }
-      },
+  fetchFromSupabase: async () => {
+    try {
+      const remoteHabits = await habitsService.fetchHabits();
+      const remoteUnits = await habitsService.fetchCustomUnits();
 
-      addCustomUnit: (unitName) => {
-        const trimmed = unitName.trim();
-        if (!trimmed) return;
-        set((state) => ({
-          customUnits: state.customUnits.includes(trimmed)
-            ? state.customUnits
-            : [...state.customUnits, trimmed],
-        }));
-        habitsService.addCustomUnit(trimmed);
-      },
+      set((state) => ({
+        habits: remoteHabits ?? state.habits,
+        customUnits: remoteUnits,
+        isLoaded: true,
+      }));
+    } catch (e) {
+      console.warn('Failed to fetch habits from Supabase:', e);
+      set({ isLoaded: true });
+    }
+  },
 
-      updateCustomUnit: (oldUnit, newUnit) => {
-        const trimmed = newUnit.trim();
-        if (!trimmed) return;
-        set((state) => ({
-          customUnits: state.customUnits.map((u) => (u === oldUnit ? trimmed : u)),
-          habits: state.habits.map((h) => (h.unit === oldUnit ? { ...h, unit: trimmed } : h)),
-        }));
-        habitsService.deleteCustomUnit(oldUnit);
-        habitsService.addCustomUnit(trimmed);
-      },
-
-      deleteCustomUnit: (unitName) => {
-        set((state) => ({
-          customUnits: state.customUnits.filter((u) => u !== unitName),
-        }));
-        habitsService.deleteCustomUnit(unitName);
-      },
-
-      addHabit: async (
-        name,
-        color,
-        frequency,
-        repeatDays,
-        emoji,
-        startDate,
-        endDate,
-        type = 'habit',
-        timeOfDay,
-        reminderTime,
-        endHabitDate,
-        endHabitDays,
-        specificDates,
-        unitType = 'simple',
-        goalValue,
-        unit,
-        timerMode,
-        timeUnit,
-      ) => {
-        const newHabit: Habit = {
-          id: crypto.randomUUID(),
-          name,
-          color,
-          emoji,
-          frequency,
-          repeatDays,
-          startDate,
-          endDate,
-          type,
-          timeOfDay,
-          reminderTime,
-          endHabitDate,
-          endHabitDays,
-          specificDates,
-          unitType,
-          unit,
-          goalValue,
-          timerMode,
-          timeUnit,
-          history: {},
-          streak: 0,
-          createdAt: new Date().toISOString(),
-        };
-        set((state) => ({ habits: [...state.habits, newHabit] }));
-        await habitsService.upsertHabit(newHabit);
-        await get().fetchFromSupabase();
-      },
-
-      removeHabit: async (id) => {
-        set((state) => ({ habits: state.habits.filter((h) => h.id !== id) }));
-        await habitsService.deleteHabit(id);
-        await get().fetchFromSupabase();
-      },
-
-      updateHabit: async (id, updates) => {
-        const currentHabit = get().habits.find((h) => h.id === id);
-        if (currentHabit) {
-          const updated = { ...currentHabit, ...updates };
-          set((state) => ({
-            habits: state.habits.map((h) => (h.id === id ? updated : h)),
-          }));
-          await habitsService.upsertHabit(updated);
-          await get().fetchFromSupabase();
-        }
-      },
-
-      reorderHabits: (habits) => {
-        set({ habits });
-        habits.forEach((h) => habitsService.upsertHabit(h));
-      },
-
-      toggleHabit: (id, date, details) => {
-        set((state) => ({
-          habits: state.habits.map((h) => {
-            if (h.id !== id) return h;
-
-            const newHistory = { ...h.history };
-
-            if (details) {
-              const existingObj =
-                typeof newHistory[date] === 'object' ? (newHistory[date] as any) : {};
-              const cleanDetails = Object.fromEntries(
-                Object.entries(details).filter(([_, v]) => v !== undefined)
-              );
-
-              newHistory[date] = {
-                completed: details.completed !== undefined ? details.completed : !!existingObj.completed,
-                ...existingObj,
-                ...cleanDetails,
-              };
-            } else {
-              if (newHistory[date]) {
-                delete newHistory[date];
-              } else {
-                newHistory[date] = { completed: true };
-              }
-            }
-
-            const streak = calculateStreak(h, newHistory);
-            const updatedHabit = { ...h, history: newHistory, streak };
-            habitsService.upsertHabit(updatedHabit);
-
-            return updatedHabit;
-          }),
-        }));
-      },
-
-      removeCompletion: (id, date) => {
-        set((state) => ({
-          habits: state.habits.map((h) => {
-            if (h.id !== id) return h;
-
-            const newHistory = { ...h.history };
-            delete newHistory[date];
-
-            const streak = calculateStreak(h, newHistory);
-            const updatedHabit = { ...h, history: newHistory, streak };
-            habitsService.upsertHabit(updatedHabit);
-
-            return updatedHabit;
-          }),
-        }));
-      },
+  addCustomUnit: (unitName) => {
+    const trimmed = unitName.trim();
+    if (!trimmed) return;
+    set((state) => ({
+      customUnits: state.customUnits.includes(trimmed)
+        ? state.customUnits
+        : [...state.customUnits, trimmed],
     }));
+    habitsService.addCustomUnit(trimmed);
+  },
 
+  updateCustomUnit: (oldUnit, newUnit) => {
+    const trimmed = newUnit.trim();
+    if (!trimmed) return;
+    set((state) => ({
+      customUnits: state.customUnits.map((u) => (u === oldUnit ? trimmed : u)),
+      habits: state.habits.map((h) => (h.unit === oldUnit ? { ...h, unit: trimmed } : h)),
+    }));
+    habitsService.deleteCustomUnit(oldUnit);
+    habitsService.addCustomUnit(trimmed);
+    get()
+      .habits.filter((habit) => habit.unit === trimmed)
+      .forEach((habit) => habitsService.upsertHabit(habit));
+  },
+
+  deleteCustomUnit: (unitName) => {
+    set((state) => ({
+      customUnits: state.customUnits.filter((u) => u !== unitName),
+    }));
+    habitsService.deleteCustomUnit(unitName);
+  },
+
+  addHabit: async (
+    name,
+    color,
+    frequency,
+    repeatDays,
+    emoji,
+    startDate,
+    endDate,
+    type = 'habit',
+    timeOfDay,
+    reminderTime,
+    endHabitDate,
+    endHabitDays,
+    specificDates,
+    unitType = 'simple',
+    goalValue,
+    unit,
+    timerMode,
+    timeUnit,
+  ) => {
+    const newHabit: Habit = {
+      id: crypto.randomUUID(),
+      name,
+      color,
+      emoji,
+      frequency,
+      repeatDays,
+      startDate,
+      endDate,
+      type,
+      timeOfDay,
+      reminderTime,
+      endHabitDate,
+      endHabitDays,
+      specificDates,
+      unitType,
+      unit,
+      goalValue,
+      timerMode,
+      timeUnit,
+      history: {},
+      streak: 0,
+      createdAt: new Date().toISOString(),
+      sortOrder: get().habits.length,
+    };
+    set((state) => ({ habits: [...state.habits, newHabit] }));
+    const saved = await habitsService.upsertHabit(newHabit);
+    if (saved) await get().fetchFromSupabase();
+  },
+
+  removeHabit: async (id) => {
+    set((state) => ({ habits: state.habits.filter((h) => h.id !== id) }));
+    await habitsService.deleteHabit(id);
+    await get().fetchFromSupabase();
+  },
+
+  updateHabit: async (id, updates) => {
+    const currentHabit = get().habits.find((h) => h.id === id);
+    if (currentHabit) {
+      const updated = { ...currentHabit, ...updates };
+      set((state) => ({
+        habits: state.habits.map((h) => (h.id === id ? updated : h)),
+      }));
+      const saved = await habitsService.upsertHabit(updated);
+      if (saved) await get().fetchFromSupabase();
+    }
+  },
+
+  reorderHabits: (habits) => {
+    const reorderedHabits = habits.map((habit, index) => ({
+      ...habit,
+      sortOrder: index,
+    }));
+    set({ habits: reorderedHabits });
+    reorderedHabits.forEach((habit) => habitsService.upsertHabit(habit));
+  },
+
+  toggleHabit: (id, date, details) => {
+    set((state) => ({
+      habits: state.habits.map((h) => {
+        if (h.id !== id) return h;
+
+        const newHistory = { ...h.history };
+
+        if (details) {
+          const existingObj = typeof newHistory[date] === 'object' ? (newHistory[date] as any) : {};
+          const cleanDetails = Object.fromEntries(
+            Object.entries(details).filter(([, value]) => value !== undefined),
+          );
+
+          newHistory[date] = {
+            completed:
+              details.completed !== undefined ? details.completed : !!existingObj.completed,
+            ...existingObj,
+            ...cleanDetails,
+          };
+        } else {
+          if (newHistory[date]) {
+            delete newHistory[date];
+          } else {
+            newHistory[date] = { completed: true };
+          }
+        }
+
+        const streak = calculateStreak(h, newHistory);
+        const updatedHabit = { ...h, history: newHistory, streak };
+        habitsService.upsertHabit(updatedHabit);
+
+        return updatedHabit;
+      }),
+    }));
+  },
+
+  removeCompletion: (id, date) => {
+    set((state) => ({
+      habits: state.habits.map((h) => {
+        if (h.id !== id) return h;
+
+        const newHistory = { ...h.history };
+        delete newHistory[date];
+
+        const streak = calculateStreak(h, newHistory);
+        const updatedHabit = { ...h, history: newHistory, streak };
+        habitsService.upsertHabit(updatedHabit);
+
+        return updatedHabit;
+      }),
+    }));
+  },
+}));
