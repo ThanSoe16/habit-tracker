@@ -10,7 +10,7 @@ import {
 import { Play, Check, Upload, Music, Volume2, X } from 'lucide-react';
 import { useUserStore, RingtoneType } from '@/store/use-user-store';
 import { playAlarmSound } from '@/hooks/use-reminders';
-import { uploadMediaToStorage } from '@/lib/supabase/services';
+import { uploadMediaToStorage } from '@/features/media/services/supabase';
 import { cn } from '@/utils/cn';
 
 interface RingtoneDrawerModalProps {

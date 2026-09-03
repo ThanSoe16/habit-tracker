@@ -1,18 +1,15 @@
-export interface UnitCategory {
-  categoryName: string;
-  units: string[];
-}
+import { z } from 'zod';
 
-export const MOST_POPULAR_UNITS = [
-  'Minutes',
-  'Bottles',
-  'Cups',
-  'Gallons',
-  'Pages',
-  'Chapters',
-];
+export const unitCategorySchema = z.object({
+  categoryName: z.string().trim().min(1),
+  units: z.array(z.string().trim().min(1)),
+});
 
-export const CATEGORIZED_UNITS: UnitCategory[] = [
+export type UnitCategory = z.infer<typeof unitCategorySchema>;
+
+export const MOST_POPULAR_UNITS = ['Minutes', 'Bottles', 'Cups', 'Gallons', 'Pages', 'Chapters'];
+
+export const CATEGORIZED_UNITS = unitCategorySchema.array().parse([
   {
     categoryName: 'Count',
     units: ['Count', 'Times', 'Reps', 'Steps'],
@@ -23,15 +20,7 @@ export const CATEGORIZED_UNITS: UnitCategory[] = [
   },
   {
     categoryName: 'Volume',
-    units: [
-      'Gallons',
-      'Quarts',
-      'Metric Pints',
-      'Cups',
-      'Fluid Ounces',
-      'Tablespoons',
-      'Bottles',
-    ],
+    units: ['Gallons', 'Quarts', 'Metric Pints', 'Cups', 'Fluid Ounces', 'Tablespoons', 'Bottles'],
   },
   {
     categoryName: 'Weight',
@@ -39,15 +28,7 @@ export const CATEGORIZED_UNITS: UnitCategory[] = [
   },
   {
     categoryName: 'Length',
-    units: [
-      'Miles',
-      'Yards',
-      'Feet',
-      'Inches',
-      'Kilometers',
-      'Meters',
-      'Millimeters',
-    ],
+    units: ['Miles', 'Yards', 'Feet', 'Inches', 'Kilometers', 'Meters', 'Millimeters'],
   },
   {
     categoryName: 'Temperature',
@@ -79,16 +60,10 @@ export const CATEGORIZED_UNITS: UnitCategory[] = [
   },
   {
     categoryName: 'Energy',
-    units: [
-      'Kilowatt-Hours',
-      'Kilocalories',
-      'Calories',
-      'Joules',
-      'Kilojoules',
-    ],
+    units: ['Kilowatt-Hours', 'Kilocalories', 'Calories', 'Joules', 'Kilojoules'],
   },
   {
     categoryName: 'Power',
     units: ['Gigawatts', 'Megawatts', 'Kilowatts', 'Watts', 'Milliwatts'],
   },
-];
+]);

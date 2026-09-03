@@ -1,16 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import budgetApiService from './api';
-import { ExpenseCreatePayload, MonthlySalaryPayload } from '../types';
+import { BudgetEntryDeletePayload, ExpenseCreatePayload, MonthlySalaryPayload } from '../types';
+
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
 export const useAddExpense = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: ExpenseCreatePayload) => budgetApiService.addExpense(payload),
-    onSettled: async (response, error) => {
+    onSettled: async (_response, error) => {
       if (error) {
-        toast.error((error as Error)?.message || 'Failed to add expense');
+        toast.error(getErrorMessage(error, 'Failed to add expense'));
       } else {
         toast.success('Expense recorded successfully');
         await queryClient.invalidateQueries({ queryKey: ['budget'] });
@@ -24,9 +27,9 @@ export const useUpsertMonthlySalary = () => {
 
   return useMutation({
     mutationFn: (payload: MonthlySalaryPayload) => budgetApiService.upsertMonthlySalary(payload),
-    onSettled: async (response, error) => {
+    onSettled: async (_response, error) => {
       if (error) {
-        toast.error((error as Error)?.message || 'Failed to save salary settings');
+        toast.error(getErrorMessage(error, 'Failed to save salary settings'));
       } else {
         toast.success('Salary saved successfully');
         await queryClient.invalidateQueries({ queryKey: ['budget'] });
@@ -40,9 +43,9 @@ export const useDeleteMonthlySalary = () => {
 
   return useMutation({
     mutationFn: (id: string) => budgetApiService.deleteMonthlySalary(id),
-    onSettled: async (response, error) => {
+    onSettled: async (_response, error) => {
       if (error) {
-        toast.error((error as Error)?.message || 'Failed to delete salary');
+        toast.error(getErrorMessage(error, 'Failed to delete salary'));
       } else {
         toast.success('Salary deleted successfully');
         await queryClient.invalidateQueries({ queryKey: ['budget'] });
@@ -55,10 +58,10 @@ export const useDeleteBudgetEntry = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => budgetApiService.deleteBudgetEntry(id),
-    onSettled: async (response, error) => {
+    mutationFn: (payload: BudgetEntryDeletePayload) => budgetApiService.deleteBudgetEntry(payload),
+    onSettled: async (_response, error) => {
       if (error) {
-        toast.error((error as Error)?.message || 'Failed to delete entry');
+        toast.error(getErrorMessage(error, 'Failed to delete entry'));
       } else {
         toast.success('Entry deleted successfully');
         await queryClient.invalidateQueries({ queryKey: ['budget'] });

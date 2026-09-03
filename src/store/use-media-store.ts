@@ -2,27 +2,25 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { mediaItemsService } from '@/lib/supabase/services';
+import { mediaItemsService } from '@/features/media/services/supabase';
+import { z } from 'zod';
 
-export type MediaType = 'voice' | 'photo' | 'video';
+export const mediaTypeSchema = z.enum(['voice', 'photo', 'video']);
+export type MediaType = z.infer<typeof mediaTypeSchema>;
 
-export interface MediaEntry {
-  id: string;
-  type: MediaType;
-  title: string;
-  /** Base64 data URL or blob URL for storage */
-  dataUrl: string;
-  /** Optional thumbnail for video */
-  thumbnailUrl?: string;
-  /** File size in bytes */
-  fileSize: number;
-  /** Duration in seconds (for voice/video) */
-  duration?: number;
-  /** MIME type */
-  mimeType: string;
-  /** Creation timestamp */
-  createdAt: string;
-}
+export const mediaEntrySchema = z.object({
+  id: z.string(),
+  type: mediaTypeSchema,
+  title: z.string(),
+  dataUrl: z.string(),
+  thumbnailUrl: z.string().optional(),
+  fileSize: z.number().nonnegative(),
+  duration: z.number().nonnegative().optional(),
+  mimeType: z.string(),
+  createdAt: z.string(),
+});
+
+export type MediaEntry = z.infer<typeof mediaEntrySchema>;
 
 interface MediaStoreState {
   mediaEntries: MediaEntry[];

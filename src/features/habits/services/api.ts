@@ -1,13 +1,16 @@
-import { habitsService } from '@/lib/supabase/services';
-import { HabitFilterParams, Habit } from '../types';
+import { habitsService } from './supabase';
+import { HabitFilterParams, Habit, habitFilterSchema, habitRecordSchema } from '../types';
 
 const habitsApiService = {
   getHabits: async (params?: HabitFilterParams): Promise<Habit[]> => {
+    const filters = habitFilterSchema.optional().parse(params);
     const habits = (await habitsService.fetchHabits()) ?? [];
     return habits.filter((h) => {
-      if (params?.type && h.type !== params.type) return false;
-      if (params?.frequency && h.frequency !== params.frequency) return false;
-      if (params?.search && !h.name.toLowerCase().includes(params.search.toLowerCase())) return false;
+      if (filters?.type && h.type !== filters.type) return false;
+      if (filters?.frequency && h.frequency !== filters.frequency) return false;
+      if (filters?.search && !h.name.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
+      }
       return true;
     });
   },
@@ -18,8 +21,9 @@ const habitsApiService = {
   },
 
   saveHabit: async (habit: Habit): Promise<Habit> => {
-    await habitsService.upsertHabit(habit);
-    return habit;
+    const validatedHabit = habitRecordSchema.parse(habit);
+    await habitsService.upsertHabit(validatedHabit);
+    return validatedHabit;
   },
 
   deleteHabit: async (id: string): Promise<boolean> => {

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Camera, Image as ImageIcon, Video, Upload, X, Check, SwitchCamera } from 'lucide-react';
 import { useMediaStore, MediaEntry } from '@/store/use-media-store';
-import { uploadMediaToStorage } from '@/lib/supabase/services';
+import { uploadMediaToStorage } from '@/features/media/services/supabase';
 import { MediaCard } from '../../_components/media-card';
 import { cn } from '@/utils/cn';
 

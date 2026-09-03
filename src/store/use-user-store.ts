@@ -1,32 +1,41 @@
 'use client';
 
 import { create } from 'zustand';
-import { userService } from '@/lib/supabase/services';
+import { userService } from '@/features/users/services/supabase';
+import { z } from 'zod';
 
-export type Theme = 'light' | 'dark' | 'system';
-export type AccentColor = 'orange' | 'indigo' | 'emerald' | 'rose' | 'violet';
-export type InterfaceDensity = 'comfortable' | 'compact';
+export const themeSchema = z.enum(['light', 'dark', 'system']);
+export const accentColorSchema = z.enum(['orange', 'indigo', 'emerald', 'rose', 'violet']);
+export const interfaceDensitySchema = z.enum(['comfortable', 'compact']);
 
-export interface AppearanceSettings {
-  accentColor: AccentColor;
-  density: InterfaceDensity;
-  reduceMotion: boolean;
-}
+export type Theme = z.infer<typeof themeSchema>;
+export type AccentColor = z.infer<typeof accentColorSchema>;
+export type InterfaceDensity = z.infer<typeof interfaceDensitySchema>;
 
-export interface HomeSettings {
-  homeDefaultView: 'today' | 'weekly' | 'overall';
-  cardStyle: 'compact' | 'detailed';
-  hideCompleted: boolean;
-  sortBy: 'manual' | 'timeOfDay' | 'status' | 'streak' | 'alphabetical';
-  groupByTimeOfDay: boolean;
-  showProgressBanner: boolean;
-  showStreakBadges: boolean;
-}
+export const appearanceSettingsSchema = z.object({
+  accentColor: accentColorSchema,
+  density: interfaceDensitySchema,
+  reduceMotion: z.boolean(),
+});
 
-export interface MoodSettings {
-  enableNotes: boolean;
-  showStreak: boolean;
-}
+export const homeSettingsSchema = z.object({
+  homeDefaultView: z.enum(['today', 'weekly', 'overall']),
+  cardStyle: z.enum(['compact', 'detailed']),
+  hideCompleted: z.boolean(),
+  sortBy: z.enum(['manual', 'timeOfDay', 'status', 'streak', 'alphabetical']),
+  groupByTimeOfDay: z.boolean(),
+  showProgressBanner: z.boolean(),
+  showStreakBadges: z.boolean(),
+});
+
+export const moodSettingsSchema = z.object({
+  enableNotes: z.boolean(),
+  showStreak: z.boolean(),
+});
+
+export type AppearanceSettings = z.infer<typeof appearanceSettingsSchema>;
+export type HomeSettings = z.infer<typeof homeSettingsSchema>;
+export type MoodSettings = z.infer<typeof moodSettingsSchema>;
 
 export const DEFAULT_HOME_SETTINGS: HomeSettings = {
   homeDefaultView: 'today',
@@ -49,7 +58,8 @@ export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
   reduceMotion: false,
 };
 
-export type RingtoneType = 'chime' | 'marimba' | 'radar' | 'digital' | 'custom';
+export const ringtoneTypeSchema = z.enum(['chime', 'marimba', 'radar', 'digital', 'custom']);
+export type RingtoneType = z.infer<typeof ringtoneTypeSchema>;
 
 interface UserStore {
   name: string;

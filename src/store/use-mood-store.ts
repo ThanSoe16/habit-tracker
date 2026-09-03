@@ -2,15 +2,18 @@
 
 import { create } from 'zustand';
 import { format } from 'date-fns';
-import { moodService } from '@/lib/supabase/services';
+import { moodService } from '@/features/mood/services/supabase';
+import { z } from 'zod';
 
-export interface MoodEntry {
-  mood: string;
-  label: string;
-  emoji: string;
-  tag?: string;
-  timestamp: string;
-}
+export const moodEntrySchema = z.object({
+  mood: z.string(),
+  label: z.string(),
+  emoji: z.string(),
+  tag: z.string().optional(),
+  timestamp: z.string(),
+});
+
+export type MoodEntry = z.infer<typeof moodEntrySchema>;
 
 interface MoodStore {
   history: Record<string, MoodEntry>; // Key: YYYY-MM-DD

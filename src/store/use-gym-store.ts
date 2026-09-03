@@ -1,7 +1,9 @@
 'use client';
 
 import { create } from 'zustand';
-import { gymService, gymBodyMetricsService, BodyMetricRow } from '@/lib/supabase/services';
+import { gymService } from '@/features/gym/services/supabase';
+import { gymBodyMetricsService, type BodyMetricRow } from '@/features/gym/services/body-metrics';
+import { z } from 'zod';
 
 const workoutLogSaveQueues = new Map<string, Promise<void>>();
 
@@ -19,74 +21,83 @@ function saveWorkoutLog(dateStr: string, log: WorkoutLog) {
   });
 }
 
-export type ExerciseCategory =
-  | 'Chest'
-  | 'Back'
-  | 'Legs'
-  | 'Shoulders'
-  | 'Arms'
-  | 'Core'
-  | 'Cardio'
-  | 'Other';
+export const exerciseCategorySchema = z.enum([
+  'Chest',
+  'Back',
+  'Legs',
+  'Shoulders',
+  'Arms',
+  'Core',
+  'Cardio',
+  'Other',
+]);
 
-export interface Exercise {
-  id: string;
-  name: string;
-  category: ExerciseCategory;
-  defaultSets?: number;
-  defaultReps?: string;
-  isCustom?: boolean;
-  imageUrl?: string | null;
-}
+export const exerciseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: exerciseCategorySchema,
+  defaultSets: z.number().optional(),
+  defaultReps: z.string().optional(),
+  isCustom: z.boolean().optional(),
+  imageUrl: z.string().nullable().optional(),
+});
 
-export interface ExerciseSetDetail {
-  setNumber: number;
-  reps: number;
-  weightKg: number;
-}
+export const exerciseSetDetailSchema = z.object({
+  setNumber: z.number(),
+  reps: z.number(),
+  weightKg: z.number(),
+});
 
-export interface PlanExercise {
-  id: string; // unique instance ID in the day's plan
-  exerciseId: string;
-  name: string;
-  category: ExerciseCategory;
-  targetSets: number;
-  targetReps: string; // e.g. "8-12" or "10"
-  weight?: string; // e.g. "20kg" or "50lbs"
-  setsDetails?: ExerciseSetDetail[];
-}
+export const planExerciseSchema = z.object({
+  id: z.string(),
+  exerciseId: z.string(),
+  name: z.string(),
+  category: exerciseCategorySchema,
+  targetSets: z.number(),
+  targetReps: z.string(),
+  weight: z.string().optional(),
+  setsDetails: z.array(exerciseSetDetailSchema).optional(),
+});
 
-export interface PlanDay {
-  dayIndex: number; // 0 to 6 (Day 1 to Day 7)
-  dayName: string; // "Day 1", "Day 2", etc.
-  title: string; // e.g. "Chest & Triceps", "Push Day", "Rest"
-  isRestDay: boolean;
-  exercises: PlanExercise[];
-}
+export const planDaySchema = z.object({
+  dayIndex: z.number(),
+  dayName: z.string(),
+  title: z.string(),
+  isRestDay: z.boolean(),
+  exercises: z.array(planExerciseSchema),
+});
 
-export interface CompletedExerciseLog {
-  id: string;
-  exerciseId: string;
-  name: string;
-  category: ExerciseCategory;
-  targetSets: number;
-  completedSets: number;
-  targetReps: string;
-  weight?: string;
-  completed: boolean;
-  setsDetails?: ExerciseSetDetail[];
-}
+export const completedExerciseLogSchema = z.object({
+  id: z.string(),
+  exerciseId: z.string(),
+  name: z.string(),
+  category: exerciseCategorySchema,
+  targetSets: z.number(),
+  completedSets: z.number(),
+  targetReps: z.string(),
+  weight: z.string().optional(),
+  completed: z.boolean(),
+  setsDetails: z.array(exerciseSetDetailSchema).optional(),
+});
 
-export interface WorkoutLog {
-  id: string;
-  date: string; // YYYY-MM-DD
-  dayIndex: number;
-  dayTitle: string;
-  completed: boolean;
-  notes?: string;
-  exercises: CompletedExerciseLog[];
-  completedAt?: string;
-}
+export const workoutLogSchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  dayIndex: z.number(),
+  dayTitle: z.string(),
+  completed: z.boolean(),
+  notes: z.string().optional(),
+  exercises: z.array(completedExerciseLogSchema),
+  completedAt: z.string().optional(),
+});
+
+export type ExerciseCategory = z.infer<typeof exerciseCategorySchema>;
+export type Exercise = z.infer<typeof exerciseSchema>;
+export type ExerciseSetDetail = z.infer<typeof exerciseSetDetailSchema>;
+export type PlanExercise = z.infer<typeof planExerciseSchema>;
+export type PlanDay = z.infer<typeof planDaySchema>;
+export type CompletedExerciseLog = z.infer<typeof completedExerciseLogSchema>;
+export type WorkoutLog = z.infer<typeof workoutLogSchema>;
 
 export const PRESET_EXERCISES: Exercise[] = [
   // Chest & Push-up Variations
@@ -637,31 +648,33 @@ const syncUncompletedLogsWithPlan = (
   return newHistory;
 };
 
-export interface GymSettings {
-  weightUnit: 'kg' | 'lbs';
-  heightUnit: 'cm' | 'ft-in';
-  heightCm: number;
-  heightFt: number;
-  heightIn: number;
-  startWeightKg: number;
-  currentWeightKg: number;
-  targetWeightKg: number;
-  targetDeadline: string;
-  weeklyPace: string;
-  reminderDays: string[];
-  reminderFrequency: string;
-  dob: string; // YYYY-MM-DD
-  gender: 'Male' | 'Female' | 'Other';
-  fitnessGoal: string;
-  bodyFatPct?: number;
-  activityLevel: string;
-  hydrationGoalMl: number;
-  dailyHydrationLogs: Record<string, number>; // dateKey -> ml
-  restTimerSeconds: number;
-  autoFinishWorkout: boolean;
-  showCategoryBadges: boolean;
-  defaultTargetSets: number;
-}
+export const gymSettingsSchema = z.object({
+  weightUnit: z.enum(['kg', 'lbs']),
+  heightUnit: z.enum(['cm', 'ft-in']),
+  heightCm: z.number(),
+  heightFt: z.number(),
+  heightIn: z.number(),
+  startWeightKg: z.number(),
+  currentWeightKg: z.number(),
+  targetWeightKg: z.number(),
+  targetDeadline: z.string(),
+  weeklyPace: z.string(),
+  reminderDays: z.array(z.string()),
+  reminderFrequency: z.string(),
+  dob: z.string(),
+  gender: z.enum(['Male', 'Female', 'Other']),
+  fitnessGoal: z.string(),
+  bodyFatPct: z.number().optional(),
+  activityLevel: z.string(),
+  hydrationGoalMl: z.number(),
+  dailyHydrationLogs: z.record(z.number()),
+  restTimerSeconds: z.number(),
+  autoFinishWorkout: z.boolean(),
+  showCategoryBadges: z.boolean(),
+  defaultTargetSets: z.number(),
+});
+
+export type GymSettings = z.infer<typeof gymSettingsSchema>;
 
 export const DEFAULT_GYM_SETTINGS: GymSettings = {
   weightUnit: 'kg',

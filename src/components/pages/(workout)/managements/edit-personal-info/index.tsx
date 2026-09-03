@@ -25,7 +25,7 @@ import {
   lbsToKg,
   calculateAge,
 } from '@/store/use-gym-store';
-import { gymService } from '@/lib/supabase/services';
+import { gymService } from '@/features/gym/services/supabase';
 import { toast } from 'sonner';
 import { cn } from '@/utils/cn';
 

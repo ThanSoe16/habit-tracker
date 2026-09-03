@@ -1,12 +1,46 @@
 import { z } from 'zod';
-import { Habit } from '@/store/use-habit-store';
 import { calculateHabitDurationDays } from '@/utils/habit-end-condition';
 
-export interface HabitFilterParams {
-  type?: 'habit' | 'task';
-  search?: string;
-  frequency?: 'daily' | 'weekly' | 'monthly' | 'specific';
-}
+export const habitFrequencySchema = z.enum(['daily', 'weekly', 'monthly', 'specific']);
+
+export const habitFilterSchema = z.object({
+  type: z.enum(['habit', 'task']).optional(),
+  search: z.string().trim().optional(),
+  frequency: habitFrequencySchema.optional(),
+});
+
+const habitCompletionSchema = z.object({
+  completed: z.boolean(),
+  timeTaken: z.string().optional(),
+  count: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const habitRecordSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().trim().min(1),
+  type: z.enum(['habit', 'task']).optional(),
+  frequency: habitFrequencySchema,
+  repeatDays: z.array(z.number().int().min(0).max(6)),
+  color: z.string().min(1),
+  emoji: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  timeOfDay: z.enum(['morning', 'afternoon', 'evening']).optional(),
+  reminderTime: z.string().optional(),
+  endHabitDate: z.string().optional(),
+  endHabitDays: z.number().int().positive().optional(),
+  specificDates: z.array(z.string()).optional(),
+  unitType: z.enum(['simple', 'duration', 'time', 'count']).optional(),
+  timerMode: z.enum(['down', 'up']).optional(),
+  timeUnit: z.enum(['hr', 'min', 'sec']).optional(),
+  unit: z.string().optional(),
+  goalValue: z.number().positive().optional(),
+  history: z.record(z.union([habitCompletionSchema, z.boolean()])),
+  streak: z.number().int().nonnegative(),
+  createdAt: z.string(),
+  sortOrder: z.number().int().nonnegative().optional(),
+});
 
 export const habitSchema = z
   .object({
@@ -46,4 +80,6 @@ export const habitSchema = z
   });
 
 export type HabitData = z.infer<typeof habitSchema>;
-export type { Habit };
+export type HabitFrequency = z.infer<typeof habitFrequencySchema>;
+export type HabitFilterParams = z.infer<typeof habitFilterSchema>;
+export type Habit = z.infer<typeof habitRecordSchema>;

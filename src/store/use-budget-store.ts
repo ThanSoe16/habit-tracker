@@ -2,17 +2,21 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { budgetService } from '@/lib/supabase/services';
+import { budgetService } from '@/features/budget/services/supabase';
+import { z } from 'zod';
+import { budgetEntryTypeSchema, currencyCodeSchema } from '@/features/budget/types';
 
-export type CurrencyCode = 'USDT' | 'MMK' | 'THB' | 'SGD';
-export type EntryType = 'income' | 'expense' | 'exchange';
+export type CurrencyCode = z.infer<typeof currencyCodeSchema>;
+export type EntryType = z.infer<typeof budgetEntryTypeSchema>;
 
-export interface CurrencyConfig {
-  code: CurrencyCode;
-  symbol: string;
-  name: string;
-  flag: string;
-}
+export const currencyConfigSchema = z.object({
+  code: currencyCodeSchema,
+  symbol: z.string(),
+  name: z.string(),
+  flag: z.string(),
+});
+
+export type CurrencyConfig = z.infer<typeof currencyConfigSchema>;
 
 export const CURRENCIES: Record<CurrencyCode, CurrencyConfig> = {
   USDT: { code: 'USDT', symbol: '$', name: 'Tether (USDT)', flag: '💵' },
@@ -32,79 +36,91 @@ export function formatCurrency(amount: number, currency: CurrencyCode = 'USDT'):
   return `${config.symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export interface WalletBalances {
-  USDT: number;
-  THB: number;
-  MMK: number;
-  SGD: number;
-  [key: string]: number;
-}
+export const walletBalancesSchema = z
+  .object({
+    USDT: z.number(),
+    THB: z.number(),
+    MMK: z.number(),
+    SGD: z.number(),
+  })
+  .catchall(z.number());
 
-export interface MonthlySalary {
-  id: string;
-  title: string;
-  amount: number;
-  currency: CurrencyCode;
-  category: string;
-  isEnabled: boolean; // Can edit or disable without affecting current budget
-  disabledReason?: string;
-  note?: string;
-}
+export type WalletBalances = z.infer<typeof walletBalancesSchema>;
 
-export interface BudgetEntry {
-  id: string;
-  title: string;
-  amount: number;
-  currency: CurrencyCode;
-  type: EntryType;
-  category: string;
-  date: string; // YYYY-MM-DD
-  note?: string;
-  // Exchange fields
-  fromCurrency?: CurrencyCode;
-  fromAmount?: number;
-  toCurrency?: CurrencyCode;
-  toAmount?: number;
-}
+export const monthlySalaryRecordSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  amount: z.number(),
+  currency: currencyCodeSchema,
+  category: z.string(),
+  isEnabled: z.boolean(),
+  disabledReason: z.string().optional(),
+  note: z.string().optional(),
+});
 
-export interface FamilyTransaction {
-  id: string;
-  type: 'received' | 'given';
-  person: string;
-  amount: number;
-  currency: CurrencyCode;
-  date: string; // YYYY-MM-DD
-  note?: string;
-  entryId?: string; // Linked budget entry ID
-  addToCurrentBudget?: boolean; // Whether to credit/deduct current wallet balance
-}
+export type MonthlySalary = z.infer<typeof monthlySalaryRecordSchema>;
 
-export interface LoanTransaction {
-  id: string;
-  type: 'lend' | 'borrow'; // 'lend' (money out/I lent) | 'borrow' (money in/I borrowed)
-  personName: string;
-  amount: number;
-  currency: CurrencyCode;
-  status: 'pending' | 'repaid' | 'partial';
-  repaidAmount: number;
-  dueDate?: string; // YYYY-MM-DD
-  date: string; // YYYY-MM-DD
-  note?: string;
-}
+export const budgetEntrySchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  amount: z.number(),
+  currency: currencyCodeSchema,
+  type: budgetEntryTypeSchema,
+  category: z.string(),
+  date: z.string(),
+  note: z.string().optional(),
+  fromCurrency: currencyCodeSchema.optional(),
+  fromAmount: z.number().optional(),
+  toCurrency: currencyCodeSchema.optional(),
+  toAmount: z.number().optional(),
+});
 
-export interface GoldHolding {
-  id: string;
-  kyat: number;
-  pae: number;
-  yway: number;
-  buyPrice: number;
-  currency: CurrencyCode;
-  purchaseDate: string; // YYYY-MM-DD
-  note?: string;
-  status: 'holding' | 'sold';
-  sellPrice?: number;
-  soldDate?: string; // YYYY-MM-DD
-}
+export type BudgetEntry = z.infer<typeof budgetEntrySchema>;
+
+export const familyTransactionSchema = z.object({
+  id: z.string(),
+  type: z.enum(['received', 'given']),
+  person: z.string(),
+  amount: z.number(),
+  currency: currencyCodeSchema,
+  date: z.string(),
+  note: z.string().optional(),
+  entryId: z.string().optional(),
+  addToCurrentBudget: z.boolean().optional(),
+});
+
+export type FamilyTransaction = z.infer<typeof familyTransactionSchema>;
+
+export const loanTransactionSchema = z.object({
+  id: z.string(),
+  type: z.enum(['lend', 'borrow']),
+  personName: z.string(),
+  amount: z.number(),
+  currency: currencyCodeSchema,
+  status: z.enum(['pending', 'repaid', 'partial']),
+  repaidAmount: z.number(),
+  dueDate: z.string().optional(),
+  date: z.string(),
+  note: z.string().optional(),
+});
+
+export type LoanTransaction = z.infer<typeof loanTransactionSchema>;
+
+export const goldHoldingSchema = z.object({
+  id: z.string(),
+  kyat: z.number(),
+  pae: z.number(),
+  yway: z.number(),
+  buyPrice: z.number(),
+  currency: currencyCodeSchema,
+  purchaseDate: z.string(),
+  note: z.string().optional(),
+  status: z.enum(['holding', 'sold']),
+  sellPrice: z.number().optional(),
+  soldDate: z.string().optional(),
+});
+
+export type GoldHolding = z.infer<typeof goldHoldingSchema>;
 
 export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
   USDT_THB: 35.5,

@@ -2,38 +2,10 @@
 
 import { create } from 'zustand';
 import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/date-utils';
-import { habitsService } from '@/lib/supabase/services';
+import { habitsService } from '@/features/habits/services/supabase';
+import type { Habit, HabitFrequency } from '@/features/habits/types';
 
-export type HabitFrequency = 'daily' | 'weekly' | 'monthly' | 'specific';
-
-export interface Habit {
-  id: string;
-  name: string;
-  type?: 'habit' | 'task'; // Default to "habit"
-  frequency: HabitFrequency;
-  repeatDays: number[]; // JS day: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
-  color: string;
-  emoji?: string;
-  startDate?: string; // ISO date string
-  endDate?: string; // ISO date string
-  timeOfDay?: 'morning' | 'afternoon' | 'evening';
-  reminderTime?: string;
-  endHabitDate?: string;
-  endHabitDays?: number;
-  specificDates?: string[]; // YYYY-MM-DD
-  unitType?: 'simple' | 'duration' | 'time' | 'count';
-  timerMode?: 'down' | 'up';
-  timeUnit?: 'hr' | 'min' | 'sec';
-  unit?: string;
-  goalValue?: number;
-  history: Record<
-    string,
-    { completed: boolean; timeTaken?: string; count?: string; notes?: string } | boolean
-  >; // key is YYYY-MM-DD
-  streak: number;
-  createdAt: string;
-  sortOrder?: number;
-}
+export type { Habit, HabitFrequency } from '@/features/habits/types';
 
 interface HabitStore {
   habits: Habit[];

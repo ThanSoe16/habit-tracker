@@ -1,12 +1,15 @@
 import { supabase } from './client';
 import { User, Session } from '@supabase/supabase-js';
+import { z } from 'zod';
 
-export interface AuthUser {
-  id: string;
-  email: string;
-  name?: string;
-  avatarUrl?: string;
-}
+export const authUserSchema = z.object({
+  id: z.string().min(1),
+  email: z.string().email(),
+  name: z.string().optional(),
+  avatarUrl: z.string().url().optional(),
+});
+
+export type AuthUser = z.infer<typeof authUserSchema>;
 
 export const authService = {
   /**

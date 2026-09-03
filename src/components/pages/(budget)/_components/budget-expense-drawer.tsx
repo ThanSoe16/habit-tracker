@@ -4,9 +4,16 @@ import React, { useState } from 'react';
 import { Flex, Grid } from '@radix-ui/themes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ExpenseCreatePayload } from '@/features/budget/types';
 import { CurrencyCode, CURRENCIES, BUDGET_CATEGORIES } from '@/store/use-budget-store';
+import { getLocalDateString } from '@/utils/date-utils';
 
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
@@ -23,7 +30,10 @@ export const BudgetExpenseDrawer: React.FC<BudgetExpenseDrawerProps> = ({
   onSubmit,
   isLoading,
 }) => {
-  const [category, setCategory] = useState<string>(BUDGET_CATEGORIES[0]?.name || 'Food & Groceries');
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<string>(
+    BUDGET_CATEGORIES[0]?.name || 'Food & Groceries',
+  );
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState<CurrencyCode>('USDT');
   const [note, setNote] = useState('');
@@ -31,14 +41,15 @@ export const BudgetExpenseDrawer: React.FC<BudgetExpenseDrawerProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) return;
+    if (!title.trim() || isNaN(numericAmount) || numericAmount <= 0) return;
 
     await onSubmit({
+      title: title.trim(),
       category,
       amount: numericAmount,
       currency,
       note,
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalDateString(),
     });
     onClose();
   };
@@ -51,6 +62,14 @@ export const BudgetExpenseDrawer: React.FC<BudgetExpenseDrawerProps> = ({
         </DrawerHeader>
         <form onSubmit={handleSubmit}>
           <Grid columns={{ initial: '1', md: '2' }} gap="4">
+            <Flex direction="column" gap="1">
+              <label className="text-sm font-medium text-muted-foreground">Title</label>
+              <Input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="e.g. Groceries"
+              />
+            </Flex>
             <Flex direction="column" gap="1">
               <label className="text-sm font-medium text-muted-foreground">Category</label>
               <Select value={category} onValueChange={setCategory}>
@@ -68,7 +87,12 @@ export const BudgetExpenseDrawer: React.FC<BudgetExpenseDrawerProps> = ({
             </Flex>
             <Flex direction="column" gap="1">
               <label className="text-sm font-medium text-muted-foreground">Amount</label>
-              <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+              <Input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+              />
             </Flex>
             <Flex direction="column" gap="1">
               <label className="text-sm font-medium text-muted-foreground">Currency</label>
@@ -87,7 +111,11 @@ export const BudgetExpenseDrawer: React.FC<BudgetExpenseDrawerProps> = ({
             </Flex>
             <Flex direction="column" gap="1">
               <label className="text-sm font-medium text-muted-foreground">Note</label>
-              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional note" />
+              <Input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Optional note"
+              />
             </Flex>
           </Grid>
           <Flex justify="end" gap="3" className="mt-6">
