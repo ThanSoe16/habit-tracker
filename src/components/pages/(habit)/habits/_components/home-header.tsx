@@ -31,7 +31,7 @@ export function HomeHeader({ formattedDate }: HomeHeaderProps) {
           type="button"
           onClick={() => router.push('/managements/create')}
           title="Create Habit"
-          className="w-10 h-10 rounded-full bg-blue-600 text-white shadow-xs flex items-center justify-center hover:bg-blue-700 transition-colors"
+          className="w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-xs flex items-center justify-center hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-5 h-5" strokeWidth={2.5} />
         </button>

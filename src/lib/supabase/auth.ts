@@ -43,11 +43,14 @@ export const authService = {
   /**
    * Sign in with OAuth Provider (Google, GitHub, etc.)
    */
-  async signInWithOAuth(provider: 'google' | 'github') {
+  async signInWithOAuth(provider: 'google' | 'github', nextPath = '/habits/today') {
+    const callbackUrl = new URL('/auth/callback', window.location.origin);
+    callbackUrl.searchParams.set('next', nextPath);
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl.toString(),
       },
     });
 

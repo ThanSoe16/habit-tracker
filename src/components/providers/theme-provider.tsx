@@ -4,12 +4,30 @@ import { useEffect } from 'react';
 import { useUserStore } from '@/store/use-user-store';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { theme } = useUserStore();
+  const { theme, appearanceSettings } = useUserStore();
 
   useEffect(() => {
-    // Apply dark class on mount and whenever theme changes
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    const root = document.documentElement;
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const applyTheme = () => {
+      const useDark = theme === 'dark' || (theme === 'system' && systemTheme.matches);
+      root.classList.toggle('dark', useDark);
+      root.style.colorScheme = useDark ? 'dark' : 'light';
+    };
+
+    applyTheme();
+    systemTheme.addEventListener('change', applyTheme);
+
+    return () => systemTheme.removeEventListener('change', applyTheme);
   }, [theme]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.accent = appearanceSettings.accentColor;
+    root.dataset.density = appearanceSettings.density;
+    root.dataset.motion = appearanceSettings.reduceMotion ? 'reduced' : 'full';
+  }, [appearanceSettings]);
 
   return <>{children}</>;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Mail,
@@ -28,6 +28,36 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const getPostLoginPath = () => {
+    const requestedPath = new URLSearchParams(window.location.search).get('next');
+
+    if (
+      requestedPath &&
+      requestedPath.startsWith('/') &&
+      !requestedPath.startsWith('//') &&
+      requestedPath !== '/login' &&
+      requestedPath !== '/auth/login'
+    ) {
+      return requestedPath;
+    }
+
+    return '/habits/today';
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void authService.getSession().then((session) => {
+      if (isMounted && session) {
+        router.replace(getPostLoginPath());
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -36,11 +66,11 @@ export default function LoginPage() {
 
     try {
       const res = await authService.signInWithEmail(email, password);
-      if (res.user) {
+      if (res.user && res.session) {
         const userMetaName = res.user.user_metadata?.name || email.split('@')[0];
         setName(userMetaName);
-        setSuccessMsg('Signed in successfully! Redirecting...');
-        setTimeout(() => router.push('/budget'), 1000);
+        setSuccessMsg('Signed in successfully!');
+        router.replace(getPostLoginPath());
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Invalid email or password.');
@@ -52,7 +82,7 @@ export default function LoginPage() {
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
     try {
       setErrorMsg(null);
-      await authService.signInWithOAuth(provider);
+      await authService.signInWithOAuth(provider, getPostLoginPath());
     } catch (err: any) {
       setErrorMsg(err.message || `Failed to sign in with ${provider}.`);
     }

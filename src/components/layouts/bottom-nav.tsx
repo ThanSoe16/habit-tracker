@@ -50,6 +50,10 @@ const NAV_ITEMS: NavItem[] = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const isWorkoutManagementRoute =
+    pathname === '/managements/plan' || pathname === '/managements/edit-personal-info';
+  const isHabitManagementRoute =
+    pathname.startsWith('/managements') && !isWorkoutManagementRoute;
 
   return (
     <div className="fixed bottom-4 left-0 right-0 z-40 pointer-events-none flex justify-center px-4">
@@ -61,6 +65,7 @@ export function BottomNav() {
               pathname === '/' ||
               pathname.startsWith('/habits') ||
               pathname.startsWith('/home') ||
+              isHabitManagementRoute ||
               (pathname.startsWith('/generals') &&
                 !pathname.startsWith('/workout') &&
                 !pathname.startsWith('/mood') &&
@@ -71,7 +76,7 @@ export function BottomNav() {
           } else if (item.href === '/workout/today') {
             isActive =
               pathname.startsWith('/workout') ||
-              pathname.startsWith('/managements') ||
+              isWorkoutManagementRoute ||
               pathname.startsWith('/workout-generals');
           } else if (item.href === '/mood/today' || item.href === '/mood') {
             isActive = pathname.startsWith('/mood') || pathname.startsWith('/mood-generals');

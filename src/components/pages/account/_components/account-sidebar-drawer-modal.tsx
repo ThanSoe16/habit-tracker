@@ -99,7 +99,7 @@ export function AccountSidebarDrawerModal({
           {/* User Profile Header */}
           <div className="p-6 bg-gradient-to-b from-blue-50/70 to-transparent dark:from-zinc-800/50 border-b border-gray-100 dark:border-zinc-800">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl shadow-md shadow-primary/30 shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center text-2xl shadow-md shadow-primary/30 shrink-0">
                 {avatarEmoji || '😊'}
               </div>
               <div className="space-y-0.5 overflow-hidden">
@@ -134,7 +134,7 @@ export function AccountSidebarDrawerModal({
                         className={cn(
                           'w-full px-3.5 py-3 rounded-2xl flex items-center justify-between text-xs font-bold transition-all',
                           item.isActive
-                            ? 'bg-blue-600 text-white shadow-md shadow-primary/25'
+                            ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
                             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800/80',
                         )}
                       >

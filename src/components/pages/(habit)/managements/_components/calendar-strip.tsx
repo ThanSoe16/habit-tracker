@@ -78,7 +78,7 @@ export function CalendarStrip({ weekDays, onSelectDate, scrollContainerRef }: Ca
                 onClick={() => onSelectDate(d.date)}
                 className={`flex flex-col items-center justify-center w-full py-1.5 px-1 rounded-2xl transition-all duration-200 ${
                   d.isSelected
-                    ? 'bg-indigo-600 text-white shadow-md'
+                    ? 'bg-primary text-primary-foreground shadow-md'
                     : 'hover:bg-gray-100 dark:hover:bg-zinc-800'
                 }`}
               >
@@ -128,7 +128,7 @@ export function CalendarStrip({ weekDays, onSelectDate, scrollContainerRef }: Ca
                     )
                   ) : isPastOrToday ? (
                     isFullyCompleted ? (
-                      <div className="w-9 h-9 rounded-full bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-2xs">
+                      <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground font-black text-xs flex items-center justify-center shadow-2xs">
                         {d.day}
                       </div>
                     ) : isPartiallyCompleted ? (

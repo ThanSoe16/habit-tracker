@@ -137,6 +137,188 @@
   --sidebar-ring: oklch(0.65 0.22 35);
 }
 
+/* User-selectable semantic accent palettes. */
+html[data-accent='indigo'] {
+  --primary: oklch(0.59 0.23 277);
+  --primary-foreground: oklch(0.98 0.01 277);
+  --ring: oklch(0.59 0.23 277);
+  --chart-1: oklch(0.59 0.23 277);
+  --sidebar-primary: oklch(0.59 0.23 277);
+  --sidebar-ring: oklch(0.59 0.23 277);
+}
+
+html[data-accent='emerald'] {
+  --primary: oklch(0.6 0.15 163);
+  --primary-foreground: oklch(0.98 0.01 163);
+  --ring: oklch(0.6 0.15 163);
+  --chart-1: oklch(0.6 0.15 163);
+  --sidebar-primary: oklch(0.6 0.15 163);
+  --sidebar-ring: oklch(0.6 0.15 163);
+}
+
+html[data-accent='rose'] {
+  --primary: oklch(0.65 0.22 16);
+  --primary-foreground: oklch(0.98 0.01 16);
+  --ring: oklch(0.65 0.22 16);
+  --chart-1: oklch(0.65 0.22 16);
+  --sidebar-primary: oklch(0.65 0.22 16);
+  --sidebar-ring: oklch(0.65 0.22 16);
+}
+
+html[data-accent='violet'] {
+  --primary: oklch(0.61 0.25 292);
+  --primary-foreground: oklch(0.98 0.01 292);
+  --ring: oklch(0.61 0.25 292);
+  --chart-1: oklch(0.61 0.25 292);
+  --sidebar-primary: oklch(0.61 0.25 292);
+  --sidebar-ring: oklch(0.61 0.25 292);
+}
+
+/* Tint the application canvas so every route responds to the selected palette. */
+html[data-accent] {
+  --background: color-mix(in oklch, var(--primary) 2%, white);
+  --card: color-mix(in oklch, var(--primary) 1%, white);
+  --popover: var(--card);
+  --sidebar-accent: color-mix(in oklch, var(--primary) 18%, var(--sidebar));
+  --sidebar-accent-foreground: var(--foreground);
+}
+
+html.dark[data-accent] {
+  --background: color-mix(in oklch, var(--primary) 7%, oklch(0.12 0.015 260));
+  --card: color-mix(in oklch, var(--primary) 6%, oklch(0.18 0.015 260));
+  --popover: var(--card);
+  --sidebar-accent: color-mix(in oklch, var(--primary) 22%, var(--sidebar));
+  --sidebar-accent-foreground: var(--foreground);
+}
+
+/*
+ * Legacy accent bridge
+ *
+ * Older screens predate the semantic theme tokens and use module-specific
+ * blue, indigo, purple, violet, or emerald utility classes. Keep data/status
+ * colors meaningful, but make interactive controls and decorative gradients
+ * follow the user's primary color until those screens are incrementally moved
+ * to shared components.
+ */
+html[data-accent] :is(button, a, [role='button']):is(
+    [class~='bg-blue-500'],
+    [class~='bg-blue-600'],
+    [class~='bg-blue-700'],
+    [class~='bg-indigo-500'],
+    [class~='bg-indigo-600'],
+    [class~='bg-indigo-700'],
+    [class~='bg-purple-500'],
+    [class~='bg-purple-600'],
+    [class~='bg-purple-700'],
+    [class~='bg-violet-500'],
+    [class~='bg-violet-600'],
+    [class~='bg-violet-700'],
+    [class~='bg-emerald-500'],
+    [class~='bg-emerald-600'],
+    [class~='bg-emerald-700']
+  ),
+html[data-accent] :is(button, a, [role='button']) :is(
+    [class~='bg-blue-500'],
+    [class~='bg-blue-600'],
+    [class~='bg-indigo-500'],
+    [class~='bg-indigo-600'],
+    [class~='bg-purple-500'],
+    [class~='bg-purple-600'],
+    [class~='bg-violet-500'],
+    [class~='bg-violet-600'],
+    [class~='bg-emerald-500'],
+    [class~='bg-emerald-600']
+  ) {
+  background-color: var(--primary) !important;
+}
+
+html[data-accent] :is(button, a, [role='button']):is(
+    [class~='bg-blue-50'],
+    [class~='bg-indigo-50'],
+    [class~='bg-purple-50'],
+    [class~='bg-violet-50'],
+    [class~='bg-emerald-50']
+  ) {
+  background-color: color-mix(in oklch, var(--primary) 10%, var(--background)) !important;
+}
+
+html[data-accent] :is(button, a, [role='button']):is(
+    [class~='border-blue-500'],
+    [class~='border-blue-600'],
+    [class~='border-indigo-500'],
+    [class~='border-indigo-600'],
+    [class~='border-purple-500'],
+    [class~='border-purple-600'],
+    [class~='border-violet-500'],
+    [class~='border-violet-600'],
+    [class~='border-emerald-500'],
+    [class~='border-emerald-600']
+  ) {
+  border-color: var(--primary) !important;
+}
+
+html[data-accent] :is(button, a, [role='button']) :is(
+    [class~='text-blue-400'],
+    [class~='text-blue-500'],
+    [class~='text-blue-600'],
+    [class~='text-indigo-400'],
+    [class~='text-indigo-500'],
+    [class~='text-indigo-600'],
+    [class~='text-purple-400'],
+    [class~='text-purple-500'],
+    [class~='text-purple-600'],
+    [class~='text-violet-400'],
+    [class~='text-violet-500'],
+    [class~='text-violet-600'],
+    [class~='text-emerald-400'],
+    [class~='text-emerald-500'],
+    [class~='text-emerald-600']
+  ) {
+  color: var(--primary) !important;
+}
+
+html[data-accent] :is(input, textarea, select, button):focus {
+  border-color: var(--primary) !important;
+  --tw-ring-color: color-mix(in oklch, var(--primary) 35%, transparent) !important;
+}
+
+html[data-accent] :is(
+    [class~='from-blue-500'],
+    [class~='from-blue-600'],
+    [class~='from-indigo-500'],
+    [class~='from-indigo-600'],
+    [class~='from-purple-500'],
+    [class~='from-purple-600'],
+    [class~='from-violet-500'],
+    [class~='from-violet-600'],
+    [class~='from-emerald-500'],
+    [class~='from-emerald-600']
+  ) {
+  --tw-gradient-from: var(--primary) !important;
+  --tw-gradient-to: color-mix(in oklch, var(--primary) 72%, black) !important;
+}
+
+html[data-accent] :is(button, a, [role='button']) {
+  --tw-shadow-color: color-mix(in oklch, var(--primary) 24%, transparent);
+}
+
+html[data-density='compact'] {
+  --spacing: 0.225rem;
+}
+
+html[data-motion='reduced'] {
+  scroll-behavior: auto;
+}
+
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

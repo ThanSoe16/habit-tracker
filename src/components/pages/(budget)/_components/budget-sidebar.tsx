@@ -177,7 +177,7 @@ export function BudgetAppSidebar() {
       {/* 1. LOGO HEADER */}
       <SidebarHeader className="p-5 border-none bg-transparent">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-emerald-600/30">
+          <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-black text-xl shadow-md shadow-primary/30">
             <Wallet className="w-5 h-5 fill-white stroke-none text-emerald-600" />
           </div>
           <h2 className="font-extrabold text-base text-gray-900 dark:text-white tracking-tight">
@@ -253,7 +253,7 @@ export function BudgetAppSidebar() {
             className={cn(
               'flex-1 py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all',
               theme === 'dark'
-                ? 'bg-emerald-600 text-white shadow-sm font-black'
+                ? 'bg-primary text-primary-foreground shadow-sm font-black'
                 : 'text-gray-500 hover:text-gray-900',
             )}
           >

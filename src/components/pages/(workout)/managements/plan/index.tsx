@@ -36,7 +36,9 @@ export function PlanEditor() {
   // Set Details Configuration Modal State
   const [selectedSetsExercise, setSelectedSetsExercise] = useState<PlanExercise | null>(null);
 
-  const currentDay = weeklyPlan[activeDayIndex] || weeklyPlan[0];
+  const sortedWeeklyPlan = [...weeklyPlan].sort((a, b) => a.dayIndex - b.dayIndex);
+  const currentDay =
+    weeklyPlan.find((day) => day.dayIndex === activeDayIndex) || sortedWeeklyPlan[0];
 
   const handleStartEditTitle = () => {
     setTitleInput(currentDay.title);
@@ -67,7 +69,7 @@ export function PlanEditor() {
           7-Day Weekly Split
         </div>
         <div className="grid grid-cols-7 gap-1">
-          {weeklyPlan.map((day) => {
+          {sortedWeeklyPlan.map((day) => {
             const isActive = day.dayIndex === activeDayIndex;
             return (
               <button

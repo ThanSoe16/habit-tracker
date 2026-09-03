@@ -3,7 +3,15 @@
 import { create } from 'zustand';
 import { userService } from '@/lib/supabase/services';
 
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'system';
+export type AccentColor = 'orange' | 'indigo' | 'emerald' | 'rose' | 'violet';
+export type InterfaceDensity = 'comfortable' | 'compact';
+
+export interface AppearanceSettings {
+  accentColor: AccentColor;
+  density: InterfaceDensity;
+  reduceMotion: boolean;
+}
 
 export interface HomeSettings {
   homeDefaultView: 'today' | 'weekly' | 'overall';
@@ -35,6 +43,12 @@ export const DEFAULT_MOOD_SETTINGS: MoodSettings = {
   showStreak: true,
 };
 
+export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
+  accentColor: 'orange',
+  density: 'comfortable',
+  reduceMotion: false,
+};
+
 export type RingtoneType = 'chime' | 'marimba' | 'radar' | 'digital' | 'custom';
 
 interface UserStore {
@@ -47,6 +61,7 @@ interface UserStore {
   customRingtoneUrl?: string;
   vibrationEnabled: boolean;
   theme: Theme;
+  appearanceSettings: AppearanceSettings;
   homeSettings: HomeSettings;
   moodSettings: MoodSettings;
   isLoaded: boolean;
@@ -59,6 +74,7 @@ interface UserStore {
   setVibrationEnabled: (enabled: boolean) => void;
   updateMoodSettings: (updates: Partial<MoodSettings>) => void;
   setTheme: (theme: Theme) => void;
+  updateAppearanceSettings: (updates: Partial<AppearanceSettings>) => void;
   updateHomeSettings: (updates: Partial<HomeSettings>) => void;
 }
 
@@ -73,6 +89,7 @@ function saveProfile(state: UserStore) {
     customRingtoneUrl: state.customRingtoneUrl,
     vibrationEnabled: state.vibrationEnabled,
     theme: state.theme,
+    appearanceSettings: state.appearanceSettings,
     homeSettings: state.homeSettings,
     moodSettings: state.moodSettings,
   });
@@ -87,7 +104,8 @@ export const useUserStore = create<UserStore>()((set, get) => ({
   ringtone: 'chime' as RingtoneType,
   customRingtoneUrl: undefined,
   vibrationEnabled: true,
-  theme: 'light' as Theme,
+  theme: 'system' as Theme,
+  appearanceSettings: DEFAULT_APPEARANCE_SETTINGS,
   homeSettings: DEFAULT_HOME_SETTINGS,
   moodSettings: DEFAULT_MOOD_SETTINGS,
   isLoaded: false,
@@ -106,6 +124,10 @@ export const useUserStore = create<UserStore>()((set, get) => ({
           customRingtoneUrl: profile.custom_ringtone_url || undefined,
           vibrationEnabled: profile.vibration_enabled ?? true,
           theme: (profile.theme as Theme) || 'light',
+          appearanceSettings: {
+            ...DEFAULT_APPEARANCE_SETTINGS,
+            ...(profile.appearance_settings || {}),
+          },
           homeSettings: {
             ...DEFAULT_HOME_SETTINGS,
             ...(profile.home_settings || {}),
@@ -164,6 +186,13 @@ export const useUserStore = create<UserStore>()((set, get) => ({
 
   setTheme: (theme) => {
     set({ theme });
+    saveProfile(get());
+  },
+
+  updateAppearanceSettings: (updates) => {
+    set((state) => ({
+      appearanceSettings: { ...state.appearanceSettings, ...updates },
+    }));
     saveProfile(get());
   },
 

@@ -171,7 +171,8 @@ export const userService = {
     joinedAt: string;
     remindersEnabled: boolean;
     dailyReminderTime: string;
-    theme: 'light' | 'dark';
+    theme: 'light' | 'dark' | 'system';
+    appearanceSettings?: Record<string, any>;
     homeSettings?: Record<string, any>;
     ringtone?: string;
     customRingtoneUrl?: string;
@@ -186,6 +187,7 @@ export const userService = {
       reminders_enabled: profile.remindersEnabled,
       daily_reminder_time: profile.dailyReminderTime,
       theme: profile.theme,
+      appearance_settings: profile.appearanceSettings || {},
       home_settings: profile.homeSettings,
       ringtone: profile.ringtone || 'chime',
       custom_ringtone_url: profile.customRingtoneUrl || null,
@@ -244,7 +246,10 @@ export const moodService = {
 
 export const gymService = {
   async fetchGymPlans(): Promise<PlanDay[]> {
-    const { data, error } = await supabase.from('gym_plans').select('*');
+    const { data, error } = await supabase
+      .from('gym_plans')
+      .select('*')
+      .order('day_index', { ascending: true });
     if (error) {
       console.warn('Error fetching gym plans from Supabase:', error.message);
       return [];

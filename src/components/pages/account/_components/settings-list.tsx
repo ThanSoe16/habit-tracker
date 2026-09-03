@@ -3,26 +3,24 @@
 import { useState } from 'react';
 import { useUserStore } from '@/store/use-user-store';
 import { useBudgetStore, CURRENCIES, CurrencyCode } from '@/store/use-budget-store';
-import { useRouter } from 'next/navigation';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import {
   Bell,
-  Clock,
   Star,
   Shield,
   Info,
   ChevronRight,
-  Moon,
-  Sun,
   Music,
   Smartphone,
   Coins,
   X,
   Check,
+  Palette,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { RingtoneDrawerModal } from './ringtone-drawer-modal';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import { AppearanceDrawerModal } from './appearance-drawer-modal';
 
 interface SettingItem {
   icon: LucideIcon;
@@ -42,35 +40,25 @@ interface SettingGroup {
 
 export function SettingsList() {
   const {
-    remindersEnabled,
-    setRemindersEnabled,
     ringtone,
     vibrationEnabled,
     setVibrationEnabled,
     theme,
-    setTheme,
+    appearanceSettings,
   } = useUserStore();
 
   const { currency, setCurrency } = useBudgetStore();
 
   const [isRingtoneModalOpen, setIsRingtoneModalOpen] = useState(false);
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+  const [isAppearanceModalOpen, setIsAppearanceModalOpen] = useState(false);
   const { isSubscribed, subscribeToPush, unsubscribeFromPush } = usePushNotifications();
-  const router = useRouter();
 
   const handlePushToggle = async () => {
     if (isSubscribed) {
       await unsubscribeFromPush();
     } else {
       await subscribeToPush();
-    }
-  };
-
-  const handleThemeToggle = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    if (typeof document !== 'undefined') {
-      document.documentElement.classList.toggle('dark', newTheme === 'dark');
     }
   };
 
@@ -128,13 +116,12 @@ export function SettingsList() {
           },
         },
         {
-          icon: theme === 'dark' ? Moon : Sun,
-          label: 'Dark Mode',
+          icon: Palette,
+          label: 'Appearance',
+          value: `${theme === 'system' ? 'Device' : theme === 'dark' ? 'Dark' : 'Light'} · ${appearanceSettings.accentColor}`,
           color: 'text-purple-500',
           bg: 'bg-purple-50 dark:bg-purple-950/40',
-          isToggle: true,
-          toggled: theme === 'dark',
-          onClick: handleThemeToggle,
+          onClick: () => setIsAppearanceModalOpen(true),
         },
       ],
     },
@@ -218,6 +205,11 @@ export function SettingsList() {
       <RingtoneDrawerModal
         isOpen={isRingtoneModalOpen}
         onClose={() => setIsRingtoneModalOpen(false)}
+      />
+
+      <AppearanceDrawerModal
+        isOpen={isAppearanceModalOpen}
+        onOpenChange={setIsAppearanceModalOpen}
       />
 
       {/* CURRENCY DRAWER MODAL */}
