@@ -22,11 +22,11 @@ import {
   Sparkles,
   CheckSquare,
   Settings,
-  Search,
   Sun,
   Moon,
   LogOut,
   Hexagon,
+  Brain,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -43,7 +43,6 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const { setOpenMobile } = useShadcnSidebar();
-  const [searchQuery, setSearchQuery] = React.useState('');
 
   const isTodayActive =
     pathname === '/habits/today' ||
@@ -69,6 +68,7 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
     pathname === '/generals/settings' ||
     pathname === '/general/settings' ||
     pathname === '/settings';
+  const isDigitalWellbeingPage = pathname.startsWith('/digital-wellbeing');
 
   const menuSections = [
     {
@@ -137,6 +137,16 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
     {
       title: 'GENERAL',
       items: [
+        {
+          id: 'digital-wellbeing',
+          label: 'Digital Wellbeing',
+          icon: Brain,
+          action: () => {
+            router.push('/digital-wellbeing');
+            setOpenMobile(false);
+          },
+          isActive: isDigitalWellbeingPage,
+        },
         {
           id: 'reports',
           label: 'Reports & Insights',

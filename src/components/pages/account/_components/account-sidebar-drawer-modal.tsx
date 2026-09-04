@@ -1,24 +1,15 @@
 'use client';
 
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 import {
   User,
   CheckSquare,
   Dumbbell,
   Smile,
   Archive,
-  TrendingUp,
-  Heart,
-  BarChart3,
-  Bell,
-  Moon,
   ChevronRight,
   Wallet,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -29,10 +20,7 @@ interface AccountSidebarDrawerModalProps {
   onClose: () => void;
 }
 
-export function AccountSidebarDrawerModal({
-  isOpen,
-  onClose,
-}: AccountSidebarDrawerModalProps) {
+export function AccountSidebarDrawerModal({ isOpen, onClose }: AccountSidebarDrawerModalProps) {
   const { name, avatarEmoji } = useUserStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -75,6 +63,13 @@ export function AccountSidebarDrawerModal({
           icon: Archive,
           action: () => router.push('/store'),
           isActive: pathname.startsWith('/store'),
+        },
+        {
+          id: 'wellbeing',
+          label: 'Digital Wellbeing',
+          icon: ShieldCheck,
+          action: () => router.push('/digital-wellbeing'),
+          isActive: pathname.startsWith('/digital-wellbeing'),
         },
       ],
     },

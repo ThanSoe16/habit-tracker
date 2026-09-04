@@ -8,10 +8,10 @@ import {
   Settings,
   ChevronRight,
   Sparkles,
-  ListTodo,
   CheckSquare,
   Wallet,
   User,
+  Brain,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -57,6 +57,7 @@ export function SidebarDrawerModal({ isOpen, onClose, onSelectViewMode }: Sideba
     pathname === '/settings';
   const isAccountPage = pathname === '/account';
   const isBudgetPage = pathname === '/budget';
+  const isDigitalWellbeingPage = pathname.startsWith('/digital-wellbeing');
 
   const menuSections = [
     {
@@ -116,6 +117,13 @@ export function SidebarDrawerModal({ isOpen, onClose, onSelectViewMode }: Sideba
     {
       title: 'GENERAL',
       items: [
+        {
+          id: 'digital-wellbeing',
+          label: 'Digital Wellbeing',
+          icon: Brain,
+          action: () => router.push('/digital-wellbeing'),
+          isActive: isDigitalWellbeingPage,
+        },
         {
           id: 'budget',
           label: 'Budget Tracker',
