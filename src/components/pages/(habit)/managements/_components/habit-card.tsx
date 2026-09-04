@@ -24,7 +24,6 @@ const LONG_PRESS_DURATION = 500; // ms
 export function HabitCard({
   habit,
   date,
-  isLast,
   cardStyle = 'detailed',
   showStreakBadges = true,
   onClick,
@@ -167,7 +166,14 @@ export function HabitCard({
                   pct > 50 || isCompleted ? 'text-white/80' : 'text-gray-500 dark:text-gray-400',
                 )}
               >
-                {currentProgress() || (habit.timeOfDay ? `${habit.timeOfDay} routine` : 'Every day')}
+                {currentProgress() ||
+                  (habit.habitKind === 'quit'
+                    ? isCompleted
+                      ? 'Avoided today'
+                      : 'Stay on track today'
+                    : habit.timeOfDay
+                      ? `${habit.timeOfDay} routine`
+                      : 'Every day')}
               </p>
             )}
           </div>
@@ -225,6 +231,7 @@ export function HabitCard({
 
           <button
             type="button"
+            title={habit.habitKind === 'quit' ? 'I avoided this today' : 'Mark completed'}
             onClick={(e) => {
               e.stopPropagation();
               onQuickComplete?.(e);

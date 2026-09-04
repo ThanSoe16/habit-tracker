@@ -34,6 +34,7 @@ function CompletionForm({
   unitType,
   unit,
   goalValue,
+  habitKind,
   onSave,
   onRemove,
   onClose,
@@ -48,6 +49,7 @@ function CompletionForm({
   unitType?: 'simple' | 'duration' | 'time' | 'count';
   unit?: string;
   goalValue?: number;
+  habitKind: 'build' | 'quit';
   onSave: (
     id: string,
     date: string,
@@ -269,7 +271,9 @@ function CompletionForm({
           {(unitType === 'simple' || !unitType) && (
             <div className="py-3 px-4 text-center bg-gray-50 dark:bg-zinc-800/60 rounded-2xl">
               <p className="text-gray-500 dark:text-gray-400 font-medium text-sm">
-                Mark this habit as completed for the day.
+                {habitKind === 'quit'
+                  ? 'Confirm that you avoided this habit today.'
+                  : 'Mark this habit as completed for the day.'}
               </p>
             </div>
           )}
@@ -303,7 +307,7 @@ function CompletionForm({
               type="button"
               className="flex-1 h-14 rounded-full text-base font-black bg-teal-500 hover:bg-teal-600 text-white shadow-lg shadow-teal-500/30 active:scale-98 transition-transform"
             >
-              Update
+              {habitKind === 'quit' ? 'I avoided it today' : isCompleted ? 'Update' : 'Complete'}
             </Button>
           </div>
         </div>
@@ -361,6 +365,7 @@ export function HabitCompletionDrawer({
             unitType={habit.unitType}
             unit={habit.unit}
             goalValue={habit.goalValue}
+            habitKind={habit.habitKind || 'build'}
             onSave={onSave}
             onRemove={onRemove}
             onClose={onClose}

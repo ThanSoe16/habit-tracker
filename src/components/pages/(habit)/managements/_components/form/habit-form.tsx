@@ -19,6 +19,10 @@ import { useRouter } from 'next/navigation';
 import { X, ChevronRight, Target } from 'lucide-react';
 import { normalize24HourTime } from '@/utils/time-utils';
 import { calculateHabitDurationDays, calculateHabitEndDate } from '@/utils/habit-end-condition';
+import {
+  HabitKindField,
+  ReminderSnoozeField,
+} from '@/components/pages/(habit)/_components/habit-behavior-fields';
 
 const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const router = useRouter();
@@ -37,6 +41,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
   const allDay = watch('allDay');
   const reminders = watch('reminders');
   const type = watch('type');
+  const habitKind = watch('habitKind');
   const timeOfDay = watch('timeOfDay');
   const unitType = watch('unitType');
   const timerMode = watch('timerMode') || 'down';
@@ -88,6 +93,8 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
               )}
             />
           </Field>
+
+          {type !== 'task' && <HabitKindField form={form} />}
 
           <Field data-invalid={!!errors.name}>
             <FieldLabel
@@ -153,7 +160,7 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
           </Field>
 
           {/* SECTION 2: GOAL & MEASUREMENT */}
-          {type !== 'task' && (
+          {type !== 'task' && habitKind !== 'quit' && (
             <div className="pt-4 border-t border-gray-100 dark:border-zinc-800/80 space-y-3">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Goal & Measurement
@@ -409,6 +416,8 @@ const HabitForm = ({ form, isEdit }: { form: any; isEdit?: boolean }) => {
                     />
                     <FieldError errors={[errors.reminderTime]} />
                   </Field>
+
+                  <ReminderSnoozeField form={form} />
 
                   {/* Before Alarm Preset Options */}
                   <div className="space-y-2">

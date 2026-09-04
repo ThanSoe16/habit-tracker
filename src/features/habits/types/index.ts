@@ -2,9 +2,17 @@ import { z } from 'zod';
 import { calculateHabitDurationDays } from '@/utils/habit-end-condition';
 
 export const habitFrequencySchema = z.enum(['daily', 'weekly', 'monthly', 'specific']);
+export const habitKindSchema = z.enum(['build', 'quit']);
+export const reminderSnoozeMinutesSchema = z.union([
+  z.literal(5),
+  z.literal(10),
+  z.literal(15),
+  z.literal(30),
+]);
 
 export const habitFilterSchema = z.object({
   type: z.enum(['habit', 'task']).optional(),
+  habitKind: habitKindSchema.optional(),
   search: z.string().trim().optional(),
   frequency: habitFrequencySchema.optional(),
 });
@@ -20,6 +28,7 @@ export const habitRecordSchema = z.object({
   id: z.string().min(1),
   name: z.string().trim().min(1),
   type: z.enum(['habit', 'task']).optional(),
+  habitKind: habitKindSchema.optional(),
   frequency: habitFrequencySchema,
   repeatDays: z.array(z.number().int().min(0).max(6)),
   color: z.string().min(1),
@@ -28,6 +37,7 @@ export const habitRecordSchema = z.object({
   endDate: z.string().optional(),
   timeOfDay: z.enum(['morning', 'afternoon', 'evening']).optional(),
   reminderTime: z.string().optional(),
+  reminderSnoozeMinutes: reminderSnoozeMinutesSchema.optional(),
   endHabitDate: z.string().optional(),
   endHabitDays: z.number().int().positive().optional(),
   specificDates: z.array(z.string()).optional(),
@@ -49,6 +59,7 @@ export const habitSchema = z
     emoji: z.string(),
     startDate: z.string(),
     type: z.enum(['habit', 'task']),
+    habitKind: habitKindSchema,
     frequencyTab: z.enum(['daily', 'monthly', 'specific']),
     selectedDays: z.array(z.number()),
     selectedMonthlyDays: z.array(z.number()),
@@ -61,6 +72,7 @@ export const habitSchema = z
     endHabitDays: z.number().int().min(1, 'Duration must be at least 1 day'),
     reminders: z.boolean(),
     reminderTime: z.string(),
+    reminderSnoozeMinutes: reminderSnoozeMinutesSchema,
     unitType: z.enum(['simple', 'duration', 'time', 'count']),
     timerMode: z.enum(['down', 'up']).optional(),
     timeUnit: z.enum(['hr', 'min', 'sec']).optional(),
@@ -81,5 +93,7 @@ export const habitSchema = z
 
 export type HabitData = z.infer<typeof habitSchema>;
 export type HabitFrequency = z.infer<typeof habitFrequencySchema>;
+export type HabitKind = z.infer<typeof habitKindSchema>;
+export type ReminderSnoozeMinutes = z.infer<typeof reminderSnoozeMinutesSchema>;
 export type HabitFilterParams = z.infer<typeof habitFilterSchema>;
 export type Habit = z.infer<typeof habitRecordSchema>;

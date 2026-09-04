@@ -26,6 +26,7 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
       emoji: habit.emoji || '☕',
       startDate,
       type: habit.type || 'habit',
+      habitKind: habit.habitKind || 'build',
       frequencyTab: (habit.frequency as any) || 'weekly',
       selectedDays: habit.repeatDays || [1, 2, 3, 4, 5, 6, 0],
       selectedMonthlyDays: habit.frequency === 'monthly' ? habit.repeatDays : [],
@@ -38,6 +39,7 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
       endHabitDays,
       reminders: !!habit.reminderTime,
       reminderTime: normalize24HourTime(habit.reminderTime),
+      reminderSnoozeMinutes: habit.reminderSnoozeMinutes || 10,
       unitType: habit.unitType || 'simple',
       timerMode: habit.timerMode || 'down',
       timeUnit: habit.timeUnit || 'min',
@@ -60,8 +62,10 @@ const HabitEditForm = ({ habit }: { habit: Habit }) => {
       emoji: data.emoji,
       startDate: data.startDate,
       type: data.type,
+      habitKind: data.habitKind,
       timeOfDay: data.allDay ? undefined : data.timeOfDay,
       reminderTime: data.reminders ? data.reminderTime : undefined,
+      reminderSnoozeMinutes: data.reminderSnoozeMinutes,
       endHabitDate:
         data.endHabitEnabled && data.endHabitMode === 'date' ? data.endHabitDate : undefined,
       endHabitDays:

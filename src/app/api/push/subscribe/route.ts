@@ -1,17 +1,12 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-
-const pushSubscriptionSchema = z.object({
-  endpoint: z.string().url(),
-  expirationTime: z.number().nullable().optional(),
-  keys: z.object({
-    p256dh: z.string().min(1),
-    auth: z.string().min(1),
-  }),
-});
+import { subscribeToPushSchema, unsubscribeFromPushSchema } from '@/features/habits/types/push';
+import {
+  removePushSubscription,
+  savePushSubscription,
+} from '@/features/habits/services/push-subscriptions';
 
 export async function POST(request: Request) {
-  const result = pushSubscriptionSchema.safeParse(await request.json());
+  const result = subscribeToPushSchema.safeParse(await request.json());
   if (!result.success) {
     return NextResponse.json(
       { error: 'Invalid push subscription', issues: result.error.flatten() },
@@ -19,13 +14,29 @@ export async function POST(request: Request) {
     );
   }
 
-  const subscription = result.data;
+  try {
+    const subscription = await savePushSubscription(result.data.subscription, result.data.timezone);
+    return NextResponse.json({ success: true, id: subscription.id });
+  } catch (error) {
+    console.error('Failed to save push subscription:', error);
+    return NextResponse.json({ error: 'Failed to save push subscription' }, { status: 500 });
+  }
+}
 
-  // TODO: Save subscription to database
-  // e.g. await db.users.update({ where: { id: userId }, data: { pushSubscription: subscription } })
+export async function DELETE(request: Request) {
+  const result = unsubscribeFromPushSchema.safeParse(await request.json());
+  if (!result.success) {
+    return NextResponse.json(
+      { error: 'Invalid push subscription', issues: result.error.flatten() },
+      { status: 400 },
+    );
+  }
 
-  return NextResponse.json({
-    message: 'Subscription received',
-    endpoint: subscription.endpoint,
-  });
+  try {
+    await removePushSubscription(result.data.endpoint);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Failed to remove push subscription:', error);
+    return NextResponse.json({ error: 'Failed to remove push subscription' }, { status: 500 });
+  }
 }

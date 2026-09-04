@@ -22,6 +22,7 @@ const CreateHabitPage = () => {
       emoji: EMOJIS[0],
       startDate,
       type: 'habit',
+      habitKind: 'build',
       frequencyTab: 'daily',
       selectedDays: [1, 2, 3, 4, 5, 6, 0],
       selectedMonthlyDays: [],
@@ -34,6 +35,7 @@ const CreateHabitPage = () => {
       endHabitDays: 365,
       reminders: false,
       reminderTime: '07:00',
+      reminderSnoozeMinutes: 10,
       unitType: 'simple',
       goalValue: 1,
     },
@@ -63,6 +65,8 @@ const CreateHabitPage = () => {
       data.unit || (data.unitType === 'time' ? 'Minutes' : 'Count'),
       data.timerMode || 'down',
       data.timeUnit || 'min',
+      data.habitKind,
+      data.reminderSnoozeMinutes,
     );
     router.back();
   };

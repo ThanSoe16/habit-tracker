@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import type { Habit } from '../types';
+import { habitKindSchema, reminderSnoozeMinutesSchema, type Habit } from '../types';
 import { z } from 'zod';
 
 export const habitRowSchema = z.object({
@@ -10,10 +10,12 @@ export const habitRowSchema = z.object({
   frequency: z.string(),
   repeat_days: z.array(z.number()).nullish(),
   type: z.string().nullish(),
+  habit_kind: habitKindSchema.nullish(),
   start_date: z.string().nullish(),
   end_date: z.string().nullish(),
   time_of_day: z.string().nullish(),
   reminder_time: z.string().nullish(),
+  reminder_snooze_minutes: reminderSnoozeMinutesSchema.nullish(),
   end_habit_date: z.string().nullish(),
   end_habit_days: z.number().nullish(),
   specific_dates: z.array(z.string()).nullish(),
@@ -73,10 +75,12 @@ export const habitsService = {
         frequency: (row.frequency || 'daily') as Habit['frequency'],
         repeatDays: row.repeat_days || [],
         type: (row.type || 'habit') as Habit['type'],
+        habitKind: row.habit_kind || 'build',
         startDate: row.start_date || undefined,
         endDate: row.end_date || undefined,
         timeOfDay: (row.time_of_day || undefined) as Habit['timeOfDay'],
         reminderTime: row.reminder_time || undefined,
+        reminderSnoozeMinutes: row.reminder_snooze_minutes || 10,
         endHabitDate: row.end_habit_date || undefined,
         endHabitDays: row.end_habit_days || undefined,
         specificDates: row.specific_dates || undefined,
@@ -102,10 +106,12 @@ export const habitsService = {
       frequency: habit.frequency,
       repeat_days: habit.repeatDays,
       type: habit.type || 'habit',
+      habit_kind: habit.habitKind || 'build',
       start_date: habit.startDate || null,
       end_date: habit.endDate || null,
       time_of_day: habit.timeOfDay || null,
       reminder_time: habit.reminderTime || null,
+      reminder_snooze_minutes: habit.reminderSnoozeMinutes || 10,
       end_habit_date: habit.endHabitDate || null,
       end_habit_days: habit.endHabitDays || null,
       specific_dates: habit.specificDates || null,
@@ -121,10 +127,17 @@ export const habitsService = {
     };
     let { error } = await supabase.from('habits').upsert(payload, { onConflict: 'id' });
 
-    // Older databases may not have sort_order until the latest migration is applied.
-    if (error && error.message.includes('sort_order')) {
+    // Keep saves working while database migrations are being deployed.
+    const errorMessage = error?.message || '';
+    if (
+      ['sort_order', 'habit_kind', 'reminder_snooze_minutes'].some((column) =>
+        errorMessage.includes(column),
+      )
+    ) {
       const legacyPayload: Partial<HabitRow> = { ...payload };
       delete legacyPayload.sort_order;
+      delete legacyPayload.habit_kind;
+      delete legacyPayload.reminder_snooze_minutes;
       const fallback = await supabase.from('habits').upsert(legacyPayload, { onConflict: 'id' });
       error = fallback.error;
     }

@@ -3,9 +3,19 @@
 import { create } from 'zustand';
 import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/date-utils';
 import { habitsService } from '@/features/habits/services/supabase';
-import type { Habit, HabitFrequency } from '@/features/habits/types';
+import type {
+  Habit,
+  HabitFrequency,
+  HabitKind,
+  ReminderSnoozeMinutes,
+} from '@/features/habits/types';
 
-export type { Habit, HabitFrequency } from '@/features/habits/types';
+export type {
+  Habit,
+  HabitFrequency,
+  HabitKind,
+  ReminderSnoozeMinutes,
+} from '@/features/habits/types';
 
 interface HabitStore {
   habits: Habit[];
@@ -34,6 +44,8 @@ interface HabitStore {
     unit?: string,
     timerMode?: 'down' | 'up',
     timeUnit?: 'hr' | 'min' | 'sec',
+    habitKind?: HabitKind,
+    reminderSnoozeMinutes?: ReminderSnoozeMinutes,
   ) => void;
   removeHabit: (id: string) => void;
   updateHabit: (
@@ -58,6 +70,8 @@ interface HabitStore {
       timeUnit?: 'hr' | 'min' | 'sec';
       unit?: string;
       goalValue?: number;
+      habitKind?: HabitKind;
+      reminderSnoozeMinutes?: ReminderSnoozeMinutes;
     },
   ) => void;
   reorderHabits: (habits: Habit[]) => void;
@@ -172,6 +186,8 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
     unit,
     timerMode,
     timeUnit,
+    habitKind = 'build',
+    reminderSnoozeMinutes = 10,
   ) => {
     const newHabit: Habit = {
       id: crypto.randomUUID(),
@@ -183,8 +199,10 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
       startDate,
       endDate,
       type,
+      habitKind,
       timeOfDay,
       reminderTime,
+      reminderSnoozeMinutes,
       endHabitDate,
       endHabitDays,
       specificDates,
