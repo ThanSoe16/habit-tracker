@@ -211,7 +211,7 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
                         className={cn(
                           'w-full flex items-center justify-between px-3 py-5 rounded font-bold text-xs transition-all duration-150',
                           item.isActive
-                            ? 'bg-primary/50 text-foreground font-extrabold shadow-2xs'
+                            ? 'data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary data-active:hover:text-primary-foreground font-extrabold shadow-2xs'
                             : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800/60',
                         )}
                       >
@@ -220,7 +220,7 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
                             className={cn(
                               'w-4 h-4 shrink-0',
                               item.isActive
-                                ? 'text-foreground'
+                                ? 'text-primary-foreground'
                                 : 'text-gray-500 dark:text-zinc-400',
                             )}
                           />

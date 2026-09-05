@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Habit } from '@/store/use-habit-store';
 import { Trash2, FastForward, X, RotateCcw, Plus, Minus } from 'lucide-react';
+import { parseHabitCount } from '@/features/habits/utils/progress';
 
 interface HabitCompletionDrawerProps {
   habit: Habit;
@@ -127,7 +128,7 @@ function CompletionForm({
     );
   }
 
-  const currentVal = parseInt(count || '0', 10);
+  const currentVal = parseHabitCount(count);
   const targetGoal = goalValue || 1;
   const remainingVal = Math.max(0, targetGoal - currentVal);
 

@@ -6,6 +6,7 @@ import { cn } from '@/utils/cn';
 import { Habit } from '@/store/use-habit-store';
 import { parseTimeTakenToSeconds, formatTimeTakenDisplay } from '@/utils/time-utils';
 import { HabitDirectionBadge } from '@/components/pages/(habit)/_components/habit-direction-badge';
+import { parseHabitCount } from '@/features/habits/utils/progress';
 
 interface HabitCardProps {
   habit: Habit;
@@ -46,7 +47,7 @@ export function HabitCard({
 
   const currentProgress = () => {
     if (habit.unitType === 'count') {
-      const current = parseInt(String(count) || '0', 10);
+      const current = parseHabitCount(count);
       return `${current} / ${habit.goalValue || 1} ${unitLabel}`;
     }
     if (habit.unitType === 'time') {
@@ -88,7 +89,7 @@ export function HabitCard({
   if (isCompleted) {
     pct = 100;
   } else if (habit.unitType === 'count') {
-    const current = parseInt(String(count) || '0', 10);
+    const current = parseHabitCount(count);
     pct = Math.min(100, Math.max(0, (current / (habit.goalValue || 1)) * 100));
   } else if (habit.unitType === 'time' || habit.unitType === 'duration') {
     const currentSecs = parseTimeTakenToSeconds(timeTaken);

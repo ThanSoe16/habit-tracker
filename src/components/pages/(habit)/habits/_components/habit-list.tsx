@@ -8,6 +8,7 @@ import { HabitCompletionDrawer } from './habit-completion-drawer';
 import { HabitTimerModal } from './habit-timer-modal';
 import { isHabitRequiredOnDate } from '@/utils/date-utils';
 import { parseTimeTakenToSeconds, formatTimeTakenDisplay } from '@/utils/time-utils';
+import { parseHabitCount } from '@/features/habits/utils/progress';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface HabitListProps {
@@ -95,7 +96,7 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
     const entry = habit.history[dateStr];
 
     if (habit.unitType === 'count') {
-      const current = typeof entry === 'object' ? parseInt(entry.count || '0', 10) : 0;
+      const current = typeof entry === 'object' ? parseHabitCount(entry.count) : 0;
       const next = current + 1;
       const isDone = next >= (habit.goalValue || 1);
       toggleHabit(habit.id, dateStr, {
@@ -124,7 +125,7 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
     const entry = habit.history[dateStr];
 
     if (habit.unitType === 'count') {
-      const current = typeof entry === 'object' ? parseInt(entry.count || '0', 10) : 0;
+      const current = typeof entry === 'object' ? parseHabitCount(entry.count) : 0;
       const next = Math.max(0, current - 1);
       const isDone = next >= (habit.goalValue || 1);
       toggleHabit(habit.id, dateStr, {
