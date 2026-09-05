@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { MOODS, useMoodStore } from '@/store/use-mood-store';
+import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { useUserStore } from '@/store/use-user-store';
 import { cn } from '@/utils/cn';
 
 interface MoodEntryDrawerProps {
@@ -83,7 +87,10 @@ const TAG_GROUPS: Record<string, string[]> = {
 };
 
 export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDrawerProps) {
-  const { setMood } = useMoodStore();
+  const { setMood, getMood } = useMoodStore();
+  const enableNotes = useUserStore((state) => state.moodSettings.enableNotes);
+  const [note, setNote] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<'mood' | 'feeling'>('mood');
   const [selectedMood, setSelectedMood] = useState<(typeof MOODS)[0] | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -98,25 +105,35 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
     }
   };
 
-  const handleFinish = () => {
-    if (selectedMood && selectedDate) {
-      setMood(
-        selectedDate,
-        {
-          label: selectedMood.label,
-          emoji: selectedMood.emoji,
-        },
-        selectedTag || undefined,
-      );
+  const handleFinish = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (selectedMood && selectedDate) {
+        await setMood(
+          selectedDate,
+          {
+            label: selectedMood.label,
+            emoji: selectedMood.emoji,
+          },
+          selectedTag || undefined,
+          enableNotes ? (note ?? getMood(selectedDate)?.note ?? '') : undefined,
+        );
 
-      // Reset
-      setTimeout(() => {
-        setStep('mood');
-        setSelectedMood(null);
-        setSelectedTag(null);
-      }, 300);
+        // Reset
+        setTimeout(() => {
+          setStep('mood');
+          setSelectedMood(null);
+          setSelectedTag(null);
+          setNote(null);
+        }, 300);
 
-      onClose();
+        onClose();
+      }
+    } catch {
+      toast.error('Could not save your mood. Please retry.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -130,7 +147,7 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
         }
       }}
     >
-      <DrawerContent className="bg-white border-none text-foreground rounded-t-[2.5rem]">
+      <DrawerContent className="bg-background border-none text-foreground rounded-t-[2.5rem]">
         <div className="mx-auto w-full max-w-sm px-6 pb-10">
           {step === 'mood' ? (
             <>
@@ -203,9 +220,20 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
                   ))}
               </div>
 
+              {enableNotes && (
+                <Field className="mb-4">
+                  <FieldLabel htmlFor="mood-note">Reflection (optional)</FieldLabel>
+                  <Textarea
+                    id="mood-note"
+                    maxLength={2000}
+                    value={note ?? (selectedDate ? getMood(selectedDate)?.note : undefined) ?? ''}
+                    onChange={(event) => setNote(event.target.value)}
+                  />
+                </Field>
+              )}
               <Button
                 onClick={handleFinish}
-                disabled={!selectedTag}
+                disabled={!selectedTag || saving}
                 className="w-full h-14 rounded-full text-lg font-bold bg-primary hover:bg-primary/80 border-none text-white shadow-xl shadow-primary/20 disabled:opacity-30 transition-all active:scale-[0.98]"
               >
                 I Feel {selectedTag}!

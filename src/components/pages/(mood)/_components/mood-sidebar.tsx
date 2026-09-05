@@ -45,8 +45,7 @@ export function MoodAppSidebar({ onSelectTab }: MoodSidebarProps) {
   const pathname = usePathname();
   const { setOpenMobile } = useShadcnSidebar();
 
-  const isTodayActive =
-    pathname === '/mood/today' || pathname === '/mood' || pathname === '/';
+  const isTodayActive = pathname === '/mood/today' || pathname === '/mood' || pathname === '/';
   const isHistoryActive = pathname === '/mood/history';
   const isReportsActive = pathname === '/mood-generals/reports';
   const isSettingsActive = pathname === '/mood-generals/settings';
@@ -201,12 +200,13 @@ export function MoodAppSidebar({ onSelectTab }: MoodSidebarProps) {
                   return (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
+                        variant="primary"
                         onClick={item.action}
                         isActive={item.isActive}
                         className={cn(
                           'w-full flex items-center justify-between px-3 py-5 rounded font-bold text-xs transition-all duration-150',
                           item.isActive
-                            ? 'bg-primary/50 text-foreground font-extrabold shadow-2xs'
+                            ? 'font-extrabold shadow-2xs'
                             : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800/60',
                         )}
                       >
@@ -215,7 +215,7 @@ export function MoodAppSidebar({ onSelectTab }: MoodSidebarProps) {
                             className={cn(
                               'w-4 h-4 shrink-0',
                               item.isActive
-                                ? 'text-foreground'
+                                ? 'text-primary-foreground'
                                 : 'text-gray-500 dark:text-zinc-400',
                             )}
                           />
@@ -280,9 +280,7 @@ export function MoodAppSidebar({ onSelectTab }: MoodSidebarProps) {
               <h4 className="font-extrabold text-xs text-gray-900 dark:text-white truncate">
                 {name || 'User'}
               </h4>
-              <p className="text-[10px] text-gray-400 dark:text-zinc-400 truncate">
-                Mood Tracker
-              </p>
+              <p className="text-[10px] text-gray-400 dark:text-zinc-400 truncate">Mood Tracker</p>
             </div>
           </button>
 

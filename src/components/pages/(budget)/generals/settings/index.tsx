@@ -1,23 +1,22 @@
 'use client';
-
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
+import { toast } from 'sonner';
+import { Download, Upload } from 'lucide-react';
+import { useBudgetStore, CURRENCIES, type CurrencyCode } from '@/store/use-budget-store';
 import {
-  Wallet,
-  Download,
-  Upload,
-  RotateCcw,
-  Check,
-  ShieldAlert,
-  Save,
-  Globe,
-  SlidersHorizontal,
-} from 'lucide-react';
+  budgetBackupSchema,
+  createBudgetBackup,
+  type BudgetBackup,
+} from '@/features/budget/utils/backup';
 import {
-  useBudgetStore,
-  CURRENCIES,
-} from '@/store/use-budget-store';
-import { MoneyInput } from '@/components/ui/money-input';
-import { cn } from '@/utils/cn';
+  AppSettingsLink,
+  SettingsChoice,
+  SettingsSaveStatus,
+  SettingsSection,
+} from '@/components/settings/settings-controls';
+import { Button } from '@/components/ui/button';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,298 +27,246 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useUnsavedChanges } from '@/features/settings/use-unsaved-changes';
+
+const codes = Object.keys(CURRENCIES) as CurrencyCode[];
+
+function WalletForm() {
+  const { walletBalances, importBudgetData } = useBudgetStore();
+  const [draft, setDraft] = useState<Partial<Record<CurrencyCode, string>>>({});
+  const dirty = Object.keys(draft).length > 0;
+  useUnsavedChanges(dirty);
+  const [error, setError] = useState('');
+  const save = (event: FormEvent) => {
+    event.preventDefault();
+    const updates = Object.fromEntries(
+      Object.entries(draft).map(([code, value]) => [code, Number(value)]),
+    );
+    if (
+      Object.values(draft).some((value) => !value?.trim()) ||
+      Object.values(updates).some((value) => !Number.isFinite(value) || value < 0)
+    ) {
+      setError('Enter a valid, nonnegative balance for each wallet.');
+      return;
+    }
+    importBudgetData({ walletBalances: { ...walletBalances, ...updates } });
+    setDraft({});
+    setError('');
+  };
+  return (
+    <form onSubmit={save}>
+      <FieldGroup>
+        {codes.map((code) => (
+          <Field key={code} data-invalid={!!error || undefined}>
+            <FieldLabel htmlFor={`balance-${code}`}>{CURRENCIES[code].name} balance</FieldLabel>
+            <Input
+              id={`balance-${code}`}
+              type="number"
+              min="0"
+              step="any"
+              required
+              value={draft[code] ?? walletBalances[code]}
+              onChange={(event) => setDraft({ ...draft, [code]: event.target.value })}
+              aria-invalid={!!error}
+              aria-describedby={error ? 'balance-error' : undefined}
+            />
+          </Field>
+        ))}
+        {error && (
+          <p id="balance-error" role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" disabled={!dirty}>
+            Save balances
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!dirty}
+            onClick={() => {
+              setDraft({});
+              setError('');
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      </FieldGroup>
+    </form>
+  );
+}
 
 export default function BudgetSettingsPage() {
-  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
-  const [savedFeedback, setSavedFeedback] = useState(false);
-
-  const {
-    walletBalances,
-    updateWalletBalance,
-    budgetEntries,
-    monthlySalaries,
-    familyTransactions,
-    resetBudgetData,
-    importBudgetData,
-    currency,
-    setCurrency,
-  } = useBudgetStore();
-
-  const [usdtBal, setUsdtBal] = useState((walletBalances.USDT || 0).toString());
-  const [thbBal, setThbBal] = useState((walletBalances.THB || 0).toString());
-  const [mmkBal, setMmkBal] = useState((walletBalances.MMK || 0).toString());
-  const [sgdBal, setSgdBal] = useState((walletBalances.SGD || 0).toString());
-
-  const handleSaveBalances = (e: React.FormEvent) => {
-    e.preventDefault();
-    const u = parseFloat(usdtBal) || 0;
-    const t = parseFloat(thbBal) || 0;
-    const m = parseFloat(mmkBal) || 0;
-    const s = parseFloat(sgdBal) || 0;
-
-    updateWalletBalance('USDT', u);
-    updateWalletBalance('THB', t);
-    updateWalletBalance('MMK', m);
-    updateWalletBalance('SGD', s);
-
-    setSavedFeedback(true);
-    setTimeout(() => setSavedFeedback(false), 2500);
+  const store = useBudgetStore();
+  const [backup, setBackup] = useState<BudgetBackup | null>(null);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [reading, setReading] = useState(false);
+  const [formKey, setFormKey] = useState(0);
+  const exportBackup = () => {
+    try {
+      const blob = new Blob([JSON.stringify(createBudgetBackup(store), null, 2)], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `habit-budget-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      toast.error('Could not export this budget. Check your records for invalid values.');
+    }
   };
-
-  const handleExportJSON = () => {
-    const data = {
-      version: '2.0',
-      exportedAt: new Date().toISOString(),
-      walletBalances,
-      monthlySalaries,
-      budgetEntries,
-      familyTransactions,
-    };
-
-    const jsonStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `budget-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const readBackup = async (file?: File) => {
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const parsed = JSON.parse(event.target?.result as string);
-        if (parsed) {
-          importBudgetData(parsed);
-          if (parsed.walletBalances) {
-            setUsdtBal((parsed.walletBalances.USDT || 0).toString());
-            setThbBal((parsed.walletBalances.THB || 0).toString());
-            setMmkBal((parsed.walletBalances.MMK || 0).toString());
-            setSgdBal((parsed.walletBalances.SGD || 0).toString());
-          }
-          alert('Budget data imported successfully!');
-        }
-      } catch (err) {
-        alert('Invalid JSON backup file format.');
-      }
-    };
-    reader.readAsText(file);
+    setReading(true);
+    try {
+      if (file.size > 20 * 1024 * 1024) throw new Error('Backup must be smaller than 20 MB.');
+      const result = budgetBackupSchema.safeParse(JSON.parse(await file.text()));
+      if (!result.success)
+        throw new Error('This is not a supported budget backup, or it contains invalid records.');
+      setBackup(result.data);
+    } catch (error) {
+      toast.error(
+        error instanceof SyntaxError
+          ? 'The file is not valid JSON.'
+          : error instanceof Error
+            ? error.message
+            : 'Could not read backup.',
+      );
+    } finally {
+      setReading(false);
+    }
   };
-
   return (
-    <div className="space-y-5">
-      {/* 1. WALLET INITIAL BALANCES ADJUSTMENT */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
-        <div className="flex items-center justify-between pb-1 border-b border-gray-100 dark:border-zinc-800">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <Wallet className="w-4.5 h-4.5" />
-            </div>
-            <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
-              Adjust Wallet Balances
-            </h2>
-          </div>
-
-          {savedFeedback && (
-            <span className="text-xs font-black text-emerald-600 flex items-center gap-1">
-              <Check className="w-3.5 h-3.5" /> Saved!
-            </span>
-          )}
-        </div>
-
-        <form onSubmit={handleSaveBalances} className="space-y-3.5">
-          <div>
-            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-              💵 USDT Wallet Balance ($)
-            </label>
-            <MoneyInput
-              value={usdtBal}
-              setValue={setUsdtBal}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-              🇹🇭 THB Wallet Balance (฿)
-            </label>
-            <MoneyInput
-              value={thbBal}
-              setValue={setThbBal}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-              🇲🇲 MMK Wallet Balance (K)
-            </label>
-            <MoneyInput
-              value={mmkBal}
-              setValue={setMmkBal}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-              🇸🇬 SGD Wallet Balance (S$)
-            </label>
-            <MoneyInput
-              value={sgdBal}
-              setValue={setSgdBal}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-extrabold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl text-xs shadow-md shadow-emerald-500/25 transition-all flex items-center justify-center gap-2"
-          >
-            <Save className="w-4 h-4" /> Save Wallet Balances
-          </button>
-        </form>
-      </div>
-
-      {/* 2. CURRENCY DISPLAY PREFERENCE */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
-        <div className="flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-zinc-800">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-            <Globe className="w-4.5 h-4.5" />
-          </div>
-          <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
-            Default Display Currency
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-4 gap-2">
-          {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
-            <button
-              key={code}
-              type="button"
-              onClick={() => setCurrency(code)}
-              className={cn(
-                'p-3 rounded-2xl border text-center transition-all',
-                currency === code
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 font-black'
-                  : 'bg-gray-50 dark:bg-zinc-800/60 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 font-bold',
-              )}
-            >
-              <span className="text-base block">{CURRENCIES[code].flag}</span>
-              <span className="text-xs block mt-1">{code}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 3. DATA BACKUP & RESTORE */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
-        <div className="flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-zinc-800">
-          <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-            <SlidersHorizontal className="w-4.5 h-4.5" />
-          </div>
-          <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
-            Data Management & Backup
-          </h2>
-        </div>
-
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={handleExportJSON}
-            className="w-full p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 transition-all flex items-center justify-between text-left"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <Download className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-xs text-gray-900 dark:text-white">
-                  Export Backup (JSON)
-                </h3>
-                <p className="text-[10px] font-bold text-gray-400">
-                  Download full budget transactions & settings file
-                </p>
-              </div>
-            </div>
-          </button>
-
-          <label className="w-full p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 transition-all flex items-center justify-between cursor-pointer">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                <Upload className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-xs text-gray-900 dark:text-white">
-                  Import Backup (JSON)
-                </h3>
-                <p className="text-[10px] font-bold text-gray-400">
-                  Restore budget entries from a backup JSON file
-                </p>
-              </div>
-            </div>
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImportJSON}
-              className="hidden"
-            />
-          </label>
-
-          <button
-            type="button"
-            onClick={() => setIsResetDialogOpen(true)}
-            className="w-full p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 transition-all flex items-center justify-between text-left"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                <RotateCcw className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-xs text-rose-700 dark:text-rose-300">
-                  Reset All Budget Data
-                </h3>
-                <p className="text-[10px] font-bold text-rose-400">
-                  Wipe all records and reset wallet balances to 0
-                </p>
-              </div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* RESET CONFIRMATION DIALOG */}
-      <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-        <AlertDialogContent className="z-[100] max-w-sm rounded-3xl p-6 bg-white dark:bg-zinc-900">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 pb-8">
+      <SettingsSaveStatus scope="budget" />
+      <SettingsSection
+        title="Currency"
+        description="Choose the default display currency. This does not exchange your funds."
+      >
+        <SettingsChoice
+          label="Display currency"
+          value={store.currency}
+          onChange={store.setCurrency}
+          options={codes.map((code) => ({ value: code, label: code }))}
+        />
+      </SettingsSection>
+      <SettingsSection
+        title="Adjust wallet balances"
+        description="Replace current balances directly. These adjustments do not create transactions."
+      >
+        <WalletForm key={formKey} />
+      </SettingsSection>
+      <SettingsSection
+        title="Backup & restore"
+        description="Back up balances, transactions, salary templates, family records, loans, gold holdings, and budget preferences."
+      >
+        <Button variant="outline" onClick={exportBackup}>
+          <Download data-icon="inline-start" />
+          Export backup
+        </Button>
+        <Field>
+          <FieldLabel htmlFor="budget-import">
+            <Upload className="size-4" />
+            Import backup
+          </FieldLabel>
+          <Input
+            id="budget-import"
+            type="file"
+            accept=".json,application/json"
+            disabled={reading}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              void readBackup(file);
+            }}
+          />
+          <FieldDescription>
+            {reading
+              ? 'Validating backup…'
+              : 'JSON, up to 20 MB. Review the contents before restoring.'}
+          </FieldDescription>
+        </Field>
+      </SettingsSection>
+      <SettingsSection
+        title="Delete budget data"
+        description="Delete transactions, salary templates, family records, loans, and gold holdings, and set wallet balances to zero. Other modules are unaffected."
+      >
+        <Button variant="destructive" onClick={() => setResetOpen(true)}>
+          Reset budget data
+        </Button>
+      </SettingsSection>
+      <AppSettingsLink />
+      <AlertDialog
+        open={!!backup}
+        onOpenChange={(open) => {
+          if (!open) setBackup(null);
+        }}
+      >
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base font-black flex items-center gap-2 text-rose-600">
-              <ShieldAlert className="w-5 h-5" /> Reset All Budget Data?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-gray-500 font-medium">
-              This action will delete all logged transactions, salary templates, and reset your wallet balances to zero. This action cannot be undone.
+            <AlertDialogTitle>Restore budget backup?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This replaces the categories included in the file. Export your current budget first if
+              you want to keep it. Unsaved wallet edits will be discarded.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex gap-2 mt-4">
-            <AlertDialogCancel className="flex-1 py-2.5 rounded-xl font-bold text-xs">
-              Cancel
-            </AlertDialogCancel>
+          {backup && (
+            <div className="flex flex-col gap-2 text-sm">
+              <p>Exported {new Date(backup.exportedAt).toLocaleString()}</p>
+              <p>
+                {backup.budgetEntries.length} transactions · {backup.monthlySalaries.length}{' '}
+                salaries · {backup.familyTransactions.length} family records
+              </p>
+              <p>
+                {backup.loans?.length ?? 'Unchanged'} loans ·{' '}
+                {backup.goldHoldings?.length ?? 'Unchanged'} gold holdings
+              </p>
+              <p>
+                {backup.version === '2.0'
+                  ? 'Older backup: any missing categories and preferences will be kept.'
+                  : 'Complete backup: all budget categories and preferences will be replaced.'}
+              </p>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                resetBudgetData();
-                setUsdtBal('0');
-                setThbBal('0');
-                setMmkBal('0');
-                setSgdBal('0');
-                setIsResetDialogOpen(false);
+                if (backup) {
+                  store.importBudgetData(backup);
+                  setFormKey((key) => key + 1);
+                  setBackup(null);
+                }
               }}
-              className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-500/20"
             >
-              Reset Data
+              Restore backup
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset all budget data?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes all budget records and zeros your balances. Export a backup
+              first if you may need these records later. Unsaved wallet edits will be discarded.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                store.resetBudgetData();
+                setFormKey((key) => key + 1);
+              }}
+            >
+              Reset budget data
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

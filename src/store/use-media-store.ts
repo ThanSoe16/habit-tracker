@@ -25,6 +25,8 @@ export type MediaEntry = z.infer<typeof mediaEntrySchema>;
 interface MediaStoreState {
   mediaEntries: MediaEntry[];
   isLoaded: boolean;
+  lastSyncedAt: string | null;
+  syncError: string | null;
   fetchFromSupabase: () => Promise<void>;
   addMediaEntry: (entry: MediaEntry) => Promise<void>;
   deleteMediaEntry: (id: string) => Promise<void>;
@@ -33,29 +35,28 @@ interface MediaStoreState {
 
 export const useMediaStore = create<MediaStoreState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       mediaEntries: [],
       isLoaded: false,
+      lastSyncedAt: null,
+      syncError: null,
 
       fetchFromSupabase: async () => {
         try {
           const entries = await mediaItemsService.fetchMediaEntries();
-          if (entries === null) {
-            set({ isLoaded: true });
-          } else if (entries.length > 0) {
-            set({ mediaEntries: entries, isLoaded: true });
-          } else {
-            const localEntries = get().mediaEntries;
-            if (localEntries.length > 0) {
-              await Promise.all(
-                localEntries.map((entry) => mediaItemsService.insertMediaEntry(entry)),
-              );
-            }
-            set({ isLoaded: true });
-          }
+          if (entries === null) throw new Error('Could not refresh your media library.');
+          set({
+            mediaEntries: entries,
+            isLoaded: true,
+            lastSyncedAt: new Date().toISOString(),
+            syncError: null,
+          });
         } catch (err) {
           console.warn('Error fetching media items from Supabase:', err);
-          set({ isLoaded: true });
+          set({
+            isLoaded: true,
+            syncError: err instanceof Error ? err.message : 'Could not refresh media.',
+          });
         }
       },
 
@@ -82,6 +83,7 @@ export const useMediaStore = create<MediaStoreState>()(
     }),
     {
       name: 'media-store',
+      partialize: (state) => ({ mediaEntries: state.mediaEntries }),
     },
   ),
 );

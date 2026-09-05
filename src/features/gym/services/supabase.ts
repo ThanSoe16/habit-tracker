@@ -110,9 +110,9 @@ export const gymService = {
       .from('user_profiles')
       .select('gym_settings')
       .eq('id', 'default_user')
-      .single();
+      .maybeSingle();
 
-    if (error) return null;
+    if (error) throw new Error(error.message);
     return data?.gym_settings || null;
   },
 
@@ -121,6 +121,6 @@ export const gymService = {
       .from('user_profiles')
       .upsert({ id: 'default_user', gym_settings: settings }, { onConflict: 'id' });
 
-    if (error) console.warn('Error saving gym settings to Supabase:', error.message);
+    if (error) throw new Error(error.message);
   },
 };

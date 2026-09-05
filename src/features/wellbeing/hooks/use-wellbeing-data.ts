@@ -2,8 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { digitalWellbeingService, type WellbeingDashboardRows } from '../services/supabase';
-import type { AppCategory, AppLimit, AppUsage, DailyUsage, FocusHistoryItem, WellbeingChallenge, WellbeingInsight } from '../types';
-import type { DigitalWellbeingAppUsageRow, DigitalWellbeingUserChallengeRow } from '../types/database';
+import type {
+  AppCategory,
+  AppLimit,
+  AppUsage,
+  DailyUsage,
+  FocusHistoryItem,
+  WellbeingChallenge,
+  WellbeingInsight,
+} from '../types';
+import type {
+  DigitalWellbeingAppUsageRow,
+  DigitalWellbeingUserChallengeRow,
+} from '../types/database';
 
 const categoryNames: Record<string, AppCategory> = {
   SOCIAL: 'Social',
@@ -14,8 +25,16 @@ const categoryNames: Record<string, AppCategory> = {
 };
 
 const emptyRows: WellbeingDashboardRows = {
-  dailyUsage: [], appUsage: [], appLimits: [], focusSessions: [], focusSessionApps: [],
-  challenges: [], userChallenges: [], settings: null, bedtime: null, insights: [],
+  dailyUsage: [],
+  appUsage: [],
+  appLimits: [],
+  focusSessions: [],
+  focusSessionApps: [],
+  challenges: [],
+  userChallenges: [],
+  settings: null,
+  bedtime: null,
+  insights: [],
 };
 
 function aggregateAppUsage(rows: DigitalWellbeingAppUsageRow[]) {
@@ -37,12 +56,16 @@ function aggregateAppUsage(rows: DigitalWellbeingAppUsageRow[]) {
   }
   const totalSeconds = [...appsById.values()].reduce((sum, app) => sum + app.durationSeconds, 0);
   return [...appsById.values()]
-    .map((app) => ({ ...app, percentage: totalSeconds ? Math.round(app.durationSeconds / totalSeconds * 100) : 0 }))
+    .map((app) => ({
+      ...app,
+      percentage: totalSeconds ? Math.round((app.durationSeconds / totalSeconds) * 100) : 0,
+    }))
     .sort((a, b) => b.durationSeconds - a.durationSeconds);
 }
 
 export function useWellbeingData(days = 30) {
   const [rows, setRows] = useState<WellbeingDashboardRows>(emptyRows);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +73,7 @@ export function useWellbeingData(days = 30) {
     setIsLoading(true);
     try {
       setRows(await digitalWellbeingService.fetchDashboard());
+      setHasLoaded(true);
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to load wellbeing data.');
@@ -58,9 +82,13 @@ export function useWellbeingData(days = 30) {
     }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => {
-    const handleChange = () => { void refresh(); };
+    void refresh();
+  }, [refresh]);
+  useEffect(() => {
+    const handleChange = () => {
+      void refresh();
+    };
     window.addEventListener('digital-wellbeing-change', handleChange);
     return () => window.removeEventListener('digital-wellbeing-change', handleChange);
   }, [refresh]);
@@ -83,8 +111,14 @@ export function useWellbeingData(days = 30) {
 
     const today = new Date().toLocaleDateString('en-CA');
     const appUsage = aggregateAppUsage(periodAppRows);
-    const todayAppUsage = aggregateAppUsage(rows.appUsage.filter((row) => row.usage_date === today));
-    const todayUsage = new Map(rows.appUsage.filter((row) => row.usage_date === today).map((row) => [row.app_identifier, row.usage_seconds]));
+    const todayAppUsage = aggregateAppUsage(
+      rows.appUsage.filter((row) => row.usage_date === today),
+    );
+    const todayUsage = new Map(
+      rows.appUsage
+        .filter((row) => row.usage_date === today)
+        .map((row) => [row.app_identifier, row.usage_seconds]),
+    );
     const appLimits: AppLimit[] = rows.appLimits.map((row) => ({
       id: row.id,
       appIdentifier: row.app_identifier,
@@ -97,7 +131,12 @@ export function useWellbeingData(days = 30) {
     }));
 
     const appsBySession = new Map<string, string[]>();
-    rows.focusSessionApps.forEach((row) => appsBySession.set(row.focus_session_id, [...(appsBySession.get(row.focus_session_id) ?? []), row.app_name]));
+    rows.focusSessionApps.forEach((row) =>
+      appsBySession.set(row.focus_session_id, [
+        ...(appsBySession.get(row.focus_session_id) ?? []),
+        row.app_name,
+      ]),
+    );
     const focusHistory: FocusHistoryItem[] = rows.focusSessions.map((row) => ({
       id: row.id,
       startedAt: row.started_at,
@@ -108,14 +147,19 @@ export function useWellbeingData(days = 30) {
 
     const latestUserChallenge = new Map<string, DigitalWellbeingUserChallengeRow>();
     rows.userChallenges.forEach((row) => {
-      if (!latestUserChallenge.has(row.challenge_id)) latestUserChallenge.set(row.challenge_id, row);
+      if (!latestUserChallenge.has(row.challenge_id))
+        latestUserChallenge.set(row.challenge_id, row);
     });
     const challenges: WellbeingChallenge[] = rows.challenges.map((challenge) => {
       const userChallenge = latestUserChallenge.get(challenge.id);
       const startedAt = userChallenge?.started_at ?? '';
-      const endDate = userChallenge?.ended_at ?? (startedAt && challenge.duration_days
-        ? new Date(new Date(startedAt).getTime() + challenge.duration_days * 86_400_000).toISOString()
-        : '');
+      const endDate =
+        userChallenge?.ended_at ??
+        (startedAt && challenge.duration_days
+          ? new Date(
+              new Date(startedAt).getTime() + challenge.duration_days * 86_400_000,
+            ).toISOString()
+          : '');
       return {
         id: challenge.id,
         enrollmentId: userChallenge?.id,
@@ -139,8 +183,18 @@ export function useWellbeingData(days = 30) {
       period: row.insight_type === 'LATE_NIGHT_USAGE' ? 'monthly' : 'weekly',
     }));
 
-    return { dailyUsage, appUsage, todayAppUsage, appLimits, focusHistory, challenges, insights, settings: rows.settings, bedtime: rows.bedtime };
+    return {
+      dailyUsage,
+      appUsage,
+      todayAppUsage,
+      appLimits,
+      focusHistory,
+      challenges,
+      insights,
+      settings: rows.settings,
+      bedtime: rows.bedtime,
+    };
   }, [days, rows]);
 
-  return { ...data, rows, isLoading, error, refresh };
+  return { ...data, rows, isLoading, hasLoaded, error, refresh };
 }

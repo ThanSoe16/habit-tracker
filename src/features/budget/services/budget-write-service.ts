@@ -132,7 +132,7 @@ export const budgetWriteService = {
     const expenses = entries.filter((entry) => entry.type === 'expense').map(toIncomePayload);
     const exchanges = entries.filter((entry) => entry.type === 'exchange').map(toExchangePayload);
 
-    await Promise.all([
+    const results = await Promise.allSettled([
       incomes.length > 0
         ? runMutation(
             supabase.from('incomes').upsert(incomes, { onConflict: 'id' }),
@@ -152,6 +152,8 @@ export const budgetWriteService = {
           )
         : Promise.resolve(),
     ]);
+    const failure = results.find((result) => result.status === 'rejected');
+    if (failure?.status === 'rejected') throw failure.reason;
   },
 
   async upsertMonthlySalaries(salaries: MonthlySalary[]): Promise<void> {

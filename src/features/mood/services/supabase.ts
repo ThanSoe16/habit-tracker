@@ -16,6 +16,7 @@ export const moodService = {
           label: row.label,
           emoji: row.emoji,
           tag: row.tag || undefined,
+          note: row.note || undefined,
           timestamp: row.timestamp || new Date().toISOString(),
         };
       }
@@ -30,13 +31,14 @@ export const moodService = {
       label: entry.label,
       emoji: entry.emoji,
       tag: entry.tag || null,
+      ...(entry.note !== undefined ? { note: entry.note } : {}),
       timestamp: entry.timestamp,
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase
       .from('mood_entries')
       .upsert(payload, { onConflict: 'date_key' });
-    if (error) console.warn('Error upserting mood entry to Supabase:', error.message);
+    if (error) throw new Error(error.message);
   },
 
   async deleteAllMoods(): Promise<void> {

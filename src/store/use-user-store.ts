@@ -2,6 +2,8 @@
 
 import { create } from 'zustand';
 import { userService } from '@/features/users/services/supabase';
+import { createSaveQueue } from '@/features/settings/save-queue';
+import { reportSettingsSync } from '@/features/settings/sync-status';
 import { z } from 'zod';
 
 export const themeSchema = z.enum(['light', 'dark', 'system']);
@@ -29,6 +31,8 @@ export const homeSettingsSchema = z.object({
 });
 
 export const moodSettingsSchema = z.object({
+  remindersEnabled: z.boolean(),
+  reminderTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   enableNotes: z.boolean(),
   showStreak: z.boolean(),
 });
@@ -48,6 +52,8 @@ export const DEFAULT_HOME_SETTINGS: HomeSettings = {
 };
 
 export const DEFAULT_MOOD_SETTINGS: MoodSettings = {
+  remindersEnabled: false,
+  reminderTime: '20:00',
   enableNotes: true,
   showStreak: true,
 };
@@ -88,7 +94,7 @@ interface UserStore {
   updateHomeSettings: (updates: Partial<HomeSettings>) => void;
 }
 
-function saveProfile(state: UserStore) {
+function writeProfile(state: UserStore) {
   return userService.upsertProfile({
     name: state.name,
     avatarEmoji: state.avatarEmoji,
@@ -104,6 +110,11 @@ function saveProfile(state: UserStore) {
     moodSettings: state.moodSettings,
   });
 }
+
+const profileQueue = createSaveQueue(writeProfile, (status, error) =>
+  reportSettingsSync('profile', status, () => profileQueue.retry(), error),
+);
+const saveProfile = (state: UserStore) => profileQueue.save(state);
 
 export const useUserStore = create<UserStore>()((set, get) => ({
   name: 'User',
@@ -121,9 +132,13 @@ export const useUserStore = create<UserStore>()((set, get) => ({
   isLoaded: false,
 
   fetchFromSupabase: async () => {
+    if (profileQueue.hasPending) return;
+    const revision = profileQueue.revision;
     try {
       const profile = await userService.fetchProfile();
+      if (profileQueue.hasPending || revision !== profileQueue.revision) return;
       if (profile) {
+        reportSettingsSync('profile', 'idle', () => profileQueue.retry());
         set({
           name: profile.name || 'User',
           avatarEmoji: profile.avatar_emoji || '😊',
@@ -133,19 +148,19 @@ export const useUserStore = create<UserStore>()((set, get) => ({
           ringtone: (profile.ringtone as RingtoneType) || 'chime',
           customRingtoneUrl: profile.custom_ringtone_url || undefined,
           vibrationEnabled: profile.vibration_enabled ?? true,
-          theme: (profile.theme as Theme) || 'light',
-          appearanceSettings: {
+          theme: themeSchema.catch('system').parse(profile.theme),
+          appearanceSettings: appearanceSettingsSchema.catch(DEFAULT_APPEARANCE_SETTINGS).parse({
             ...DEFAULT_APPEARANCE_SETTINGS,
             ...(profile.appearance_settings || {}),
-          },
-          homeSettings: {
+          }),
+          homeSettings: homeSettingsSchema.catch(DEFAULT_HOME_SETTINGS).parse({
             ...DEFAULT_HOME_SETTINGS,
             ...(profile.home_settings || {}),
-          },
-          moodSettings: {
+          }),
+          moodSettings: moodSettingsSchema.catch(DEFAULT_MOOD_SETTINGS).parse({
             ...DEFAULT_MOOD_SETTINGS,
             ...(profile.mood_settings || {}),
-          },
+          }),
           isLoaded: true,
         });
       } else {
@@ -154,8 +169,14 @@ export const useUserStore = create<UserStore>()((set, get) => ({
         saveProfile(state);
       }
     } catch (e) {
-      console.warn('Failed to fetch profile from Supabase:', e);
-      set({ isLoaded: true });
+      reportSettingsSync(
+        'profile',
+        'error',
+        () => {
+          void get().fetchFromSupabase();
+        },
+        e instanceof Error ? e.message : 'Unable to load settings.',
+      );
     }
   },
 

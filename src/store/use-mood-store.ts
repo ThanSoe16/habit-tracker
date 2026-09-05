@@ -10,6 +10,7 @@ export const moodEntrySchema = z.object({
   label: z.string(),
   emoji: z.string(),
   tag: z.string().optional(),
+  note: z.string().optional(),
   timestamp: z.string(),
 });
 
@@ -19,7 +20,12 @@ interface MoodStore {
   history: Record<string, MoodEntry>; // Key: YYYY-MM-DD
   isLoaded: boolean;
   fetchFromSupabase: () => Promise<void>;
-  setMood: (date: Date, mood: { label: string; emoji: string }, tag?: string) => void;
+  setMood: (
+    date: Date,
+    mood: { label: string; emoji: string },
+    tag?: string,
+    note?: string,
+  ) => Promise<void>;
   clearHistory: () => Promise<void>;
   getMood: (date: Date) => MoodEntry | null;
 }
@@ -46,24 +52,27 @@ export const useMoodStore = create<MoodStore>()((set, get) => ({
     }
   },
 
-  setMood: (date, mood, tag) => {
+  setMood: async (date, mood, tag, note) => {
     const dateKey = format(date, 'yyyy-MM-dd');
     const entry: MoodEntry = {
       mood: mood.label,
       label: mood.label,
       emoji: mood.emoji,
       tag,
+      note:
+        note?.trim() || get().history[dateKey]?.note !== undefined
+          ? (note ?? get().history[dateKey]?.note)
+          : undefined,
       timestamp: new Date().toISOString(),
     };
 
+    await moodService.upsertMood(dateKey, entry);
     set((state) => ({
       history: {
         ...state.history,
         [dateKey]: entry,
       },
     }));
-
-    moodService.upsertMood(dateKey, entry);
   },
 
   clearHistory: async () => {

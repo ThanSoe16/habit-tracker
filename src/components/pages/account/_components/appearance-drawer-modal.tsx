@@ -1,12 +1,8 @@
 'use client';
 
+import { SettingsSaveStatus } from '@/components/settings/settings-controls';
 import { Monitor, Moon, Palette, Rows3, Sparkles, Sun } from 'lucide-react';
-import {
-  AccentColor,
-  InterfaceDensity,
-  Theme,
-  useUserStore,
-} from '@/store/use-user-store';
+import { AccentColor, InterfaceDensity, Theme, useUserStore } from '@/store/use-user-store';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -53,10 +49,7 @@ const ACCENT_OPTIONS: Array<{ value: AccentColor; label: string; swatch: string 
   { value: 'violet', label: 'Energy Violet', swatch: 'bg-violet-500' },
 ];
 
-export function AppearanceDrawerModal({
-  isOpen,
-  onOpenChange,
-}: AppearanceDrawerModalProps) {
+export function AppearanceDrawerModal({ isOpen, onOpenChange }: AppearanceDrawerModalProps) {
   const { theme, setTheme, appearanceSettings, updateAppearanceSettings } = useUserStore();
 
   return (
@@ -74,6 +67,7 @@ export function AppearanceDrawerModal({
         </DrawerHeader>
 
         <div className="overflow-y-auto px-4 pb-2">
+          <SettingsSaveStatus />
           <FieldGroup>
             <Field>
               <FieldContent>
@@ -167,9 +161,7 @@ export function AppearanceDrawerModal({
               </FieldContent>
               <Switch
                 checked={appearanceSettings.reduceMotion}
-                onCheckedChange={(checked) =>
-                  updateAppearanceSettings({ reduceMotion: checked })
-                }
+                onCheckedChange={(checked) => updateAppearanceSettings({ reduceMotion: checked })}
                 aria-label="Reduce motion"
               />
             </Field>

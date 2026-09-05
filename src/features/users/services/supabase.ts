@@ -6,11 +6,10 @@ export const userService = {
       .from('user_profiles')
       .select('*')
       .eq('id', 'default_user')
-      .single();
+      .maybeSingle();
 
     if (error) {
-      console.warn('Error fetching user profile from Supabase:', error.message);
-      return null;
+      throw new Error(error.message);
     }
     return data;
   },
@@ -22,12 +21,12 @@ export const userService = {
     remindersEnabled: boolean;
     dailyReminderTime: string;
     theme: 'light' | 'dark' | 'system';
-    appearanceSettings?: Record<string, any>;
-    homeSettings?: Record<string, any>;
+    appearanceSettings?: Record<string, unknown>;
+    homeSettings?: Record<string, unknown>;
     ringtone?: string;
     customRingtoneUrl?: string;
     vibrationEnabled?: boolean;
-    moodSettings?: Record<string, any>;
+    moodSettings?: Record<string, unknown>;
   }) {
     const payload = {
       id: 'default_user',
@@ -46,6 +45,6 @@ export const userService = {
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'id' });
-    if (error) console.warn('Error upserting user profile to Supabase:', error.message);
+    if (error) throw new Error(error.message);
   },
 };

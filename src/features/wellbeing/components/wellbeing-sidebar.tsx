@@ -1,7 +1,8 @@
 'use client';
+import { useSettingsRouter } from '@/features/settings/use-unsaved-changes';
 
 import { LogOut, Moon, ShieldCheck, Sun } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -21,7 +22,7 @@ import { cn } from '@/utils/cn';
 
 export function WellbeingSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router = useSettingsRouter();
   const { setOpenMobile } = useSidebar();
   const { name, avatarEmoji, theme, setTheme } = useUserStore();
 
@@ -62,12 +63,13 @@ export function WellbeingSidebar() {
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
+                      variant="primary"
                       isActive={active}
                       onClick={() => navigate(item.href)}
                       className={cn(
                         'w-full rounded px-3 py-5 text-xs font-bold transition-all duration-150',
                         active
-                          ? 'bg-primary/50 font-extrabold text-foreground shadow-2xs'
+                          ? 'font-extrabold shadow-2xs'
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                       )}
                     >
@@ -99,21 +101,36 @@ export function WellbeingSidebar() {
             onClick={() => setColorMode('dark')}
             className={cn(
               'flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-bold transition-all',
-              theme === 'dark' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground',
+              theme === 'dark'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground',
             )}
           >
             <Moon className="size-3.5" /> Dark
           </button>
         </div>
         <div className="flex items-center justify-between">
-          <button type="button" onClick={() => navigate('/account')} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-base">{avatarEmoji || '🧘'}</span>
+          <button
+            type="button"
+            onClick={() => navigate('/account')}
+            className="flex min-w-0 flex-1 items-center gap-3 text-left"
+          >
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-base">
+              {avatarEmoji || '🧘'}
+            </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-xs font-extrabold">{name || 'User'}</span>
-              <span className="block truncate text-[10px] text-muted-foreground">Account & preferences</span>
+              <span className="block truncate text-[10px] text-muted-foreground">
+                Account & preferences
+              </span>
             </span>
           </button>
-          <button type="button" onClick={() => navigate('/account')} className="flex size-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground" title="Exit wellbeing">
+          <button
+            type="button"
+            onClick={() => navigate('/account')}
+            className="flex size-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
+            title="Exit wellbeing"
+          >
             <LogOut className="size-4" />
           </button>
         </div>

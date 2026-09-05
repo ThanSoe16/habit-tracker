@@ -1,5 +1,7 @@
 'use client';
 
+import { createSaveQueue } from '@/features/settings/save-queue';
+import { reportSettingsSync } from '@/features/settings/sync-status';
 import { create } from 'zustand';
 import { gymService } from '@/features/gym/services/supabase';
 import type { GymStore } from '@/features/gym/store/types';
@@ -29,6 +31,10 @@ import {
 export * from '@/features/gym/store/model';
 export * from '@/features/gym/store/presets';
 
+const gymSettingsQueue = createSaveQueue(gymService.saveGymSettings, (status, error) =>
+  reportSettingsSync('workout', status, () => gymSettingsQueue.retry(), error),
+);
+
 export const useGymStore = create<GymStore>()((set, get) => ({
   weeklyPlan: DEFAULT_INITIAL_PLAN,
   customExercises: [],
@@ -39,6 +45,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   isLoaded: false,
 
   fetchFromSupabase: async () => {
+    const settingsRevision = gymSettingsQueue.revision;
     try {
       const remotePlans = await gymService.fetchGymPlans();
       const remoteCustomEx = await gymService.fetchCustomExercises();
@@ -59,15 +66,23 @@ export const useGymStore = create<GymStore>()((set, get) => ({
           history: remoteHistory,
           gymSettings: {
             ...DEFAULT_GYM_SETTINGS,
-            ...(remoteSettings || {}),
+            ...(gymSettingsQueue.hasPending || settingsRevision !== gymSettingsQueue.revision
+              ? get().gymSettings
+              : remoteSettings || {}),
           },
           bodyMetricLogs: remoteMetrics,
           isLoaded: true,
         });
       });
     } catch (e) {
-      console.warn('Failed to fetch gym store from Supabase:', e);
-      set({ isLoaded: true });
+      reportSettingsSync(
+        'workout',
+        'error',
+        () => {
+          void get().fetchFromSupabase();
+        },
+        e instanceof Error ? e.message : 'Unable to load workout settings.',
+      );
     }
   },
 
@@ -92,7 +107,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   updateGymSettings: (updates) => {
     set((state) => {
       const newSettings = { ...state.gymSettings, ...updates };
-      gymService.saveGymSettings(newSettings);
+      gymSettingsQueue.save(newSettings);
       return { gymSettings: newSettings };
     });
   },
@@ -100,7 +115,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   setWeightGoal: (updates) => {
     set((state) => {
       const newSettings = { ...state.gymSettings, ...updates };
-      gymService.saveGymSettings(newSettings);
+      gymSettingsQueue.save(newSettings);
       return { gymSettings: newSettings };
     });
   },
@@ -108,7 +123,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   setHydrationGoal: (goalMl) => {
     set((state) => {
       const newSettings = { ...state.gymSettings, hydrationGoalMl: goalMl };
-      gymService.saveGymSettings(newSettings);
+      gymSettingsQueue.save(newSettings);
       return { gymSettings: newSettings };
     });
   },
@@ -119,7 +134,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
       const updated = Math.max(0, current + deltaMl);
       const newLogs = { ...state.gymSettings.dailyHydrationLogs, [dateStr]: updated };
       const newSettings = { ...state.gymSettings, dailyHydrationLogs: newLogs };
-      gymService.saveGymSettings(newSettings);
+      gymSettingsQueue.save(newSettings);
       return { gymSettings: newSettings };
     });
   },
@@ -128,7 +143,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
     set((state) => {
       const newLogs = { ...state.gymSettings.dailyHydrationLogs, [dateStr]: totalMl };
       const newSettings = { ...state.gymSettings, dailyHydrationLogs: newLogs };
-      gymService.saveGymSettings(newSettings);
+      gymSettingsQueue.save(newSettings);
       return { gymSettings: newSettings };
     });
   },
@@ -165,7 +180,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
       exerciseId: exercise.id,
       name: exercise.name,
       category: exercise.category,
-      targetSets: sets || exercise.defaultSets || 3,
+      targetSets: sets || exercise.defaultSets || get().gymSettings.defaultTargetSets,
       targetReps: reps || exercise.defaultReps || '10',
       weight: weight || '',
     };
@@ -524,8 +539,11 @@ export const useGymStore = create<GymStore>()((set, get) => ({
           [dateStr]: {
             ...log,
             exercises: updatedExercises,
-            completed: allCompleted,
-            completedAt: allCompleted ? new Date().toISOString() : log.completedAt,
+            completed: allCompleted && (state.gymSettings.autoFinishWorkout || log.completed),
+            completedAt:
+              allCompleted && (state.gymSettings.autoFinishWorkout || log.completed)
+                ? log.completedAt || new Date().toISOString()
+                : undefined,
           },
         },
       };
@@ -560,8 +578,11 @@ export const useGymStore = create<GymStore>()((set, get) => ({
           [dateStr]: {
             ...log,
             exercises: updatedExercises,
-            completed: allCompleted,
-            completedAt: allCompleted ? new Date().toISOString() : log.completedAt,
+            completed: allCompleted && (state.gymSettings.autoFinishWorkout || log.completed),
+            completedAt:
+              allCompleted && (state.gymSettings.autoFinishWorkout || log.completed)
+                ? log.completedAt || new Date().toISOString()
+                : undefined,
           },
         },
       };

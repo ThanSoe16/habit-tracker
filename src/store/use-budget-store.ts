@@ -89,7 +89,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
 
       deleteMonthlySalary: (id) =>
         set((state) => {
-          budgetService.deleteMonthlySalary(id);
           return {
             monthlySalaries: state.monthlySalaries.filter((sal) => sal.id !== id),
           };
@@ -197,8 +196,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
               );
             }
           }
-
-          budgetService.deleteBudgetEntry(id, target.type);
 
           return {
             walletBalances: updatedBalances,
@@ -309,7 +306,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
           } else {
             if (entryId) {
               updatedBudgetEntries = updatedBudgetEntries.filter((e) => e.id !== entryId);
-              budgetService.deleteBudgetEntry(entryId);
+
               entryId = undefined;
             }
           }
@@ -349,11 +346,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
             ? state.budgetEntries.filter((entry) => entry.id !== target.entryId)
             : state.budgetEntries;
 
-          budgetService.deleteFamilyTransaction(id);
-          if (target.entryId) {
-            budgetService.deleteBudgetEntry(target.entryId);
-          }
-
           return {
             walletBalances: addToBudget
               ? {
@@ -383,8 +375,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
               ? Math.max(0, currentBal - loanData.amount)
               : currentBal + loanData.amount;
 
-          budgetService.upsertLoan?.(newLoan);
-
           return {
             walletBalances: {
               ...state.walletBalances,
@@ -399,10 +389,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
           const updatedLoans = (state.loans || []).map((l) =>
             l.id === id ? { ...l, ...updates } : l,
           );
-          const target = updatedLoans.find((l) => l.id === id);
-          if (target) {
-            budgetService.upsertLoan?.(target);
-          }
           return { loans: updatedLoans };
         }),
 
@@ -424,8 +410,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
               updatedBal = Math.max(0, updatedBal - remainingUnsettled);
             }
           }
-
-          budgetService.deleteLoan?.(id);
 
           return {
             walletBalances: {
@@ -456,8 +440,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
             repaidAmount: Math.min(target.amount, newRepaid),
             status: newStatus,
           };
-
-          budgetService.upsertLoan?.(updatedLoan);
 
           return {
             walletBalances: {
@@ -519,7 +501,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
           const saleCredit = target.status === 'sold' ? target.sellPrice || 0 : 0;
           const restoredBalance =
             (state.walletBalances[target.currency] || 0) + target.buyPrice - saleCredit;
-          budgetService.deleteGoldHolding?.(id);
 
           return {
             walletBalances: {
@@ -563,7 +544,6 @@ export const useBudgetStore = create<BudgetStoreState>()(
 
       resetBudgetData: () =>
         set(() => {
-          budgetService.clearAllBudgetData();
           return {
             walletBalances: { USDT: 0, THB: 0, MMK: 0, SGD: 0 },
             monthlySalaries: [],
@@ -588,7 +568,10 @@ export const useBudgetStore = create<BudgetStoreState>()(
         })),
 
       fetchFromSupabase: async () => {
+        if (budgetSyncScheduler.hasPending) return;
+        const revision = budgetSyncScheduler.revision;
         const remoteData = await budgetService.fetchBudgetData();
+        if (budgetSyncScheduler.hasPending || revision !== budgetSyncScheduler.revision) return;
         if (remoteData) {
           isApplyingRemoteBudgetState = true;
           try {

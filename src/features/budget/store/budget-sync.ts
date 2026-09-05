@@ -1,3 +1,4 @@
+import { reportSettingsSync } from '@/features/settings/sync-status';
 import { budgetService } from '@/features/budget/services/supabase';
 import type {
   BudgetEntry,
@@ -35,7 +36,10 @@ function recordsRemoved<T extends { id: string }>(current: T[], previous: T[]): 
   return previous.filter((record) => !currentIds.has(record.id));
 }
 
-async function syncBudgetDelta(current: BudgetSnapshot, previous: BudgetSnapshot): Promise<void> {
+export async function syncBudgetDelta(
+  current: BudgetSnapshot,
+  previous: BudgetSnapshot,
+): Promise<void> {
   const writes: Promise<void>[] = [];
 
   if (current.walletBalances !== previous.walletBalances) {
@@ -64,7 +68,9 @@ async function syncBudgetDelta(current: BudgetSnapshot, previous: BudgetSnapshot
         recordsChanged(current.budgetEntries, previous.budgetEntries),
       ),
     );
-    for (const entry of recordsRemoved(current.budgetEntries, previous.budgetEntries)) {
+    for (const entry of previous.budgetEntries.filter(
+      (old) => !current.budgetEntries.some((next) => next.id === old.id && next.type === old.type),
+    )) {
       writes.push(budgetService.deleteBudgetEntry(entry.id, entry.type));
     }
   }
@@ -106,34 +112,73 @@ async function syncBudgetDelta(current: BudgetSnapshot, previous: BudgetSnapshot
     writes.push(budgetService.upsertSettings(current.currency, current.lastProcessedMonth));
   }
 
-  await Promise.all(writes);
+  const results = await Promise.allSettled(writes);
+  const failure = results.find((result) => result.status === 'rejected');
+  if (failure?.status === 'rejected') throw failure.reason;
 }
 
-export function createBudgetSyncScheduler(delayMs = 250) {
+export function createBudgetSyncScheduler(
+  delayMs = 250,
+  synchronize: typeof syncBudgetDelta = syncBudgetDelta,
+) {
+  type Delta = { current: BudgetSnapshot; previous: BudgetSnapshot };
   let timer: ReturnType<typeof setTimeout> | undefined;
-  let pending: { current: BudgetSnapshot; previous: BudgetSnapshot } | undefined;
-  let writeQueue = Promise.resolve();
-
-  const flush = () => {
-    if (!pending) return;
-    const delta = pending;
-    pending = undefined;
-    timer = undefined;
-
-    writeQueue = writeQueue
-      .catch(() => undefined)
-      .then(() => syncBudgetDelta(delta.current, delta.previous))
-      .catch((error) => {
-        console.warn('Unable to synchronize budget changes:', error);
-      });
+  let pending: Delta | undefined;
+  const queue: Delta[] = [];
+  let running = false;
+  let failed = false;
+  let revision = 0;
+  const flush = async () => {
+    if (running) return;
+    running = true;
+    failed = false;
+    reportSettingsSync('budget', 'saving', retry);
+    while (queue.length) {
+      try {
+        await synchronize(queue[0].current, queue[0].previous);
+        queue.shift();
+      } catch (error) {
+        running = false;
+        failed = true;
+        reportSettingsSync(
+          'budget',
+          'error',
+          retry,
+          error instanceof Error ? error.message : 'Unable to sync budget changes.',
+        );
+        return;
+      }
+    }
+    running = false;
+    if (!pending) reportSettingsSync('budget', 'saved', retry);
   };
-
+  function retry() {
+    void flush();
+  }
   return {
+    get hasPending() {
+      return running || !!pending || queue.length > 0;
+    },
+    get revision() {
+      return revision;
+    },
     schedule(current: BudgetSnapshot, previous: BudgetSnapshot) {
+      if (
+        Object.keys(current).every(
+          (key) => current[key as keyof BudgetSnapshot] === previous[key as keyof BudgetSnapshot],
+        )
+      )
+        return;
+      revision++;
       pending = pending ? { current, previous: pending.previous } : { current, previous };
-
+      if (!failed) reportSettingsSync('budget', 'saving', retry);
       if (timer) clearTimeout(timer);
-      timer = setTimeout(flush, delayMs);
+      timer = setTimeout(() => {
+        if (pending) queue.push(pending);
+        pending = undefined;
+        timer = undefined;
+        if (!failed) void flush();
+      }, delayMs);
     },
     cancel() {
       if (timer) clearTimeout(timer);

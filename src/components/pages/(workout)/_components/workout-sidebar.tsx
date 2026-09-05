@@ -20,7 +20,6 @@ import {
   Calendar,
   History,
   User,
-  Activity,
   Settings,
   Dumbbell,
   Sun,
@@ -29,8 +28,6 @@ import {
   BarChart2,
   Edit,
   Scale,
-  Target,
-  Droplets,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -195,12 +192,13 @@ export function WorkoutAppSidebar({ onSelectTab }: WorkoutSidebarProps) {
                   return (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
+                        variant="primary"
                         onClick={item.action}
                         isActive={item.isActive}
                         className={cn(
                           'w-full flex items-center justify-between px-3 py-5 rounded font-bold text-xs transition-all duration-150',
                           item.isActive
-                            ? 'bg-primary/50 text-foreground font-extrabold shadow-2xs'
+                            ? 'font-extrabold shadow-2xs'
                             : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800/60',
                         )}
                       >
@@ -209,7 +207,7 @@ export function WorkoutAppSidebar({ onSelectTab }: WorkoutSidebarProps) {
                             className={cn(
                               'w-4 h-4 shrink-0',
                               item.isActive
-                                ? 'text-foreground'
+                                ? 'text-primary-foreground'
                                 : 'text-gray-500 dark:text-zinc-400',
                             )}
                           />
