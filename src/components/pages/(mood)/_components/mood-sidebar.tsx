@@ -24,6 +24,10 @@ import {
   Sun,
   Moon,
   LogOut,
+  Archive,
+  Mic,
+  Image as ImageIcon,
+  ChartNoAxesCombined,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -46,6 +50,11 @@ export function MoodAppSidebar({ onSelectTab }: MoodSidebarProps) {
   const isHistoryActive = pathname === '/mood/history';
   const isReportsActive = pathname === '/mood-generals/reports';
   const isSettingsActive = pathname === '/mood-generals/settings';
+  const isAllMediaActive = pathname === '/store';
+  const isVoiceActive = pathname === '/store/voice';
+  const isGalleryActive = pathname === '/store/gallery';
+  const isStoreReportActive = pathname === '/store-generals/report';
+  const isStoreSettingsActive = pathname === '/store-generals/settings';
 
   const menuSections = [
     {
@@ -72,6 +81,61 @@ export function MoodAppSidebar({ onSelectTab }: MoodSidebarProps) {
             setOpenMobile(false);
           },
           isActive: isHistoryActive,
+        },
+      ],
+    },
+    {
+      title: 'MEDIA STORE',
+      items: [
+        {
+          id: 'all-media',
+          label: 'All Media',
+          icon: Archive,
+          action: () => {
+            router.push('/store');
+            setOpenMobile(false);
+          },
+          isActive: isAllMediaActive,
+        },
+        {
+          id: 'voice-memos',
+          label: 'Voice Memos',
+          icon: Mic,
+          action: () => {
+            router.push('/store/voice');
+            setOpenMobile(false);
+          },
+          isActive: isVoiceActive,
+        },
+        {
+          id: 'photos-videos',
+          label: 'Photos & Videos',
+          icon: ImageIcon,
+          action: () => {
+            router.push('/store/gallery');
+            setOpenMobile(false);
+          },
+          isActive: isGalleryActive,
+        },
+        {
+          id: 'media-reports',
+          label: 'Media Reports',
+          icon: ChartNoAxesCombined,
+          action: () => {
+            router.push('/store-generals/report');
+            setOpenMobile(false);
+          },
+          isActive: isStoreReportActive,
+        },
+        {
+          id: 'media-settings',
+          label: 'Media Settings',
+          icon: Settings,
+          action: () => {
+            router.push('/store-generals/settings');
+            setOpenMobile(false);
+          },
+          isActive: isStoreSettingsActive,
         },
       ],
     },

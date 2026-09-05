@@ -27,8 +27,9 @@ export default function InsightsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <ToggleGroup type="single" value={period} onValueChange={(value) => value && setPeriod(value as 'weekly' | 'monthly')} variant="outline" className="grid grid-cols-2">
-        <ToggleGroupItem value="weekly">Weekly</ToggleGroupItem><ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
+      <ToggleGroup type="single" value={period} onValueChange={(value) => value && setPeriod(value as 'weekly' | 'monthly')} className="grid w-full grid-cols-2 rounded-2xl bg-muted p-1" spacing={1}>
+        <ToggleGroupItem value="weekly" className="w-full rounded-xl data-[state=on]:bg-card data-[state=on]:shadow-sm">Weekly</ToggleGroupItem>
+        <ToggleGroupItem value="monthly" className="w-full rounded-xl data-[state=on]:bg-card data-[state=on]:shadow-sm">Monthly</ToggleGroupItem>
       </ToggleGroup>
       <div className="grid grid-cols-2 gap-3">
         <MetricCard label="Average Screen" value={formatDuration(averageScreen)} icon={Smartphone} />

@@ -21,14 +21,14 @@ export function AppLimitCard({ limit, onToggle, onEdit, onDelete }: AppLimitCard
   const exceeded = limit.usedTodaySeconds >= limit.dailyLimitSeconds;
 
   return (
-    <Card className="overflow-hidden rounded-[2rem] shadow-sm transition-shadow hover:shadow-md">
-      <CardHeader className="flex-row items-center gap-3">
-        <AppIcon app={{ ...limit, category: 'Other', iconUrl: null }} />
+    <Card size="sm" className="overflow-hidden rounded-[2rem] shadow-sm transition-shadow hover:shadow-md">
+      <CardHeader className="flex flex-row items-center gap-3">
+        <AppIcon app={{ ...limit, category: 'Other', iconUrl: null }} className="size-11" />
         <div className="min-w-0 flex-1">
           <CardTitle>{limit.appName}</CardTitle>
           <p className="text-xs text-muted-foreground">{formatDuration(limit.usedTodaySeconds)} of {formatDuration(limit.dailyLimitSeconds)}</p>
         </div>
-        <Switch checked={limit.enabled} onCheckedChange={onToggle} aria-label={`${limit.appName} limit`} />
+        <Switch className="shrink-0" checked={limit.enabled} onCheckedChange={onToggle} aria-label={`${limit.appName} limit`} />
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <Progress value={percentage} className="h-2" />
@@ -37,7 +37,7 @@ export function AppLimitCard({ limit, onToggle, onEdit, onDelete }: AppLimitCard
           <Badge variant={exceeded ? 'destructive' : 'secondary'}>{exceeded ? 'Limit reached' : `${formatDuration(limit.warningBeforeSeconds)} warning`}</Badge>
         </div>
       </CardContent>
-      <CardFooter className="justify-end gap-2">
+      <CardFooter className="justify-end gap-1">
         <Button variant="ghost" size="sm" onClick={onEdit}><Pencil data-icon="inline-start" /> Edit</Button>
         <Button variant="ghost" size="sm" onClick={onDelete}><Trash2 data-icon="inline-start" /> Delete</Button>
       </CardFooter>

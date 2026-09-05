@@ -6,7 +6,7 @@ import { getWellbeingLevel } from '../domain/calculate-wellbeing-score';
 export function WellbeingScoreCard({ score }: { score: number }) {
   return (
     <Card className="overflow-hidden rounded-[2rem] border-primary/10 bg-gradient-to-br from-card to-primary/5 shadow-sm">
-      <CardHeader className="flex-row items-start justify-between">
+      <CardHeader className="flex flex-row items-start justify-between">
         <div><CardTitle>Wellbeing Score</CardTitle>
         <CardDescription>Balance across your daily digital habits</CardDescription>
         </div>

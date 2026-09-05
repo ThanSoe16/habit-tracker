@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel, FieldTitle } from '@/components/ui/field';
+import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldTitle } from '@/components/ui/field';
 import { Slider } from '@/components/ui/slider';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { FocusTimer } from '../components/focus-timer';
@@ -37,41 +37,65 @@ export default function FocusModePage() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <Card className="overflow-hidden rounded-[2rem] shadow-sm">
-        <CardHeader className="flex-row items-center gap-4 bg-gradient-to-br from-primary to-primary/75 text-primary-foreground">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary-foreground/15 backdrop-blur-sm"><Brain /></span>
-          <div><CardTitle className="text-primary-foreground">Start Focus Session</CardTitle><CardDescription className="text-primary-foreground/70">Select a duration and the apps you want to avoid.</CardDescription></div>
+    <div className="flex flex-col gap-4">
+      <Card size="sm" className="overflow-hidden rounded-[2rem] border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card shadow-sm shadow-primary/5">
+        <CardHeader className="flex flex-row items-center gap-3">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20"><Brain /></span>
+          <div className="min-w-0"><CardTitle>Start Focus Session</CardTitle><CardDescription>Select a duration and the apps you want to avoid.</CardDescription></div>
         </CardHeader>
         <CardContent>
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field>
               <FieldLabel>Duration</FieldLabel>
               <ToggleGroup type="single" value={String(duration)} onValueChange={(value) => value && setDuration(Number(value))} variant="outline" className="grid grid-cols-5">
-                {durations.map((minutes) => <ToggleGroupItem key={minutes} value={String(minutes)}>{minutes}</ToggleGroupItem>)}
+                {durations.map((minutes) => <ToggleGroupItem key={minutes} value={String(minutes)} className="w-full data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">{minutes}</ToggleGroupItem>)}
               </ToggleGroup>
               <div className="flex items-center gap-3 pt-2"><Timer className="text-primary" /><Slider value={[duration]} min={5} max={120} step={5} onValueChange={(value) => setDuration(value[0] ?? 25)} /><Badge variant="secondary">{duration}m</Badge></div>
             </Field>
-            <Field>
-              <FieldLabel>Distracting apps</FieldLabel>
+            <FieldSet className="gap-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <FieldLegend variant="label">Distracting apps</FieldLegend>
+                  <FieldDescription>Choose the apps you want to pause during focus.</FieldDescription>
+                </div>
+                <Badge variant={selectedApps.length ? 'default' : 'secondary'}>
+                  {selectedApps.length} selected
+                </Badge>
+              </div>
               <div className="flex flex-col gap-2">
                 {appUsage.slice(0, 5).map((app) => (
-                  <Field key={app.id} orientation="horizontal" className="rounded-xl border p-3">
-                    <Checkbox id={`focus-${app.id}`} checked={selectedApps.includes(app.appName)} onCheckedChange={(checked) => toggleApp(app.appName, checked === true)} />
-                    <AppIcon app={app} className="size-10" />
-                    <FieldContent><FieldTitle><label htmlFor={`focus-${app.id}`}>{app.appName}</label></FieldTitle><FieldDescription>{app.category}</FieldDescription></FieldContent>
+                  <Field key={app.id}>
+                    <FieldLabel
+                      htmlFor={`focus-${app.id}`}
+                      className="w-full cursor-pointer items-center rounded-2xl border bg-card p-3 shadow-xs transition-all hover:border-primary/30 hover:bg-primary/5 has-[[data-state=checked]]:border-primary/40 has-[[data-state=checked]]:bg-primary/10 has-[[data-state=checked]]:shadow-sm"
+                    >
+                      <AppIcon app={app} className="size-10" />
+                      <FieldContent>
+                        <FieldTitle>{app.appName}</FieldTitle>
+                        <FieldDescription>{app.category}</FieldDescription>
+                      </FieldContent>
+                      <Checkbox
+                        id={`focus-${app.id}`}
+                        className="ml-auto"
+                        checked={selectedApps.includes(app.appName)}
+                        onCheckedChange={(checked) => toggleApp(app.appName, checked === true)}
+                      />
+                    </FieldLabel>
                   </Field>
                 ))}
               </div>
-            </Field>
-            <Button size="lg" disabled={!selectedApps.length || !appUsage.length} onClick={() => start(duration * 60, selectedApps)}><Play data-icon="inline-start" /> Start Focus</Button>
+            </FieldSet>
+            <Button size="lg" className="w-full" disabled={!selectedApps.length || !appUsage.length} onClick={() => start(duration * 60, selectedApps)}>
+              <Play data-icon="inline-start" />
+              {selectedApps.length ? `Start ${duration}m focus` : 'Select an app to start'}
+            </Button>
           </FieldGroup>
         </CardContent>
       </Card>
 
-      <Card className="rounded-[2rem] shadow-sm">
+      <Card size="sm" className="rounded-[2rem] shadow-sm">
         <CardHeader><CardTitle>Focus History</CardTitle><CardDescription>Your recent protected sessions</CardDescription></CardHeader>
-        <CardContent className="flex flex-col gap-3">
+        <CardContent className="flex flex-col gap-2">
           {focusHistory.map((session) => (
             <div key={session.id} className="flex items-center justify-between gap-3 rounded-2xl border bg-muted/40 p-3">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Clock3 /></span>

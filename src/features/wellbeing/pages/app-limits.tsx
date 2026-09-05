@@ -71,12 +71,12 @@ export default function AppLimitsPage() {
   if (error) return <Card><CardContent className="py-10 text-center text-sm text-destructive">{error}</CardContent></Card>;
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="overflow-hidden rounded-[2rem] shadow-sm">
-        <CardHeader className="flex-row items-center gap-4 bg-gradient-to-br from-primary to-primary/75 text-primary-foreground">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary-foreground/15 backdrop-blur-sm"><ShieldCheck /></span>
-          <div><CardTitle className="text-primary-foreground">App Limits</CardTitle>
-          <CardDescription className="text-primary-foreground/70">Set healthy boundaries for distracting apps. OS-level blocking is not enabled.</CardDescription></div>
+    <div className="flex flex-col gap-3">
+      <Card size="sm" className="overflow-hidden rounded-[2rem] border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card shadow-sm shadow-primary/5">
+        <CardHeader className="flex flex-row items-center gap-3">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20"><ShieldCheck /></span>
+          <div className="min-w-0"><CardTitle>App Limits</CardTitle>
+          <CardDescription>Set healthy boundaries for distracting apps. OS-level blocking is not enabled.</CardDescription></div>
         </CardHeader>
         <CardContent>
           <Button

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { BellRing, Brain, FileText, MoonStar, ShieldCheck, Target, Trash2, type LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel, FieldTitle } from '@/components/ui/field';
@@ -28,11 +29,35 @@ import { useFocusSessionStore } from '../store/use-focus-session-store';
 import { formatDuration } from '../utils/format-duration';
 import type { DigitalWellbeingBedtimeSettingsRow, DigitalWellbeingSettingsRow } from '../types/database';
 
+function SettingsSectionHeader({ icon: Icon, title, description }: { icon: LucideIcon; title: string; description: string }) {
+  return (
+    <CardHeader className="flex flex-row items-center gap-3">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Icon /></span>
+      <div className="min-w-0">
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </div>
+    </CardHeader>
+  );
+}
+
+function SliderSetting({ label, value, children }: { label: string; value: string; children: ReactNode }) {
+  return (
+    <Field className="gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <FieldLabel>{label}</FieldLabel>
+        <Badge variant="secondary">{value}</Badge>
+      </div>
+      {children}
+    </Field>
+  );
+}
+
 function SettingSwitch({ title, description, checked, onCheckedChange, disabled = false }: { title: string; description: string; checked: boolean; onCheckedChange: (checked: boolean) => void; disabled?: boolean }) {
   return (
-    <Field orientation="horizontal" className="rounded-xl border p-3" data-disabled={disabled || undefined}>
+    <Field orientation="horizontal" className="rounded-2xl border border-transparent bg-muted/50 p-3 transition-colors has-[[data-state=checked]]:border-primary/20 has-[[data-state=checked]]:bg-primary/5" data-disabled={disabled || undefined}>
       <FieldContent><FieldTitle>{title}</FieldTitle><FieldDescription>{description}</FieldDescription></FieldContent>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} aria-label={title} />
+      <Switch className="shrink-0" checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} aria-label={title} />
     </Field>
   );
 }
@@ -75,43 +100,43 @@ function SettingsForm({ settings, bedtime, refresh }: { settings: DigitalWellbei
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <Card className="rounded-[2rem] shadow-sm">
-        <CardHeader><CardTitle>Goals</CardTitle><CardDescription>Targets that shape your score and progress.</CardDescription></CardHeader>
-        <CardContent><FieldGroup>
-          <Field><FieldLabel>Daily screen-time goal: {formatDuration(screenGoal)}</FieldLabel><Slider value={[screenGoal]} min={3600} max={43200} step={1800} onValueChange={(value) => setScreenGoal(value[0] ?? 18000)} /></Field>
-          <Field><FieldLabel>Daily focus goal: {formatDuration(focusGoal)}</FieldLabel><Slider value={[focusGoal]} min={0} max={14400} step={900} onValueChange={(value) => setFocusGoal(value[0] ?? 7200)} /></Field>
-          <Field><FieldLabel>Daily pickup goal: {pickupGoal}</FieldLabel><Slider value={[pickupGoal]} min={10} max={150} step={5} onValueChange={(value) => setPickupGoal(value[0] ?? 60)} /></Field>
+    <div className="flex flex-col gap-4">
+      <Card size="sm" className="rounded-[2rem] border-primary/10 shadow-sm">
+        <SettingsSectionHeader icon={Target} title="Goals" description="Targets that shape your score and progress." />
+        <CardContent><FieldGroup className="gap-4">
+          <SliderSetting label="Daily screen-time goal" value={formatDuration(screenGoal)}><Slider value={[screenGoal]} min={3600} max={43200} step={1800} onValueChange={(value) => setScreenGoal(value[0] ?? 18000)} /></SliderSetting>
+          <SliderSetting label="Daily focus goal" value={formatDuration(focusGoal)}><Slider value={[focusGoal]} min={0} max={14400} step={900} onValueChange={(value) => setFocusGoal(value[0] ?? 7200)} /></SliderSetting>
+          <SliderSetting label="Daily pickup goal" value={String(pickupGoal)}><Slider value={[pickupGoal]} min={10} max={150} step={5} onValueChange={(value) => setPickupGoal(value[0] ?? 60)} /></SliderSetting>
         </FieldGroup></CardContent>
       </Card>
 
-      <Card className="rounded-[2rem] shadow-sm">
-        <CardHeader><CardTitle>Usage Alerts</CardTitle><CardDescription>Gentle interruptions when usage becomes excessive.</CardDescription></CardHeader>
-        <CardContent><FieldGroup><SettingSwitch title="Screen-time warning" description="Notify near your daily goal" checked={screenWarning} onCheckedChange={setScreenWarning} /><SettingSwitch title="Excessive usage warning" description="Notice unusually long sessions" checked={excessiveWarning} onCheckedChange={setExcessiveWarning} /><SettingSwitch title="App limit warning" description="Warn before an app limit is reached" checked={appLimitWarning} onCheckedChange={setAppLimitWarning} /></FieldGroup></CardContent>
+      <Card size="sm" className="rounded-[2rem] border-primary/10 shadow-sm">
+        <SettingsSectionHeader icon={BellRing} title="Usage Alerts" description="Gentle interruptions when usage becomes excessive." />
+        <CardContent><FieldGroup className="gap-2"><SettingSwitch title="Screen-time warning" description="Notify near your daily goal" checked={screenWarning} onCheckedChange={setScreenWarning} /><SettingSwitch title="Excessive usage warning" description="Notice unusually long sessions" checked={excessiveWarning} onCheckedChange={setExcessiveWarning} /><SettingSwitch title="App limit warning" description="Warn before an app limit is reached" checked={appLimitWarning} onCheckedChange={setAppLimitWarning} /></FieldGroup></CardContent>
       </Card>
 
-      <Card className="rounded-[2rem] shadow-sm">
-        <CardHeader><CardTitle>Focus</CardTitle><CardDescription>Defaults for new focus sessions.</CardDescription></CardHeader>
-        <CardContent><FieldGroup>
-          <Field><FieldLabel>Default focus duration: {formatDuration(focusDuration)}</FieldLabel><Slider value={[focusDuration]} min={300} max={7200} step={300} onValueChange={(value) => setFocusDuration(value[0] ?? 1500)} /></Field>
+      <Card size="sm" className="rounded-[2rem] border-primary/10 shadow-sm">
+        <SettingsSectionHeader icon={Brain} title="Focus" description="Defaults for new focus sessions." />
+        <CardContent><FieldGroup className="gap-3">
+          <SliderSetting label="Default focus duration" value={formatDuration(focusDuration)}><Slider value={[focusDuration]} min={300} max={7200} step={300} onValueChange={(value) => setFocusDuration(value[0] ?? 1500)} /></SliderSetting>
           <SettingSwitch title="Focus notifications" description="Notify when a session finishes" checked={focusNotifications} onCheckedChange={setFocusNotifications} />
           <SettingSwitch title="Allow emergency break" description="Keep an early-exit option visible" checked={emergencyBreak} onCheckedChange={setEmergencyBreak} />
         </FieldGroup></CardContent>
       </Card>
 
-      <Card className="rounded-[2rem] shadow-sm">
-        <CardHeader><CardTitle>Bedtime</CardTitle><CardDescription>Quiet hours and native feature placeholders.</CardDescription></CardHeader>
+      <Card size="sm" className="rounded-[2rem] border-primary/10 shadow-sm">
+        <SettingsSectionHeader icon={MoonStar} title="Bedtime" description="Quiet hours and native feature placeholders." />
         <CardContent><BedtimeSchedule value={bedtimeValue} onChange={setBedtimeValue} /></CardContent>
       </Card>
 
-      <Card className="rounded-[2rem] shadow-sm">
-        <CardHeader><CardTitle>Reports</CardTitle><CardDescription>Choose the summaries you want to receive.</CardDescription></CardHeader>
-        <CardContent><FieldGroup><SettingSwitch title="Daily summary" description="A short recap at the end of each day" checked={dailySummary} onCheckedChange={setDailySummary} /><SettingSwitch title="Weekly report" description="Trends and goal success every week" checked={weeklyReport} onCheckedChange={setWeeklyReport} /><SettingSwitch title="Monthly report" description="Long-term wellbeing patterns" checked={monthlyReport} onCheckedChange={setMonthlyReport} /></FieldGroup></CardContent>
+      <Card size="sm" className="rounded-[2rem] border-primary/10 shadow-sm">
+        <SettingsSectionHeader icon={FileText} title="Reports" description="Choose the summaries you want to receive." />
+        <CardContent><FieldGroup className="gap-2"><SettingSwitch title="Daily summary" description="A short recap at the end of each day" checked={dailySummary} onCheckedChange={setDailySummary} /><SettingSwitch title="Weekly report" description="Trends and goal success every week" checked={weeklyReport} onCheckedChange={setWeeklyReport} /><SettingSwitch title="Monthly report" description="Long-term wellbeing patterns" checked={monthlyReport} onCheckedChange={setMonthlyReport} /></FieldGroup></CardContent>
       </Card>
 
-      <Card className="rounded-[2rem] shadow-sm">
-        <CardHeader><CardTitle>Privacy</CardTitle><CardDescription>Device permissions and data retention.</CardDescription></CardHeader>
-        <CardContent><FieldGroup>
+      <Card size="sm" className="rounded-[2rem] border-primary/10 shadow-sm">
+        <SettingsSectionHeader icon={ShieldCheck} title="Privacy" description="Device permissions and data retention." />
+        <CardContent><FieldGroup className="gap-2">
           <SettingSwitch title="Usage data permission" description="Requires a future native device integration" checked={false} onCheckedChange={() => undefined} disabled />
           <SettingSwitch title="Notification access" description="Requires a future native device integration" checked={false} onCheckedChange={() => undefined} disabled />
           <Field><FieldLabel>Data retention</FieldLabel><Select value={retention} onValueChange={setRetention}><SelectTrigger className="w-full"><SelectValue /></SelectTrigger><SelectContent><SelectGroup><SelectLabel>Retention period</SelectLabel><SelectItem value="30">30 days</SelectItem><SelectItem value="90">90 days</SelectItem><SelectItem value="365">1 year</SelectItem><SelectItem value="forever">Keep forever</SelectItem></SelectGroup></SelectContent></Select></Field>

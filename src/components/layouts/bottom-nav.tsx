@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import Image from 'next/image';
-import { Dumbbell, Archive, Wallet } from 'lucide-react';
+import { Dumbbell, ShieldCheck, Wallet } from 'lucide-react';
 
 interface NavItem {
   label: string;
@@ -12,7 +12,7 @@ interface NavItem {
   icon?: string;
   activeIcon?: string;
   useLucide?: boolean;
-  lucideIcon?: 'dumbbell' | 'archive' | 'wallet';
+  lucideIcon?: 'dumbbell' | 'wallet' | 'wellbeing';
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -35,16 +35,16 @@ const NAV_ITEMS: NavItem[] = [
     href: '/mood/today',
   },
   {
-    label: 'Store',
-    useLucide: true,
-    lucideIcon: 'archive',
-    href: '/store',
-  },
-  {
     label: 'Budget',
     useLucide: true,
     lucideIcon: 'wallet',
     href: '/budget',
+  },
+  {
+    label: 'Wellbeing',
+    useLucide: true,
+    lucideIcon: 'wellbeing',
+    href: '/digital-wellbeing',
   },
 ];
 
@@ -79,20 +79,24 @@ export function BottomNav() {
               isWorkoutManagementRoute ||
               pathname.startsWith('/workout-generals');
           } else if (item.href === '/mood/today' || item.href === '/mood') {
-            isActive = pathname.startsWith('/mood') || pathname.startsWith('/mood-generals');
-          } else if (item.href === '/store') {
-            isActive = pathname.startsWith('/store') || pathname.startsWith('/store-generals');
+            isActive =
+              pathname.startsWith('/mood') ||
+              pathname.startsWith('/mood-generals') ||
+              pathname.startsWith('/store') ||
+              pathname.startsWith('/store-generals');
           } else if (item.href === '/budget') {
             isActive = pathname.startsWith('/budget') || pathname.startsWith('/budget-generals');
+          } else if (item.href === '/digital-wellbeing') {
+            isActive = pathname.startsWith('/digital-wellbeing') || pathname.startsWith('/wellbeing');
           } else {
             isActive = pathname.startsWith(item.href);
           }
 
           const LucideIcon =
-            item.lucideIcon === 'archive'
-              ? Archive
-              : item.lucideIcon === 'wallet'
-                ? Wallet
+            item.lucideIcon === 'wallet'
+              ? Wallet
+              : item.lucideIcon === 'wellbeing'
+                ? ShieldCheck
                 : Dumbbell;
 
           return (
@@ -100,6 +104,8 @@ export function BottomNav() {
               key={item.label}
               href={item.href}
               title={item.label}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
               className="flex flex-col items-center justify-center transition-all duration-300 relative"
             >
               <div

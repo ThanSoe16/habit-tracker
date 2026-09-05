@@ -15,7 +15,7 @@ export function ScreenTimeCard({ seconds, goalSeconds, changePercent }: ScreenTi
 
   return (
     <Card className="overflow-hidden rounded-[2rem] border-primary/20 bg-gradient-to-br from-primary via-primary to-primary/70 text-primary-foreground shadow-xl shadow-primary/20">
-      <CardHeader className="flex-row items-start justify-between gap-3">
+      <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
           <CardTitle className="text-primary-foreground">Today&apos;s Screen Time</CardTitle>
           <CardDescription className="text-primary-foreground/70">{formatDuration(seconds)} / {formatDuration(goalSeconds)} goal</CardDescription>

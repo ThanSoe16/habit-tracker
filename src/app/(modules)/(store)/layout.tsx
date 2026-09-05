@@ -2,14 +2,14 @@
 
 import React from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { StoreAppSidebar } from '@/components/pages/(store)/_components/store-sidebar';
+import { MoodAppSidebar } from '@/components/pages/(mood)/_components/mood-sidebar';
 import { Archive } from 'lucide-react';
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full bg-background dark:bg-zinc-950 text-foreground">
-        <StoreAppSidebar />
+        <MoodAppSidebar />
         <main className="flex-1 w-full overflow-x-hidden">
           <div className="w-full max-w-lg mx-auto px-4 pt-6 pb-28 space-y-5">
             {/* Top Header matching Workout & Mood Header layout */}

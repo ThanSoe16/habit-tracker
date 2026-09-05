@@ -1,17 +1,19 @@
 import type { LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/utils/cn';
 
 interface MetricCardProps {
   label: string;
   value: string;
   detail?: string;
   icon: LucideIcon;
+  className?: string;
 }
 
-export function MetricCard({ label, value, detail, icon: Icon }: MetricCardProps) {
+export function MetricCard({ label, value, detail, icon: Icon, className }: MetricCardProps) {
   return (
-    <Card className="relative overflow-hidden rounded-2xl border-border/70 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-      <CardContent className="flex min-h-28 items-start justify-between gap-2 p-4">
+    <Card className={cn('relative overflow-hidden rounded-2xl border-border/70 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md', className)}>
+      <CardContent className="flex min-h-24 items-start justify-between gap-3 p-4">
         <div className="relative z-10 min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
           <p className="mt-2 truncate text-xl font-black tracking-tight">{value}</p>
