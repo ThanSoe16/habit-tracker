@@ -5,6 +5,7 @@ import { Check, Flame, Plus, Minus } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Habit } from '@/store/use-habit-store';
 import { parseTimeTakenToSeconds, formatTimeTakenDisplay } from '@/utils/time-utils';
+import { HabitDirectionBadge } from '@/components/pages/(habit)/_components/habit-direction-badge';
 
 interface HabitCardProps {
   habit: Habit;
@@ -134,7 +135,7 @@ export function HabitCard({
         )}
 
         {/* Content Container */}
-        <div className="relative z-10 flex items-center gap-3">
+        <div className="relative z-10 flex min-w-0 flex-1 items-center gap-3">
           {/* Icon Box */}
           <div
             className={cn(
@@ -149,38 +150,47 @@ export function HabitCard({
             {habit.emoji || habit.name.charAt(0).toUpperCase()}
           </div>
 
-          <div className="space-y-0.5">
+          <div className="flex min-w-0 flex-col gap-1">
             <h3
               className={cn(
-                'font-black leading-snug',
+                'truncate font-black leading-snug',
                 isCompact ? 'text-xs' : 'text-sm',
                 pct > 50 || isCompleted ? 'text-white' : 'text-gray-900 dark:text-white',
               )}
             >
               {habit.name}
             </h3>
-            {!isCompact && (
-              <p
-                className={cn(
-                  'text-xs font-semibold',
-                  pct > 50 || isCompleted ? 'text-white/80' : 'text-gray-500 dark:text-gray-400',
+            {(habit.type !== 'task' || !isCompact) && (
+              <div className="flex min-w-0 items-center gap-1.5">
+                {habit.type !== 'task' && (
+                  <HabitDirectionBadge habitKind={habit.habitKind} />
                 )}
-              >
-                {currentProgress() ||
-                  (habit.habitKind === 'quit'
-                    ? isCompleted
-                      ? 'Avoided today'
-                      : 'Stay on track today'
-                    : habit.timeOfDay
-                      ? `${habit.timeOfDay} routine`
-                      : 'Every day')}
-              </p>
+                {!isCompact && (
+                  <p
+                    className={cn(
+                      'min-w-0 truncate text-xs font-semibold',
+                      pct > 50 || isCompleted
+                        ? 'text-white/80'
+                        : 'text-gray-500 dark:text-gray-400',
+                    )}
+                  >
+                    {currentProgress() ||
+                      (habit.habitKind === 'quit'
+                        ? isCompleted
+                          ? 'Avoided today'
+                          : 'Stay on track today'
+                        : habit.timeOfDay
+                          ? `${habit.timeOfDay} routine`
+                          : 'Every day')}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>
 
         {/* Action Controls & Streak Badge */}
-        <div className="relative z-10 flex items-center gap-2">
+        <div className="relative z-10 flex shrink-0 items-center gap-2">
           {/* Streak Counter */}
           {showStreakBadges && (
             <div

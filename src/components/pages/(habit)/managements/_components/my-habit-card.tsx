@@ -6,6 +6,7 @@ import { cn } from '@/utils/cn';
 import { GripVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { HabitDirectionBadge } from '@/components/pages/(habit)/_components/habit-direction-badge';
 
 interface MyHabitCardProps {
   habit: Habit;
@@ -45,9 +46,14 @@ export function MyHabitCard({ habit, onClick }: MyHabitCardProps) {
 
       <div className="flex-1 min-w-0">
         <h3 className="font-bold text-gray-800 truncate text-[17px]">{habit.name}</h3>
-        <p className="text-gray-500 text-[13px] font-medium mt-0.5">
-          {habit.type === 'task' ? 'One-Time Task' : 'Regular Habit'}
-        </p>
+        {habit.type === 'task' ? (
+          <p className="text-gray-500 text-[13px] font-medium mt-0.5">One-Time Task</p>
+        ) : (
+          <div className="mt-1 flex items-center gap-2">
+            <HabitDirectionBadge habitKind={habit.habitKind} />
+            <span className="text-xs text-muted-foreground">Regular habit</span>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
