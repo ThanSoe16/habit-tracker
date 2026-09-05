@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import { useUserStore } from '@/store/use-user-store';
 import { useBudgetStore, CURRENCIES, CurrencyCode } from '@/store/use-budget-store';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
 import {
-  Bell,
   Star,
   Shield,
   Info,
@@ -52,15 +50,6 @@ export function SettingsList() {
   const [isRingtoneModalOpen, setIsRingtoneModalOpen] = useState(false);
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
   const [isAppearanceModalOpen, setIsAppearanceModalOpen] = useState(false);
-  const { isSubscribed, subscribeToPush, unsubscribeFromPush } = usePushNotifications();
-
-  const handlePushToggle = async () => {
-    if (isSubscribed) {
-      await unsubscribeFromPush();
-    } else {
-      await subscribeToPush();
-    }
-  };
 
   const ringtoneLabels: Record<string, string> = {
     chime: 'Classic Chime',
@@ -81,16 +70,6 @@ export function SettingsList() {
           color: 'text-amber-500',
           bg: 'bg-amber-50 dark:bg-amber-950/40',
           onClick: () => setIsCurrencyModalOpen(true),
-        },
-        {
-          icon: Bell,
-          label: 'Push Notifications',
-          value: isSubscribed ? 'On' : 'Off',
-          color: isSubscribed ? 'text-pink-500' : 'text-gray-400',
-          bg: isSubscribed ? 'bg-pink-50 dark:bg-pink-950/40' : 'bg-gray-100 dark:bg-zinc-800',
-          isToggle: true,
-          toggled: isSubscribed,
-          onClick: handlePushToggle,
         },
         {
           icon: Music,

@@ -3,265 +3,37 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { budgetService } from '@/features/budget/services/supabase';
-import { z } from 'zod';
-import { budgetEntryTypeSchema, currencyCodeSchema } from '@/features/budget/types';
+import {
+  createBudgetSyncScheduler,
+  type BudgetSnapshot,
+} from '@/features/budget/store/budget-sync';
+import { DEFAULT_ENTRIES, DEFAULT_SALARIES } from '@/features/budget/store/defaults';
+import type { BudgetStoreState } from '@/features/budget/store/types';
+import type {
+  BudgetEntry,
+  CurrencyCode,
+  FamilyTransaction,
+  GoldHolding,
+  LoanTransaction,
+} from '@/features/budget/store/model';
 
-export type CurrencyCode = z.infer<typeof currencyCodeSchema>;
-export type EntryType = z.infer<typeof budgetEntryTypeSchema>;
+export * from '@/features/budget/store/model';
 
-export const currencyConfigSchema = z.object({
-  code: currencyCodeSchema,
-  symbol: z.string(),
-  name: z.string(),
-  flag: z.string(),
-});
+const budgetSyncScheduler = createBudgetSyncScheduler();
+let isApplyingRemoteBudgetState = false;
 
-export type CurrencyConfig = z.infer<typeof currencyConfigSchema>;
-
-export const CURRENCIES: Record<CurrencyCode, CurrencyConfig> = {
-  USDT: { code: 'USDT', symbol: '$', name: 'Tether (USDT)', flag: '💵' },
-  MMK: { code: 'MMK', symbol: 'K', name: 'Myanmar Kyat', flag: '🇲🇲' },
-  THB: { code: 'THB', symbol: '฿', name: 'Thai Baht', flag: '🇹🇭' },
-  SGD: { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', flag: '🇸🇬' },
-};
-
-export function formatCurrency(amount: number, currency: CurrencyCode = 'USDT'): string {
-  const config = CURRENCIES[currency] || CURRENCIES.USDT;
-  if (currency === 'MMK') {
-    return `${Math.round(amount).toLocaleString('en-US')} ${config.symbol}`;
-  }
-  if (currency === 'THB' || currency === 'SGD') {
-    return `${config.symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-  return `${config.symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function selectBudgetSnapshot(state: BudgetStoreState): BudgetSnapshot {
+  return {
+    walletBalances: state.walletBalances,
+    monthlySalaries: state.monthlySalaries,
+    budgetEntries: state.budgetEntries,
+    familyTransactions: state.familyTransactions,
+    loans: state.loans,
+    goldHoldings: state.goldHoldings,
+    currency: state.currency,
+    lastProcessedMonth: state.lastProcessedMonth,
+  };
 }
-
-export const walletBalancesSchema = z
-  .object({
-    USDT: z.number(),
-    THB: z.number(),
-    MMK: z.number(),
-    SGD: z.number(),
-  })
-  .catchall(z.number());
-
-export type WalletBalances = z.infer<typeof walletBalancesSchema>;
-
-export const monthlySalaryRecordSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  amount: z.number(),
-  currency: currencyCodeSchema,
-  category: z.string(),
-  isEnabled: z.boolean(),
-  disabledReason: z.string().optional(),
-  note: z.string().optional(),
-});
-
-export type MonthlySalary = z.infer<typeof monthlySalaryRecordSchema>;
-
-export const budgetEntrySchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  amount: z.number(),
-  currency: currencyCodeSchema,
-  type: budgetEntryTypeSchema,
-  category: z.string(),
-  date: z.string(),
-  note: z.string().optional(),
-  fromCurrency: currencyCodeSchema.optional(),
-  fromAmount: z.number().optional(),
-  toCurrency: currencyCodeSchema.optional(),
-  toAmount: z.number().optional(),
-});
-
-export type BudgetEntry = z.infer<typeof budgetEntrySchema>;
-
-export const familyTransactionSchema = z.object({
-  id: z.string(),
-  type: z.enum(['received', 'given']),
-  person: z.string(),
-  amount: z.number(),
-  currency: currencyCodeSchema,
-  date: z.string(),
-  note: z.string().optional(),
-  entryId: z.string().optional(),
-  addToCurrentBudget: z.boolean().optional(),
-});
-
-export type FamilyTransaction = z.infer<typeof familyTransactionSchema>;
-
-export const loanTransactionSchema = z.object({
-  id: z.string(),
-  type: z.enum(['lend', 'borrow']),
-  personName: z.string(),
-  amount: z.number(),
-  currency: currencyCodeSchema,
-  status: z.enum(['pending', 'repaid', 'partial']),
-  repaidAmount: z.number(),
-  dueDate: z.string().optional(),
-  date: z.string(),
-  note: z.string().optional(),
-});
-
-export type LoanTransaction = z.infer<typeof loanTransactionSchema>;
-
-export const goldHoldingSchema = z.object({
-  id: z.string(),
-  kyat: z.number(),
-  pae: z.number(),
-  yway: z.number(),
-  buyPrice: z.number(),
-  currency: currencyCodeSchema,
-  purchaseDate: z.string(),
-  note: z.string().optional(),
-  status: z.enum(['holding', 'sold']),
-  sellPrice: z.number().optional(),
-  soldDate: z.string().optional(),
-});
-
-export type GoldHolding = z.infer<typeof goldHoldingSchema>;
-
-export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
-  USDT_THB: 35.5,
-  THB_USDT: 1 / 35.5,
-  USDT_MMK: 4500,
-  MMK_USDT: 1 / 4500,
-  THB_MMK: 126.7,
-  MMK_THB: 1 / 126.7,
-  USDT_SGD: 1.35,
-  SGD_USDT: 1 / 1.35,
-  SGD_THB: 26.3,
-  THB_SGD: 1 / 26.3,
-  SGD_MMK: 3330,
-  MMK_SGD: 1 / 3330,
-};
-
-export const BUDGET_CATEGORIES = [
-  { name: 'Food & Groceries', icon: '🍕' },
-  { name: 'Shopping', icon: '🛍️' },
-  { name: 'Transportation', icon: '🚗' },
-  { name: 'Bills & Utilities', icon: '⚡' },
-  { name: 'Entertainment', icon: '🎬' },
-  { name: 'Health & Fitness', icon: '🏋️' },
-  { name: 'Salary', icon: '💼' },
-  { name: 'Family', icon: '👨‍👩‍👧' },
-  { name: 'Investments', icon: '📈' },
-  { name: 'Side Business', icon: '💻' },
-  { name: 'Currency Exchange', icon: '💱' },
-  { name: 'Loans & Debts', icon: '🤝' },
-  { name: 'Other', icon: '📦' },
-] as const;
-
-interface BudgetStoreState {
-  walletBalances: WalletBalances;
-  monthlySalaries: MonthlySalary[];
-  budgetEntries: BudgetEntry[];
-  familyTransactions: FamilyTransaction[];
-  loans: LoanTransaction[];
-  goldHoldings: GoldHolding[];
-  lastProcessedMonth: string; // YYYY-MM
-  currency: CurrencyCode;
-  setCurrency: (currency: CurrencyCode) => void;
-
-  // Actions for Wallet Balances
-  updateWalletBalance: (currency: CurrencyCode, amount: number) => void;
-
-  // Actions for Monthly Salary Templates
-  addMonthlySalary: (salary: Omit<MonthlySalary, 'id'>) => void;
-  updateMonthlySalary: (id: string, updates: Partial<MonthlySalary>) => void;
-  toggleMonthlySalary: (id: string, reason?: string) => void;
-  deleteMonthlySalary: (id: string) => void;
-  processMonthlySalaryPayout: () => void;
-
-  // Actions for Expenses & Transactions
-  addExpense: (expense: Omit<BudgetEntry, 'id' | 'type'>) => void;
-  addIncome: (income: Omit<BudgetEntry, 'id' | 'type'>) => void;
-  deleteBudgetEntry: (id: string) => void;
-
-  // Actions for Family Budget Module
-  addFamilyTransaction: (tx: Omit<FamilyTransaction, 'id'>) => void;
-  updateFamilyTransaction: (id: string, updates: Omit<FamilyTransaction, 'id'>) => void;
-  deleteFamilyTransaction: (id: string) => void;
-
-  // Actions for Loans & Debts Module
-  addLoan: (loan: Omit<LoanTransaction, 'id' | 'status' | 'repaidAmount'>) => void;
-  updateLoan: (id: string, updates: Partial<LoanTransaction>) => void;
-  deleteLoan: (id: string) => void;
-  repayLoan: (id: string, payAmount: number) => void;
-
-  // Actions for Gold Holdings
-  buyGold: (holding: Omit<GoldHolding, 'id' | 'status'>) => void;
-  sellGold: (id: string, sellPrice: number, soldDate: string) => void;
-  deleteGoldHolding: (id: string) => void;
-
-  // Currency Exchange
-  executeCurrencyExchange: (params: {
-    fromCurrency: CurrencyCode;
-    toCurrency: CurrencyCode;
-    fromAmount: number;
-    toAmount: number;
-  }) => void;
-
-  // Settings Data Management
-  resetBudgetData: () => void;
-  importBudgetData: (data: Partial<BudgetStoreState>) => void;
-
-  // Supabase Cloud Sync
-  fetchFromSupabase: () => Promise<void>;
-  syncToSupabase: () => Promise<void>;
-}
-
-const DEFAULT_SALARIES: MonthlySalary[] = [
-  {
-    id: 'sal-1',
-    title: 'Primary Salary',
-    amount: 1000,
-    currency: 'USDT',
-    category: 'Salary',
-    isEnabled: true,
-    note: 'Fixed USDT Salary',
-  },
-  {
-    id: 'sal-2',
-    title: 'Local Freelance',
-    amount: 8000,
-    currency: 'THB',
-    category: 'Side Business',
-    isEnabled: true,
-    note: 'Fixed THB retainer',
-  },
-];
-
-const DEFAULT_ENTRIES: BudgetEntry[] = [
-  {
-    id: 'entry-1',
-    title: 'Supermarket Groceries',
-    amount: 125.4,
-    currency: 'USDT',
-    type: 'expense',
-    category: 'Food & Groceries',
-    date: new Date().toISOString().split('T')[0],
-  },
-  {
-    id: 'entry-2',
-    title: 'Gym Membership',
-    amount: 45.0,
-    currency: 'USDT',
-    type: 'expense',
-    category: 'Health & Fitness',
-    date: new Date().toISOString().split('T')[0],
-  },
-  {
-    id: 'entry-3',
-    title: 'Dinner & Drinks',
-    amount: 850.0,
-    currency: 'THB',
-    type: 'expense',
-    category: 'Food & Groceries',
-    date: new Date().toISOString().split('T')[0],
-  },
-];
 
 export const useBudgetStore = create<BudgetStoreState>()(
   persist(
@@ -818,31 +590,22 @@ export const useBudgetStore = create<BudgetStoreState>()(
       fetchFromSupabase: async () => {
         const remoteData = await budgetService.fetchBudgetData();
         if (remoteData) {
-          set((state) => ({
-            walletBalances: remoteData.walletBalances || state.walletBalances,
-            monthlySalaries: remoteData.monthlySalaries || state.monthlySalaries,
-            budgetEntries: remoteData.budgetEntries || state.budgetEntries,
-            familyTransactions: remoteData.familyTransactions || state.familyTransactions,
-            loans: remoteData.loans || [],
-            goldHoldings: remoteData.goldHoldings || [],
-            lastProcessedMonth: remoteData.lastProcessedMonth || '',
-            currency: (remoteData.currency as CurrencyCode) || state.currency,
-          }));
+          isApplyingRemoteBudgetState = true;
+          try {
+            set((state) => ({
+              walletBalances: remoteData.walletBalances || state.walletBalances,
+              monthlySalaries: remoteData.monthlySalaries || state.monthlySalaries,
+              budgetEntries: remoteData.budgetEntries || state.budgetEntries,
+              familyTransactions: remoteData.familyTransactions || state.familyTransactions,
+              loans: remoteData.loans || [],
+              goldHoldings: remoteData.goldHoldings || [],
+              lastProcessedMonth: remoteData.lastProcessedMonth || '',
+              currency: (remoteData.currency as CurrencyCode) || state.currency,
+            }));
+          } finally {
+            isApplyingRemoteBudgetState = false;
+          }
         }
-      },
-
-      syncToSupabase: async () => {
-        const state = get();
-        await budgetService.saveBudgetData({
-          walletBalances: state.walletBalances,
-          monthlySalaries: state.monthlySalaries,
-          budgetEntries: state.budgetEntries,
-          familyTransactions: state.familyTransactions,
-          loans: state.loans,
-          goldHoldings: state.goldHoldings,
-          currency: state.currency,
-          lastProcessedMonth: state.lastProcessedMonth,
-        });
       },
     }),
     {
@@ -851,32 +614,7 @@ export const useBudgetStore = create<BudgetStoreState>()(
   ),
 );
 
-// Auto-sync budget changes to Supabase cloud
 useBudgetStore.subscribe((state, previousState) => {
-  const currentCloudData = {
-    walletBalances: state.walletBalances,
-    monthlySalaries: state.monthlySalaries,
-    budgetEntries: state.budgetEntries,
-    familyTransactions: state.familyTransactions,
-    loans: state.loans,
-    goldHoldings: state.goldHoldings,
-    currency: state.currency,
-    lastProcessedMonth: state.lastProcessedMonth,
-  };
-  const previousCloudData = {
-    walletBalances: previousState.walletBalances,
-    monthlySalaries: previousState.monthlySalaries,
-    budgetEntries: previousState.budgetEntries,
-    familyTransactions: previousState.familyTransactions,
-    loans: previousState.loans,
-    goldHoldings: previousState.goldHoldings,
-    currency: previousState.currency,
-    lastProcessedMonth: previousState.lastProcessedMonth,
-  };
-
-  if (JSON.stringify(currentCloudData) === JSON.stringify(previousCloudData)) return;
-
-  budgetService.saveBudgetData({
-    ...currentCloudData,
-  });
+  if (isApplyingRemoteBudgetState) return;
+  budgetSyncScheduler.schedule(selectBudgetSnapshot(state), selectBudgetSnapshot(previousState));
 });

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import type { WalletBalances } from '@/store/use-budget-store';
+import type { WalletBalances } from '@/features/budget/store/model';
 import type { BudgetData } from '../types/budget-sync';
 
 export const budgetReadService = {

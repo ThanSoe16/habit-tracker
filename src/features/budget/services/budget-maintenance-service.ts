@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import type { LoanTransaction } from '@/store/use-budget-store';
+import type { LoanTransaction } from '@/features/budget/store/model';
 
 export const budgetMaintenanceService = {
   async deleteFamilyTransaction(id: string): Promise<void> {

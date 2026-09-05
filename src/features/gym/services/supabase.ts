@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import type { Exercise, PlanDay, WorkoutLog } from '@/store/use-gym-store';
+import type { Exercise, PlanDay, WorkoutLog } from '@/features/gym/store/model';
 
 export const gymService = {
   async fetchGymPlans(): Promise<PlanDay[]> {
