@@ -44,7 +44,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const PRESET_RELATIONS = ['Mom', 'Dad', 'Sister', 'Brother', 'Wife', 'Husband'];
+const FAMILY_NEEDS = 'Family Needs';
+const PRESET_RELATIONS = ['Mom', 'Dad', 'Sister', 'Brother', 'Wife', 'Husband', FAMILY_NEEDS];
 
 export default function FamilyBudgetPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -169,6 +170,7 @@ export default function FamilyBudgetPage() {
     new Set([
       ...Object.keys(personSummary),
       ...familyTransactions.map((t) => t.person),
+      FAMILY_NEEDS,
     ]),
   );
 

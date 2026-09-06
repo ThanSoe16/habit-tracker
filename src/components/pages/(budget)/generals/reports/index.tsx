@@ -61,7 +61,7 @@ export default function BudgetReportsPage() {
   };
 
   const periodExpenses = budgetEntries
-    .filter((e) => e.type === 'expense')
+    .filter((e) => e.type === 'expense' && e.category !== 'Family')
     .filter((e) => filterByPeriod(e.date))
     .filter((e) => selectedCurrency === 'ALL' || e.currency === selectedCurrency);
 
