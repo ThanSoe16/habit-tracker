@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ConfirmationDialog } from '@/components/shared/dialog/confirmation-dialog';
 import { useRouter } from 'next/navigation';
 import { useHabitStore } from '@/store/use-habit-store';
 import { ChevronLeft, Pencil, Trash2 } from 'lucide-react';
@@ -21,6 +22,9 @@ import { isHabitRequiredOnDate, getLocalDateString } from '@/utils/date-utils';
 export default function HabitDetail({ id }: { id: string }) {
   const [viewDate, setViewDate] = React.useState(new Date());
   const router = useRouter();
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
   const { habits, removeHabit } = useHabitStore();
   const habit = habits.find((h) => h.id === id);
 
@@ -33,9 +37,17 @@ export default function HabitDetail({ id }: { id: string }) {
   }
 
   const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete this habit?')) {
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
       await removeHabit(habit.id);
+      setDeleteOpen(false);
       router.back();
+    } catch {
+      setDeleteError('Could not delete this habit. Please try again.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -75,9 +87,21 @@ export default function HabitDetail({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col w-full max-w-lg mx-auto">
+      <ConfirmationDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title="Delete habit?"
+        desc="This will delete the habit and its completions."
+        isLoading={deleting}
+        error={deleteError}
+        onPress={() => {
+          void handleDelete();
+        }}
+      />
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4">
         <button
+          aria-label="Go back"
           onClick={() => router.back()}
           className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
         >
@@ -86,13 +110,18 @@ export default function HabitDetail({ id }: { id: string }) {
         <h1 className="text-xl font-bold text-foreground">Habit</h1>
         <div className="flex gap-1">
           <button
+            aria-label="Edit habit"
             onClick={() => router.push(`/managements/${habit.id}/edit`)}
             className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
           >
             <Pencil className="w-5 h-5 text-gray-400" />
           </button>
           <button
-            onClick={handleDelete}
+            aria-label="Delete habit"
+            onClick={() => {
+              setDeleteError(null);
+              setDeleteOpen(true);
+            }}
             className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors"
           >
             <Trash2 className="w-5 h-5 text-red-400" />
@@ -105,7 +134,10 @@ export default function HabitDetail({ id }: { id: string }) {
         <div className="flex flex-col items-center text-center space-y-3 py-2">
           <div
             className="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl shadow-sm"
-            style={{ backgroundColor: habit.color ? `${habit.color}20` : '#eff6ff', color: habit.color || '#2563eb' }}
+            style={{
+              backgroundColor: habit.color ? `${habit.color}20` : '#eff6ff',
+              color: habit.color || '#2563eb',
+            }}
           >
             {habit.emoji || '✨'}
           </div>
@@ -122,7 +154,11 @@ export default function HabitDetail({ id }: { id: string }) {
               type="button"
               className="bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-primary/30 flex items-center gap-3 text-sm transition-transform active:scale-95"
             >
-              <span>{habit.unitType === 'time' ? `${habit.goalValue || 20}:00 min` : `Log ${habit.goalValue || 1} ${habit.unit || 'Count'}`}</span>
+              <span>
+                {habit.unitType === 'time'
+                  ? `${habit.goalValue || 20}:00 min`
+                  : `Log ${habit.goalValue || 1} ${habit.unit || 'Count'}`}
+              </span>
               <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
                 ▶
               </span>
@@ -130,11 +166,12 @@ export default function HabitDetail({ id }: { id: string }) {
           </div>
         </div>
 
-
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl shadow-xs border border-gray-100 dark:border-zinc-800">
-            <p className="text-[17px] font-bold text-gray-800 dark:text-white">{habit.streak} days</p>
+            <p className="text-[17px] font-bold text-gray-800 dark:text-white">
+              {habit.streak} days
+            </p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">Current streak</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl shadow-xs border border-gray-100 dark:border-zinc-800">
@@ -142,11 +179,15 @@ export default function HabitDetail({ id }: { id: string }) {
             <p className="text-[13px] text-gray-400 font-medium mt-1">Completion rate</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl shadow-xs border border-gray-100 dark:border-zinc-800">
-            <p className="text-[17px] font-bold text-gray-800 dark:text-white">{totalCompletions}</p>
+            <p className="text-[17px] font-bold text-gray-800 dark:text-white">
+              {totalCompletions}
+            </p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">Habits completed</p>
           </div>
           <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl shadow-xs border border-gray-100 dark:border-zinc-800">
-            <p className="text-[17px] font-bold text-gray-800 dark:text-white">{totalCompletions}</p>
+            <p className="text-[17px] font-bold text-gray-800 dark:text-white">
+              {totalCompletions}
+            </p>
             <p className="text-[13px] text-gray-400 font-medium mt-1">Total perfect days</p>
           </div>
         </div>

@@ -37,6 +37,7 @@ export interface GymStore {
     weight?: string,
   ) => void;
   removeExerciseFromDay: (dayIndex: number, planExerciseId: string) => void;
+  reorderExercisesInDay: (dayIndex: number, activeId: string, overId: string) => void;
   updatePlanExercise: (
     dayIndex: number,
     planExerciseId: string,

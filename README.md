@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+Project coding rules start in [AGENTS.md](AGENTS.md). The supplied reference examples
+are in [docs/agent-examples](docs/agent-examples/README.md); see the
+[adoption review](docs/rules-adoption.md) for integration gaps and verification.
+
 ## Getting Started
 
 First, run the development server:

@@ -3,22 +3,15 @@
 import { create } from 'zustand';
 import { format } from 'date-fns';
 import { moodService } from '@/features/mood/services/supabase';
-import { z } from 'zod';
 
-export const moodEntrySchema = z.object({
-  mood: z.string(),
-  label: z.string(),
-  emoji: z.string(),
-  tag: z.string().optional(),
-  note: z.string().optional(),
-  timestamp: z.string(),
-});
-
-export type MoodEntry = z.infer<typeof moodEntrySchema>;
+export * from '@/features/mood/types';
+import type { MoodEntry } from '@/features/mood/types';
 
 interface MoodStore {
   history: Record<string, MoodEntry>; // Key: YYYY-MM-DD
   isLoaded: boolean;
+  isLoading: boolean;
+  error: string | null;
   fetchFromSupabase: () => Promise<void>;
   setMood: (
     date: Date,
@@ -41,14 +34,17 @@ export const MOODS = [
 export const useMoodStore = create<MoodStore>()((set, get) => ({
   history: {},
   isLoaded: false,
+  isLoading: false,
+  error: null,
 
   fetchFromSupabase: async () => {
+    set({ isLoading: true, error: null });
     try {
       const remoteMoods = await moodService.fetchMoods();
-      set({ history: remoteMoods, isLoaded: true });
+      set({ history: remoteMoods, isLoaded: true, isLoading: false, error: null });
     } catch (e) {
       console.warn('Failed to fetch moods from Supabase:', e);
-      set({ isLoaded: true });
+      set({ isLoading: false, error: 'Could not load your mood history. Please try again.' });
     }
   },
 
@@ -66,11 +62,11 @@ export const useMoodStore = create<MoodStore>()((set, get) => ({
       timestamp: new Date().toISOString(),
     };
 
-    await moodService.upsertMood(dateKey, entry);
+    const saved = await moodService.upsertMood(dateKey, entry);
     set((state) => ({
       history: {
         ...state.history,
-        [dateKey]: entry,
+        [dateKey]: saved,
       },
     }));
   },

@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "test:data-access": "node --import ./tests/register-typescript.mjs --test tests/data-access.test.mjs",
     "test:settings": "node --import ./tests/register-typescript.mjs --test tests/settings.test.mjs"
   },
   "dependencies": {

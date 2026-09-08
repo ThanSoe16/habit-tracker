@@ -3,42 +3,53 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
+import { ReactQueryProvider } from './query-provider';
 import { supabase } from '@/lib/supabase/client';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [hasSession, setHasSession] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
+    let authObserved = false;
 
     const redirectToLogin = () => {
       const requestedPath = `${pathname}${window.location.search}`;
       router.replace(`/login?next=${encodeURIComponent(requestedPath)}`);
     };
 
-    void supabase.auth.getSession().then(({ data, error }) => {
-      if (!isMounted) return;
+    void supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (!isMounted || authObserved) return;
 
-      if (error || !data.session) {
-        setHasSession(false);
+        if (error || !data.session) {
+          setUserId(null);
+          setIsChecking(false);
+          redirectToLogin();
+          return;
+        }
+
+        setUserId(data.session.user.id);
+        setIsChecking(false);
+      })
+      .catch(() => {
+        if (!isMounted || authObserved) return;
+        setUserId(null);
         setIsChecking(false);
         redirectToLogin();
-        return;
-      }
-
-      setHasSession(true);
-      setIsChecking(false);
-    });
+      });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!isMounted) return;
+      authObserved = true;
 
-      setHasSession(Boolean(session));
+      setUserId(session?.user.id ?? null);
       setIsChecking(false);
 
       if (!session) redirectToLogin();
@@ -50,7 +61,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     };
   }, [pathname, router]);
 
-  if (isChecking || !hasSession) {
+  if (isChecking || !userId) {
     return (
       <div
         className="flex min-h-screen items-center justify-center bg-background text-primary"
@@ -62,5 +73,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <ReactQueryProvider key={userId} userId={userId}>
+      {children}
+    </ReactQueryProvider>
+  );
 }

@@ -1,3 +1,4 @@
+import { readCompleteList, DataRequestError, textIdSchema } from '@/lib/supabase/request';
 import { supabase } from '@/lib/supabase/client';
 import { z } from 'zod';
 
@@ -14,21 +15,21 @@ export const workoutExerciseRowSchema = z.object({
 
 export type WorkoutExerciseRow = z.infer<typeof workoutExerciseRowSchema>;
 
+const columns = 'id, name, category, image_url, default_sets, default_reps, is_custom, created_at';
+
 export const workoutExercisesService = {
   async fetchExercises(): Promise<WorkoutExerciseRow[]> {
-    const { data, error } = await supabase
-      .from('workout_exercises')
-      .select('*')
-      .order('name', { ascending: true });
+    const { data } = await readCompleteList(
+      supabase
+        .from('workout_exercises')
+        .select(columns, { count: 'exact' })
+        .order('name')
+        .order('id'),
+    );
 
-    if (error) {
-      console.warn('Error fetching workout exercises from Supabase:', error.message);
-      return [];
-    }
     const result = workoutExerciseRowSchema.array().safeParse(data || []);
     if (!result.success) {
-      console.warn('Invalid workout exercise data:', result.error.message);
-      return [];
+      throw new DataRequestError('Workout exercise data was incomplete.');
     }
     return result.data;
   },
@@ -38,7 +39,7 @@ export const workoutExercisesService = {
     const { data, error } = await supabase
       .from('workout_exercises')
       .upsert(payload, { onConflict: 'name' })
-      .select()
+      .select(columns)
       .single();
 
     if (error) {
@@ -77,11 +78,16 @@ export const workoutExercisesService = {
   },
 
   async deleteExercise(id: string): Promise<boolean> {
-    const { error } = await supabase.from('workout_exercises').delete().eq('id', id);
+    const { data, error } = await supabase
+      .from('workout_exercises')
+      .delete()
+      .eq('id', textIdSchema.parse(id))
+      .select('id')
+      .single();
     if (error) {
       console.warn('Error deleting exercise from Supabase:', error.message);
       return false;
     }
-    return true;
+    return Boolean(data);
   },
 };

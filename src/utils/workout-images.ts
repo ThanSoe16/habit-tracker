@@ -1,6 +1,11 @@
 const LOCAL_IMAGE_BASE_URL = '/work-out';
 
 export const EXERCISE_IMAGES_MAP: Record<string, string> = {
+  'Reverse Fly (Rear Delts)': `${LOCAL_IMAGE_BASE_URL}/back/reverse-fly.png`,
+  'Sumo Squat': `${LOCAL_IMAGE_BASE_URL}/legs/sumo-squat.png`,
+  'Wrist Curl (Forearms)': `${LOCAL_IMAGE_BASE_URL}/forearms/wrist-curl.png`,
+  'Reverse Wrist Curl (Forearms)': `${LOCAL_IMAGE_BASE_URL}/forearms/reverse-wrist-curl.png`,
+  'Reverse Curl (Forearms)': `${LOCAL_IMAGE_BASE_URL}/forearms/reverse-curl.png`,
   // Chest
   'Incline Chest Press': `${LOCAL_IMAGE_BASE_URL}/chests/incline-chest.png`,
   'Flat Chest Press': `${LOCAL_IMAGE_BASE_URL}/chests/flat-chest.png`,
@@ -18,6 +23,7 @@ export const EXERCISE_IMAGES_MAP: Record<string, string> = {
   'Archer Push-ups (Unilateral Chest)': `${LOCAL_IMAGE_BASE_URL}/push-ups/standard-push-up.png`,
 
   // Back
+  'Back Extension (Hyperextension)': `${LOCAL_IMAGE_BASE_URL}/back/back-extension.png`,
   'Pull-ups / Lat Pulldown': `${LOCAL_IMAGE_BASE_URL}/back/pull-down.png`,
   'Vertical Pull (Lat Pulldown)': `${LOCAL_IMAGE_BASE_URL}/back/pull-down.png`,
   'Barbell Bent-Over Row': `${LOCAL_IMAGE_BASE_URL}/back/barbell-bent-over-row.png`,
@@ -43,7 +49,7 @@ export const EXERCISE_IMAGES_MAP: Record<string, string> = {
   'Shoulder Press': `${LOCAL_IMAGE_BASE_URL}/shoulders/shoulder-press.png`,
   'Lateral Raises': `${LOCAL_IMAGE_BASE_URL}/shoulders/lateral-raises.png`,
   'Face Pulls': `${LOCAL_IMAGE_BASE_URL}/back/face-pulls.png`,
-  'Rear Delt Flyes / Reverse Fly': `${LOCAL_IMAGE_BASE_URL}/back/face-pulls.png`,
+  'Rear Delt Flyes / Reverse Fly': `${LOCAL_IMAGE_BASE_URL}/back/reverse-fly.png`,
   'Front Dumbbell Raise': `${LOCAL_IMAGE_BASE_URL}/shoulders/front-dumbbell-raise.png`,
 
   // Arms
@@ -55,6 +61,7 @@ export const EXERCISE_IMAGES_MAP: Record<string, string> = {
   'Incline Dumbbell Bicep Curl': `${LOCAL_IMAGE_BASE_URL}/biceps/dumbbell-hammer-curl.png`,
 
   // Core / Abs
+  'Basic Crunches (Abs)': `${LOCAL_IMAGE_BASE_URL}/core-abs/basic-crunches.png`,
   Plank: `${LOCAL_IMAGE_BASE_URL}/core-abs/plank.png`,
   'Hanging Leg Raise': `${LOCAL_IMAGE_BASE_URL}/core-abs/hanging-leg-raise.png`,
   'Cable Crunch (Upper Abs)': `${LOCAL_IMAGE_BASE_URL}/core-abs/cable-crunch.png`,
@@ -80,7 +87,7 @@ export function getExerciseImage(
 
   if (!exerciseName) return null;
   const trimmed = exerciseName.trim();
-  if (EXERCISE_IMAGES_MAP[trimmed]) {
+  if (Object.hasOwn(EXERCISE_IMAGES_MAP, trimmed)) {
     return EXERCISE_IMAGES_MAP[trimmed];
   }
 

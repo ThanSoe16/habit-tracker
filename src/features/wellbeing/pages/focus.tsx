@@ -15,12 +15,14 @@ import { useWellbeingData } from '../hooks/use-wellbeing-data';
 import { useFocusSessionStore } from '../store/use-focus-session-store';
 import { formatDuration } from '../utils/format-duration';
 import { AppIcon } from '../components/app-icon';
+import { getFocusApps } from '../utils/get-focus-apps';
 
 const durations = [15, 25, 30, 45, 60];
 
 export default function FocusModePage() {
   const { activeSession, start } = useFocusSessionStore();
-  const { appUsage, focusHistory, isLoading, error } = useWellbeingData();
+  const { appUsage, appLimits, focusHistory, isLoading, error } = useWellbeingData();
+  const focusApps = getFocusApps(appUsage, appLimits);
   const hydrated = useSyncExternalStore(() => () => undefined, () => true, () => false);
   const [duration, setDuration] = useState(25);
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
@@ -63,7 +65,7 @@ export default function FocusModePage() {
                 </Badge>
               </div>
               <div className="flex flex-col gap-2">
-                {appUsage.slice(0, 5).map((app) => (
+                {focusApps.map((app) => (
                   <Field key={app.id}>
                     <FieldLabel
                       htmlFor={`focus-${app.id}`}
@@ -85,7 +87,7 @@ export default function FocusModePage() {
                 ))}
               </div>
             </FieldSet>
-            <Button size="lg" className="w-full" disabled={!selectedApps.length || !appUsage.length} onClick={() => start(duration * 60, selectedApps)}>
+            <Button size="lg" className="w-full" disabled={!selectedApps.length || !focusApps.length} onClick={() => start(duration * 60, selectedApps)}>
               <Play data-icon="inline-start" />
               {selectedApps.length ? `Start ${duration}m focus` : 'Select an app to start'}
             </Button>

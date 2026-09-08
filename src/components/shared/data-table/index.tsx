@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Flex } from '@radix-ui/themes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -26,13 +26,19 @@ interface DataTableProps<T> {
 export function DataTable<T>({
   columns,
   data,
-  total = 0,
+  total,
   query = { pageIndex: 1, rowPerPage: 10 },
   isLoading = false,
   renderHeader,
   onPageChange,
 }: DataTableProps<T>) {
-  const totalPages = Math.ceil((total || data.length) / query.rowPerPage) || 1;
+  const pageSize = Math.max(1, query.rowPerPage);
+  const totalPages = Math.max(1, Math.ceil((total ?? data.length) / pageSize));
+  useEffect(() => {
+    if (!isLoading && onPageChange && (query.pageIndex > totalPages || query.pageIndex < 1)) {
+      onPageChange(Math.min(totalPages, Math.max(1, query.pageIndex)));
+    }
+  }, [isLoading, onPageChange, query.pageIndex, totalPages]);
 
   return (
     <Flex direction="column" gap="4" className="w-full">
@@ -62,7 +68,10 @@ export function DataTable<T>({
               ))
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-sm font-medium text-muted-foreground">
+                <td
+                  colSpan={columns.length}
+                  className="px-4 py-8 text-center text-sm font-medium text-muted-foreground"
+                >
                   No records found.
                 </td>
               </tr>
@@ -90,7 +99,8 @@ export function DataTable<T>({
             <Button
               variant="outline"
               size="icon"
-              disabled={query.pageIndex <= 1 || isLoading}
+              aria-label="Previous page"
+              disabled={!onPageChange || query.pageIndex <= 1 || isLoading}
               onClick={() => onPageChange && onPageChange(query.pageIndex - 1)}
               className="w-8 h-8 rounded-lg"
             >
@@ -99,7 +109,8 @@ export function DataTable<T>({
             <Button
               variant="outline"
               size="icon"
-              disabled={query.pageIndex >= totalPages || isLoading}
+              aria-label="Next page"
+              disabled={!onPageChange || query.pageIndex >= totalPages || isLoading}
               onClick={() => onPageChange && onPageChange(query.pageIndex + 1)}
               className="w-8 h-8 rounded-lg"
             >

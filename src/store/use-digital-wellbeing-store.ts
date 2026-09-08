@@ -1,5 +1,6 @@
 'use client';
 
+import { identityRevision, isIdentityRevisionCurrent } from '@/lib/supabase/identity-scope';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { wellbeingService } from '@/features/wellbeing/services/supabase';
@@ -98,8 +99,10 @@ export const useDigitalWellbeingStore = create<DigitalWellbeingStore>()(
       urges: [],
 
       fetchFromSupabase: async () => {
+        const revision = identityRevision();
         try {
           const remote = await wellbeingService.fetchData();
+          if (!isIdentityRevisionCurrent(revision)) return;
           if (!remote) {
             set({ isLoaded: true });
             return;
@@ -145,6 +148,7 @@ export const useDigitalWellbeingStore = create<DigitalWellbeingStore>()(
           }
           if (pendingMigration.length) await Promise.allSettled(pendingMigration);
         } catch (error) {
+          if (!isIdentityRevisionCurrent(revision)) return;
           console.warn('Failed to fetch digital wellbeing data:', error);
           set({ isLoaded: true });
         }

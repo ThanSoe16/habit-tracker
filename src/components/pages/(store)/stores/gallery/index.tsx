@@ -36,26 +36,31 @@ export default function StoreGalleryPage() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   // Open camera
-  const openCamera = useCallback(async (mode: 'photo' | 'video') => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: mode === 'video',
-      });
-      streamRef.current = stream;
-      setCameraMode(mode);
-      setIsCameraOpen(true);
+  const openCamera = useCallback(
+    async (mode: 'photo' | 'video') => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: mode === 'video',
+        });
+        streamRef.current = stream;
+        setCameraMode(mode);
+        setIsCameraOpen(true);
 
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-      }, 100);
-    } catch {
-      alert('Camera permission is required. Please allow camera access in your browser settings.');
-    }
-  }, [facingMode]);
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play();
+          }
+        }, 100);
+      } catch {
+        alert(
+          'Camera permission is required. Please allow camera access in your browser settings.',
+        );
+      }
+    },
+    [facingMode],
+  );
 
   // Close camera
   const closeCamera = useCallback(() => {
@@ -109,14 +114,18 @@ export default function StoreGalleryPage() {
     if (!ctx) return;
 
     ctx.drawImage(video, 0, 0);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      setPreviewUrl(url);
-      setPreviewBlob(blob);
-      setPreviewType('photo');
-      closeCamera();
-    }, 'image/jpeg', 0.92);
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(url);
+        setPreviewBlob(blob);
+        setPreviewType('photo');
+        closeCamera();
+      },
+      'image/jpeg',
+      0.92,
+    );
   }, [closeCamera]);
 
   // Start video recording
@@ -188,31 +197,56 @@ export default function StoreGalleryPage() {
     setMediaTitle('');
   }, [previewUrl]);
 
+  const savePendingRef = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   // Save the previewed file
   const saveFile = useCallback(async () => {
     const source = previewFile || previewBlob;
     if (!source || !previewUrl) return;
 
-    const filename = (source as File).name || `${previewType}.${previewType === 'photo' ? 'jpg' : 'mp4'}`;
-    const storageUrl = await uploadMediaToStorage(source, filename);
+    if (savePendingRef.current) return;
+    savePendingRef.current = true;
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      const filename =
+        (source as File).name || `${previewType}.${previewType === 'photo' ? 'jpg' : 'mp4'}`;
+      const storageUrl = await uploadMediaToStorage(source, filename);
 
-    const defaultTitle = `${previewType === 'video' ? 'Video' : 'Photo'} ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
-    const title = mediaTitle.trim() || defaultTitle;
+      const defaultTitle = `${previewType === 'video' ? 'Video' : 'Photo'} ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+      const title = mediaTitle.trim() || defaultTitle;
 
-    const entry: MediaEntry = {
-      id: crypto.randomUUID(),
-      type: previewType,
-      title,
-      dataUrl: storageUrl || previewUrl,
-      fileSize: source.size,
-      duration: previewType === 'video' ? videoRecordingTime : 0,
-      mimeType: source.type || (previewType === 'photo' ? 'image/jpeg' : 'video/webm'),
-      createdAt: new Date().toISOString(),
-    };
+      const entry: MediaEntry = {
+        id: crypto.randomUUID(),
+        type: previewType,
+        title,
+        dataUrl: storageUrl || previewUrl,
+        fileSize: source.size,
+        duration: previewType === 'video' ? videoRecordingTime : 0,
+        mimeType: source.type || (previewType === 'photo' ? 'image/jpeg' : 'video/webm'),
+        createdAt: new Date().toISOString(),
+      };
 
-    addMediaEntry(entry);
-    discardPreview();
-  }, [previewFile, previewBlob, previewUrl, previewType, videoRecordingTime, mediaTitle, addMediaEntry, discardPreview]);
+      await addMediaEntry(entry);
+      discardPreview();
+    } catch {
+      setSaveError('Could not save this file. Your preview has been kept. Please try again.');
+    } finally {
+      savePendingRef.current = false;
+      setIsSaving(false);
+    }
+  }, [
+    previewFile,
+    previewBlob,
+    previewUrl,
+    previewType,
+    videoRecordingTime,
+    mediaTitle,
+    addMediaEntry,
+    discardPreview,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -230,6 +264,16 @@ export default function StoreGalleryPage() {
 
   return (
     <div className="space-y-5">
+      {saveError && (
+        <p role="alert" className="p-4 text-destructive">
+          {saveError}
+        </p>
+      )}
+      {isSaving && (
+        <p role="status" className="p-4 text-muted-foreground">
+          Saving file…
+        </p>
+      )}
       {/* Hidden canvas for photo capture */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -314,7 +358,11 @@ export default function StoreGalleryPage() {
               className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
               title={cameraMode === 'photo' ? 'Switch to Video' : 'Switch to Photo'}
             >
-              {cameraMode === 'photo' ? <Video className="w-5 h-5" /> : <Camera className="w-5 h-5" />}
+              {cameraMode === 'photo' ? (
+                <Video className="w-5 h-5" />
+              ) : (
+                <Camera className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -324,9 +372,7 @@ export default function StoreGalleryPage() {
       {previewUrl && (
         <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-lg border border-violet-200 dark:border-violet-800 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-black uppercase tracking-wider text-gray-400">
-              Preview
-            </h2>
+            <h2 className="text-xs font-black uppercase tracking-wider text-gray-400">Preview</h2>
             <button
               type="button"
               onClick={discardPreview}
@@ -338,18 +384,10 @@ export default function StoreGalleryPage() {
 
           <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-700 bg-black">
             {previewType === 'video' ? (
-              <video
-                src={previewUrl}
-                controls
-                className="w-full max-h-60 object-contain"
-              />
+              <video src={previewUrl} controls className="w-full max-h-60 object-contain" />
             ) : (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full max-h-60 object-contain"
-              />
+              <img src={previewUrl} alt="Preview" className="w-full max-h-60 object-contain" />
             )}
           </div>
 
@@ -420,18 +458,15 @@ export default function StoreGalleryPage() {
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
           <h2 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-blue-600" /> Saved Photos & Videos ({galleryEntries.length})
+            <ImageIcon className="w-4 h-4 text-blue-600" /> Saved Photos & Videos (
+            {galleryEntries.length})
           </h2>
         </div>
 
         {galleryEntries.length > 0 ? (
           <div className="space-y-3">
             {galleryEntries.map((entry) => (
-              <MediaCard
-                key={entry.id}
-                entry={entry}
-                onDelete={deleteMediaEntry}
-              />
+              <MediaCard key={entry.id} entry={entry} onDelete={deleteMediaEntry} />
             ))}
           </div>
         ) : (

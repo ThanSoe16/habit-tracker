@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { cn } from '@/utils/cn';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ interface ConfirmationDialogProps {
   confirmText?: string;
   cancelText?: string;
   isLoading?: boolean;
+  error?: string | null;
   onPress: () => void;
 }
 
@@ -38,14 +40,20 @@ export function ConfirmationDialog({
   cancelText = 'Cancel',
   isLoading = false,
   onPress,
+  error,
 }: ConfirmationDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={(val) => !val && onClose()}>
+    <AlertDialog open={open} onOpenChange={(val) => !val && !isLoading && onClose()}>
       <AlertDialogContent className="max-w-md p-6 rounded-3xl bg-card border-border">
         <AlertDialogHeader>
           <Flex align="center" gap="3" className="mb-2">
             {enableDeleteIcon && (
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDelete ? 'bg-destructive/10 text-destructive' : 'bg-amber-500/10 text-amber-500'}`}>
+              <div
+                className={cn(
+                  'size-10 rounded-full flex items-center justify-center',
+                  isDelete ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary',
+                )}
+              >
                 {isDelete ? <Trash2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
               </div>
             )}
@@ -58,21 +66,27 @@ export function ConfirmationDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <AlertDialogFooter className="mt-6 flex justify-end gap-3">
-          <AlertDialogCancel
-            onClick={onClose}
-            disabled={isLoading}
-            className="rounded-xl font-bold border-border"
-          >
+          <AlertDialogCancel disabled={isLoading} className="rounded-xl font-bold border-border">
             {cancelText}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
-              onPress();
+              if (!isLoading) onPress();
             }}
             disabled={isLoading}
-            className={`rounded-xl font-bold ${isDelete ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : 'bg-primary text-primary-foreground'}`}
+            className={cn(
+              'rounded-xl font-bold',
+              isDelete
+                ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+                : 'bg-primary text-primary-foreground',
+            )}
           >
             {isLoading ? 'Processing...' : confirmText}
           </AlertDialogAction>

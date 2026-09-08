@@ -1,5 +1,8 @@
 'use client';
 
+import { useFocusSessionStore } from '@/features/wellbeing/store/use-focus-session-store';
+import { partitionStore } from '@/lib/supabase/partition-store';
+import { setIdentityScope } from '@/lib/supabase/identity-scope';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useHabitStore } from '@/store/use-habit-store';
@@ -75,6 +78,7 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     let syncedUserId: string | null = null;
     let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
     let cancelled = false;
+    let authObserved = false;
     const refreshTimers = new Map<SyncTarget, number>();
 
     const syncActions: Record<SyncTarget, () => void | Promise<void>> = {
@@ -138,8 +142,24 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
       });
     }
 
+    function partitionWellbeing(userId: string | null) {
+      setIdentityScope(userId);
+      // Preserve old/unassigned storage. Never import another account's pending data.
+      void partitionStore(
+        useDigitalWellbeingStore,
+        `digital-wellbeing:${userId ?? 'signed-out'}`,
+        Boolean(userId),
+      );
+      void partitionStore(
+        useFocusSessionStore,
+        `focus-session:${userId ?? 'signed-out'}`,
+        Boolean(userId),
+      );
+    }
+
     function syncForUser(userId: string) {
       if (syncedUserId === userId) return;
+      partitionWellbeing(userId);
       syncedUserId = userId;
       startRealtimeSync(userId);
       void syncAllStores();
@@ -158,7 +178,7 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     async function checkAuthStatus() {
       try {
         const { data } = await supabase.auth.getSession();
-        if (cancelled) return;
+        if (cancelled || authObserved) return;
         const user = data?.session?.user || null;
 
         if (user) {
@@ -174,12 +194,14 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     void checkAuthStatus();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      authObserved = true;
       const user = session?.user || null;
       if (user) {
         const nameFromMeta = user.user_metadata?.name || user.email?.split('@')[0];
         if (nameFromMeta) useUserStore.setState({ name: nameFromMeta });
         syncForUser(user.id);
       } else {
+        partitionWellbeing(null);
         clearUserSync();
       }
     });

@@ -8,7 +8,9 @@
   - [Tailwind CSS v4](https://tailwindcss.com/)
   - [Shadcn UI](https://ui.shadcn.com/)
   - [Lucide React](https://lucide.dev/) (Icons)
-- **State Management**: [Zustand](https://zustand-demo.pmnd.rs/)
+- **State Management**: [Zustand](https://zustand-demo.pmnd.rs/) (current feature synchronization)
+- **Data Access**: Supabase JS; TanStack Query hooks/provider exist but are not yet wired into screens
+- **Project Rules**: [AGENTS.md](AGENTS.md) and [adoption review](docs/rules-adoption.md)
 - **Forms & Validation**:
   - [React Hook Form](https://react-hook-form.com/)
   - [Zod](https://zod.dev/)
@@ -37,7 +39,7 @@ src/
 │   └── habits/           # Specific logic/components for habits
 │
 ├── hooks/                # Custom React Hooks (e.g., useDailyReminder)
-├── lib/                  # Library configurations (currently empty, typically for Utils/DB)
+├── lib/                  # Supabase client, authentication, services, and admin boundary
 ├── store/                # Zustand state stores (e.g., useUserStore)
 ├── styles/               # Global styles (globals.css)
 └── utils/                # Helper functions (dateUtils, colorUtils, cn)

@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/date-utils';
+import habitsApiService from '@/features/habits/services/api';
 import { habitsService } from '@/features/habits/services/supabase';
 import type {
   Habit,
@@ -21,6 +22,7 @@ interface HabitStore {
   habits: Habit[];
   customUnits: string[];
   isLoaded: boolean;
+  loadError: string | null;
   fetchFromSupabase: () => Promise<void>;
   addCustomUnit: (unitName: string) => void;
   updateCustomUnit: (oldUnit: string, newUnit: string) => void;
@@ -46,8 +48,8 @@ interface HabitStore {
     timeUnit?: 'hr' | 'min' | 'sec',
     habitKind?: HabitKind,
     reminderSnoozeMinutes?: ReminderSnoozeMinutes,
-  ) => void;
-  removeHabit: (id: string) => void;
+  ) => Promise<Habit>;
+  removeHabit: (id: string) => Promise<void>;
   updateHabit: (
     id: string,
     updates: {
@@ -73,7 +75,7 @@ interface HabitStore {
       habitKind?: HabitKind;
       reminderSnoozeMinutes?: ReminderSnoozeMinutes;
     },
-  ) => void;
+  ) => Promise<Habit>;
   reorderHabits: (habits: Habit[]) => void;
   toggleHabit: (
     id: string,
@@ -114,24 +116,33 @@ const calculateStreak = (habit: Habit, history: Habit['history']): number => {
   return streak;
 };
 
+let pendingWrites = 0;
+let writeRevision = 0;
+
 export const useHabitStore = create<HabitStore>()((set, get) => ({
   habits: [],
   customUnits: [],
   isLoaded: false,
+  loadError: null,
 
   fetchFromSupabase: async () => {
+    if (pendingWrites > 0) return;
+    const revision = writeRevision;
     try {
-      const remoteHabits = await habitsService.fetchHabits();
+      const before = get().habits;
+      const remoteHabits = await habitsApiService.getHabits();
       const remoteUnits = await habitsService.fetchCustomUnits();
+      if (pendingWrites > 0 || revision !== writeRevision) return;
 
       set((state) => ({
-        habits: remoteHabits ?? state.habits,
+        habits: state.habits === before ? remoteHabits : state.habits,
         customUnits: remoteUnits,
         isLoaded: true,
+        loadError: null,
       }));
     } catch (e) {
       console.warn('Failed to fetch habits from Supabase:', e);
-      set({ isLoaded: true });
+      set({ isLoaded: true, loadError: 'Could not load your habits. Please try again.' });
     }
   },
 
@@ -216,26 +227,55 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
       createdAt: new Date().toISOString(),
       sortOrder: get().habits.length,
     };
+    pendingWrites++;
+    writeRevision++;
     set((state) => ({ habits: [...state.habits, newHabit] }));
-    const saved = await habitsService.upsertHabit(newHabit);
-    if (saved) await get().fetchFromSupabase();
+    try {
+      const saved = await habitsApiService.saveHabit(newHabit);
+      set((state) => ({
+        habits: state.habits.map((habit) => (habit === newHabit ? saved : habit)),
+      }));
+      return saved;
+    } catch (error) {
+      set((state) => ({ habits: state.habits.filter((habit) => habit !== newHabit) }));
+      throw error;
+    } finally {
+      pendingWrites--;
+    }
   },
 
   removeHabit: async (id) => {
-    set((state) => ({ habits: state.habits.filter((h) => h.id !== id) }));
-    await habitsService.deleteHabit(id);
-    await get().fetchFromSupabase();
+    // Keep the record mounted until persistence succeeds so a failed dialog retains context.
+    pendingWrites++;
+    writeRevision++;
+    try {
+      await habitsApiService.deleteHabit(id);
+      set((state) => ({ habits: state.habits.filter((habit) => habit.id !== id) }));
+    } finally {
+      pendingWrites--;
+    }
   },
 
   updateHabit: async (id, updates) => {
-    const currentHabit = get().habits.find((h) => h.id === id);
-    if (currentHabit) {
-      const updated = { ...currentHabit, ...updates };
+    const currentHabit = get().habits.find((habit) => habit.id === id);
+    if (!currentHabit) throw new Error('This habit is unavailable. Please refresh.');
+    const updated = { ...currentHabit, ...updates };
+    pendingWrites++;
+    writeRevision++;
+    set((state) => ({ habits: state.habits.map((habit) => (habit.id === id ? updated : habit)) }));
+    try {
+      const saved = await habitsApiService.saveHabit(updated);
       set((state) => ({
-        habits: state.habits.map((h) => (h.id === id ? updated : h)),
+        habits: state.habits.map((habit) => (habit === updated ? saved : habit)),
       }));
-      const saved = await habitsService.upsertHabit(updated);
-      if (saved) await get().fetchFromSupabase();
+      return saved;
+    } catch (error) {
+      set((state) => ({
+        habits: state.habits.map((habit) => (habit === updated ? currentHabit : habit)),
+      }));
+      throw error;
+    } finally {
+      pendingWrites--;
     }
   },
 

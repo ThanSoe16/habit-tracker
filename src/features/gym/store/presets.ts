@@ -70,6 +70,13 @@ export const PRESET_EXERCISES: Exercise[] = [
 
   // Back
   {
+    id: 'ex-41',
+    name: 'Reverse Fly (Rear Delts)',
+    category: 'Back',
+    defaultSets: 3,
+    defaultReps: '12-15',
+  },
+  {
     id: 'ex-6',
     name: 'Pull-ups / Lat Pulldown',
     category: 'Back',
@@ -93,6 +100,7 @@ export const PRESET_EXERCISES: Exercise[] = [
   },
 
   // Legs
+  { id: 'ex-42', name: 'Sumo Squat', category: 'Legs', defaultSets: 3, defaultReps: '10-12' },
   { id: 'ex-10', name: 'Barbell Squats', category: 'Legs', defaultSets: 4, defaultReps: '8-10' },
   { id: 'ex-11', name: 'Leg Press', category: 'Legs', defaultSets: 3, defaultReps: '10-12' },
   { id: 'ex-12', name: 'Romanian Deadlift', category: 'Legs', defaultSets: 4, defaultReps: '8-10' },
@@ -126,6 +134,27 @@ export const PRESET_EXERCISES: Exercise[] = [
 
   // Arms
   {
+    id: 'ex-43',
+    name: 'Wrist Curl (Forearms)',
+    category: 'Arms',
+    defaultSets: 3,
+    defaultReps: '12-15',
+  },
+  {
+    id: 'ex-44',
+    name: 'Reverse Wrist Curl (Forearms)',
+    category: 'Arms',
+    defaultSets: 3,
+    defaultReps: '12-15',
+  },
+  {
+    id: 'ex-45',
+    name: 'Reverse Curl (Forearms)',
+    category: 'Arms',
+    defaultSets: 3,
+    defaultReps: '10-12',
+  },
+  {
     id: 'ex-20',
     name: 'Triceps Overhead Extension',
     category: 'Arms',
@@ -149,6 +178,13 @@ export const PRESET_EXERCISES: Exercise[] = [
   },
 
   // Core / Abs
+  {
+    id: 'ex-46',
+    name: 'Basic Crunches (Abs)',
+    category: 'Core',
+    defaultSets: 3,
+    defaultReps: '12-15',
+  },
   { id: 'ex-24', name: 'Plank', category: 'Core', defaultSets: 3, defaultReps: '60s' },
   {
     id: 'ex-25',

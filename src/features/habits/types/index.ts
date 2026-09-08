@@ -25,12 +25,12 @@ const habitCompletionSchema = z.object({
 });
 
 export const habitRecordSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().trim().min(1),
   name: z.string().trim().min(1),
   type: z.enum(['habit', 'task']).optional(),
   habitKind: habitKindSchema.optional(),
   frequency: habitFrequencySchema,
-  repeatDays: z.array(z.number().int().min(0).max(6)),
+  repeatDays: z.array(z.number().int().min(0).max(31)),
   color: z.string().min(1),
   emoji: z.string().optional(),
   startDate: z.string().optional(),
@@ -54,15 +54,15 @@ export const habitRecordSchema = z.object({
 
 export const habitSchema = z
   .object({
-    name: z.string().min(1, 'Name is required'),
+    name: z.string().trim().min(1, 'Name is required'),
     color: z.string(),
     emoji: z.string(),
     startDate: z.string(),
     type: z.enum(['habit', 'task']),
     habitKind: habitKindSchema,
     frequencyTab: z.enum(['daily', 'monthly', 'specific']),
-    selectedDays: z.array(z.number()),
-    selectedMonthlyDays: z.array(z.number()),
+    selectedDays: z.array(z.number().int().min(0).max(6)),
+    selectedMonthlyDays: z.array(z.number().int().min(1).max(31)),
     selectedSpecificDates: z.array(z.string()),
     allDay: z.boolean(),
     timeOfDay: z.enum(['morning', 'afternoon', 'evening']),
@@ -80,7 +80,7 @@ export const habitSchema = z
     goalValue: z.number().min(1, 'Goal value must be at least 1'),
   })
   .superRefine((data, context) => {
-    if (!data.endHabitEnabled) return;
+    if (!data.endHabitEnabled || data.endHabitMode !== 'date') return;
 
     if (calculateHabitDurationDays(data.startDate, data.endHabitDate) < 1) {
       context.addIssue({

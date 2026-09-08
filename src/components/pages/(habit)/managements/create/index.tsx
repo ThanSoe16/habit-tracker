@@ -1,4 +1,6 @@
 'use client';
+import { habitFormValues } from '@/features/habits/utils/form-values';
+import { useSubmissionScope } from '@/features/base/hooks/use-submission-scope';
 import { useForm } from 'react-hook-form';
 import HabitForm from '../_components/form/habit-form';
 import { HabitData, habitSchema } from '@/features/habits/types';
@@ -6,11 +8,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { COLORS, EMOJIS } from '@/features/habits/data';
 import { useHabitStore } from '@/store/use-habit-store';
 import { useRouter } from 'next/navigation';
+import {
+  useUnsavedChanges,
+  confirmSettingsNavigation,
+} from '@/features/settings/use-unsaved-changes';
+import { toast } from 'sonner';
 import { getLocalDateString } from '@/utils/date-utils';
 import { calculateHabitEndDate } from '@/utils/habit-end-condition';
 
 const CreateHabitPage = () => {
   const router = useRouter();
+  const submission = useSubmissionScope();
   const addHabit = useHabitStore((state) => state.addHabit);
   const startDate = getLocalDateString();
 
@@ -41,39 +49,57 @@ const CreateHabitPage = () => {
     },
   });
 
+  useUnsavedChanges(form.formState.isDirty);
+  const onCancel = () => {
+    if (confirmSettingsNavigation()) router.back();
+  };
+
   const onSubmit = async (data: HabitData) => {
-    await addHabit(
-      data.name,
-      data.color,
-      data.frequencyTab,
-      data.frequencyTab === 'daily'
-        ? data.selectedDays
-        : data.frequencyTab === 'monthly'
-          ? data.selectedMonthlyDays
-          : [],
-      data.emoji,
-      data.startDate,
-      undefined, // endDate is not used directly in this form version
-      data.type,
-      data.allDay ? undefined : data.timeOfDay,
-      data.reminders ? data.reminderTime : undefined,
-      data.endHabitEnabled && data.endHabitMode === 'date' ? data.endHabitDate : undefined,
-      data.endHabitEnabled && data.endHabitMode === 'days' ? data.endHabitDays : undefined,
-      data.frequencyTab === 'specific' ? data.selectedSpecificDates : [],
-      data.unitType,
-      data.goalValue,
-      data.unit || (data.unitType === 'time' ? 'Minutes' : 'Count'),
-      data.timerMode || 'down',
-      data.timeUnit || 'min',
-      data.habitKind,
-      data.reminderSnoozeMinutes,
-    );
+    form.clearErrors('root');
+    try {
+      await submission.assertCurrent();
+      const saved = await addHabit(
+        data.name,
+        data.color,
+        data.frequencyTab,
+        data.frequencyTab === 'daily'
+          ? data.selectedDays
+          : data.frequencyTab === 'monthly'
+            ? data.selectedMonthlyDays
+            : [],
+        data.emoji,
+        data.startDate,
+        undefined, // endDate is not used directly in this form version
+        data.type,
+        data.allDay ? undefined : data.timeOfDay,
+        data.reminders ? data.reminderTime : undefined,
+        data.endHabitEnabled && data.endHabitMode === 'date' ? data.endHabitDate : undefined,
+        data.endHabitEnabled && data.endHabitMode === 'days' ? data.endHabitDays : undefined,
+        data.frequencyTab === 'specific' ? data.selectedSpecificDates : [],
+        data.unitType,
+        data.goalValue,
+        data.unit || (data.unitType === 'time' ? 'Minutes' : 'Count'),
+        data.timerMode || 'down',
+        data.timeUnit || 'min',
+        data.habitKind,
+        data.reminderSnoozeMinutes,
+      );
+      if (!submission.isCurrent()) return;
+      form.reset(habitFormValues(saved));
+    } catch {
+      if (!submission.isCurrent()) return;
+      form.setError('root.server', {
+        message: 'Could not save the habit. Your input has been kept.',
+      });
+      return;
+    }
+    toast.success('Habit saved');
     router.back();
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
-      <HabitForm form={form} />
+    <form onSubmit={form.handleSubmit(onSubmit)} noValidate aria-busy={form.formState.isSubmitting}>
+      <HabitForm onCancel={onCancel} form={form} />
     </form>
   );
 };

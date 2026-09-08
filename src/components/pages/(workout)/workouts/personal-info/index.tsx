@@ -3,42 +3,24 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  User,
   Edit3,
-  Calendar,
   Sparkles,
-  Target,
   Scale,
   Flame,
-  Plus,
-  Zap,
   Activity,
-  Heart,
-  ChevronRight,
   ShoppingBag,
-  Droplet,
   Droplets,
   RotateCcw,
   Flag,
-  ArrowUpRight,
-  HelpCircle,
 } from 'lucide-react';
-import {
-  useGymStore,
-  cmToFtIn,
-  kgToLbs,
-  lbsToKg,
-  calculateAge,
-} from '@/store/use-gym-store';
+import { useGymStore, cmToFtIn, kgToLbs, lbsToKg, calculateAge } from '@/store/use-gym-store';
 import { EditWaterGoalModal } from '../hydration-progress/_components/edit-water-goal-modal';
 import { toast } from 'sonner';
-import { cn } from '@/utils/cn';
 
 export default function GymProfilePage() {
   const router = useRouter();
   const {
     gymSettings,
-    updateGymSettings,
     setHydrationGoal,
     logWaterIntake,
     setDailyWaterIntake,
@@ -60,7 +42,8 @@ export default function GymProfilePage() {
   const gender = gymSettings.gender || latestLog?.gender || 'Male';
   const fitnessGoal = gymSettings.fitnessGoal || latestLog?.fitness_goal || 'Muscle Gain';
   const bodyFatPct = gymSettings.bodyFatPct ?? (latestLog?.body_fat_pct || 18);
-  const activityLevel = gymSettings.activityLevel || latestLog?.activity_level || 'Moderately Active';
+  const activityLevel =
+    gymSettings.activityLevel || latestLog?.activity_level || 'Moderately Active';
 
   // Hydration state
   const goalMl = gymSettings.hydrationGoalMl || 2500;
@@ -72,7 +55,9 @@ export default function GymProfilePage() {
 
   // Quick weight log modal
   const [showQuickLog, setShowQuickLog] = useState(false);
-  const [quickWeight, setQuickWeight] = useState(isLbs ? kgToLbs(currentWeightKg) : currentWeightKg);
+  const [quickWeight, setQuickWeight] = useState(
+    isLbs ? kgToLbs(currentWeightKg) : currentWeightKg,
+  );
   const [quickFat, setQuickFat] = useState(bodyFatPct || 18);
 
   // Height display (CM + FT-IN)
@@ -144,19 +129,23 @@ export default function GymProfilePage() {
     e.preventDefault();
     const inputWeightKg = isLbs ? lbsToKg(Number(quickWeight)) : Number(quickWeight);
 
-    await addBodyMetricLog({
-      logged_at: todayStr,
-      height_cm: heightCm,
-      weight_kg: inputWeightKg,
-      target_weight_kg: targetWeightKg,
-      dob,
-      gender,
-      fitness_goal: fitnessGoal,
-      body_fat_pct: quickFat ? Number(quickFat) : undefined,
-      activity_level: activityLevel,
-    });
-    setShowQuickLog(false);
-    toast.success('Logged weight for today! 📈');
+    try {
+      await addBodyMetricLog({
+        logged_at: todayStr,
+        height_cm: heightCm,
+        weight_kg: inputWeightKg,
+        target_weight_kg: targetWeightKg,
+        dob,
+        gender,
+        fitness_goal: fitnessGoal,
+        body_fat_pct: quickFat ? Number(quickFat) : undefined,
+        activity_level: activityLevel,
+      });
+      setShowQuickLog(false);
+      toast.success('Logged weight for today! 📈');
+    } catch {
+      toast.error('Could not save body metrics. Your input has been kept.');
+    }
   };
 
   return (
@@ -184,11 +173,17 @@ export default function GymProfilePage() {
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-white/10 rounded-2xl px-3 py-2.5 text-center border border-white/5">
-            <p className="text-lg font-black">{currentWeightDisp}<span className="text-xs ml-0.5 font-bold opacity-70">{weightUnit}</span></p>
+            <p className="text-lg font-black">
+              {currentWeightDisp}
+              <span className="text-xs ml-0.5 font-bold opacity-70">{weightUnit}</span>
+            </p>
             <p className="text-[10px] font-semibold text-blue-100/70 mt-0.5">Current</p>
           </div>
           <div className="bg-white/10 rounded-2xl px-3 py-2.5 text-center border border-white/5">
-            <p className="text-lg font-black">{targetWeightDisp}<span className="text-xs ml-0.5 font-bold opacity-70">{weightUnit}</span></p>
+            <p className="text-lg font-black">
+              {targetWeightDisp}
+              <span className="text-xs ml-0.5 font-bold opacity-70">{weightUnit}</span>
+            </p>
             <p className="text-[10px] font-semibold text-blue-100/70 mt-0.5">Target</p>
           </div>
           <div className="bg-white/10 rounded-2xl px-3 py-2.5 text-center border border-white/5">

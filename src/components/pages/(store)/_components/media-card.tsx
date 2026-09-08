@@ -1,34 +1,27 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Image as ImageIcon, Video, Trash2, Play, Pause, Maximize2, X } from 'lucide-react';
+import { Trash2, Play, Pause, Maximize2, X } from 'lucide-react';
 import { MediaEntry } from '@/store/use-media-store';
 import { cn } from '@/utils/cn';
 import { format, parseISO } from 'date-fns';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmationDialog } from '@/components/shared/dialog/confirmation-dialog';
 
 interface MediaCardProps {
   entry: MediaEntry;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: string) => void | Promise<void>;
   onPlay?: (entry: MediaEntry) => void;
 }
 
 export function MediaCard({ entry, onDelete, onPlay }: MediaCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(entry.duration || 0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Toggle audio playback
@@ -78,15 +71,6 @@ export function MediaCard({ entry, onDelete, onPlay }: MediaCardProps) {
       }
     };
   }, []);
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    const time = parseFloat(e.target.value);
-    setCurrentTime(time);
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-    }
-  };
 
   const formatTime = (secs?: number) => {
     if (!secs || isNaN(secs) || !isFinite(secs) || secs <= 0) return '';
@@ -226,46 +210,27 @@ export function MediaCard({ entry, onDelete, onPlay }: MediaCardProps) {
         </div>
       </div>
 
-      {/* DELETE CONFIRMATION DIALOG */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent
-          onClick={(e) => e.stopPropagation()}
-          className="z-[90] bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl max-w-xs mx-auto text-gray-900 dark:text-white"
-        >
-          <AlertDialogHeader className="space-y-2 text-center sm:text-center">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto mb-1">
-              <Trash2 className="w-6 h-6" />
-            </div>
-            <AlertDialogTitle className="text-base font-extrabold text-gray-900 dark:text-white">
-              Delete {entry.type === 'voice' ? 'Voice Memo' : entry.type === 'photo' ? 'Photo' : 'Video'}?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete &ldquo;{entry.title || 'this item'}&rdquo;? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-row items-center justify-end gap-2 mt-4">
-            <AlertDialogCancel
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleteDialogOpen(false);
-              }}
-              className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700 font-bold text-xs"
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onDelete) onDelete(entry.id);
-                setIsDeleteDialogOpen(false);
-              }}
-              className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-500/20"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        title="Delete file?"
+        desc={`Delete “${entry.title || 'this item'}”? This cannot be undone.`}
+        isLoading={deleting}
+        error={deleteError}
+        onPress={async () => {
+          if (!onDelete || deleting) return;
+          setDeleting(true);
+          setDeleteError(null);
+          try {
+            await onDelete(entry.id);
+            setIsDeleteDialogOpen(false);
+          } catch {
+            setDeleteError('Could not delete this file. Please try again.');
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      />
 
       {/* FULLSCREEN LIGHTBOX / MEDIA VIEWER DRAWER */}
       <Drawer open={isViewerOpen} onOpenChange={setIsViewerOpen}>

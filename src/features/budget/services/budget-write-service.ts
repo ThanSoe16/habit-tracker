@@ -1,3 +1,4 @@
+import { DataRequestError } from '@/lib/supabase/request';
 import { supabase } from '@/lib/supabase/client';
 import type {
   BudgetEntry,
@@ -9,7 +10,7 @@ import type {
 } from '../store/model';
 
 type SupabaseMutationResult = {
-  error: { message: string } | null;
+  error: { code?: string } | null;
 };
 
 async function runMutation(
@@ -17,7 +18,7 @@ async function runMutation(
   context: string,
 ): Promise<void> {
   const { error } = await mutation;
-  if (error) throw new Error(`${context}: ${error.message}`);
+  if (error) throw new DataRequestError(`${context}. Please try again.`, error);
 }
 
 function toFamilyPayload(transaction: FamilyTransaction) {
@@ -103,6 +104,7 @@ function toGoldPayload(holding: GoldHolding) {
   };
 }
 
+/** Idempotent snapshot writes used by the retry queue; CRUD uses the API boundary. */
 export const budgetWriteService = {
   async upsertWalletBalances(balances: Partial<WalletBalances>): Promise<void> {
     const payloads = Object.entries(balances).map(([currency, balance]) => ({

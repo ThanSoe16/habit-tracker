@@ -1,11 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
-import { Plus, Trash2, Moon, Dumbbell, Edit2, Check, RotateCcw, HelpCircle, SlidersHorizontal } from 'lucide-react';
+import { Plus, Moon, Dumbbell, Edit2, Check, RotateCcw } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { useGymStore, Exercise, PlanExercise, ExerciseSetDetail } from '@/store/use-gym-store';
-import { getExerciseImage } from '@/utils/workout-images';
+import { useGymStore, Exercise, PlanExercise } from '@/store/use-gym-store';
+import { SortablePlanExercises } from './_components/sortable-plan-exercises';
 import { ExerciseSelectorModal } from '../../workouts/_components/exercise-selector-modal';
 import { ExerciseGuideModal } from '../../workouts/_components/exercise-guide-modal';
 import { AddSetsModal } from './_components/add-sets-modal';
@@ -19,6 +18,7 @@ export function PlanEditor() {
     toggleRestDay,
     addExerciseToDay,
     removeExerciseFromDay,
+    reorderExercisesInDay,
     updatePlanExercise,
     applyDefaultDay1Routine,
     applyDefaultDay2Routine,
@@ -222,88 +222,16 @@ export function PlanEditor() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-2.5">
-                {currentDay.exercises.map((ex, idx) => (
-                  <div
-                    key={ex.id}
-                    className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 space-y-3 group"
-                  >
-                    {/* Top Row: Number, Image & Name */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center shrink-0">
-                        {idx + 1}
-                      </div>
-
-                      {/* Exercise Image Thumbnail */}
-                      <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-900 overflow-hidden shrink-0 border border-gray-200 dark:border-zinc-700 relative flex items-center justify-center shadow-xs p-0.5">
-                        {getExerciseImage(ex.name) ? (
-                          <Image
-                            src={getExerciseImage(ex.name)!}
-                            alt={ex.name}
-                            fill
-                            unoptimized
-                            className="object-contain"
-                          />
-                        ) : (
-                          <Dumbbell className="w-5 h-5 text-blue-500" />
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedGuideName(ex.name)}
-                          className="text-left group/title inline-flex items-center gap-1.5 flex-wrap"
-                        >
-                          <span className="font-bold text-sm text-gray-900 dark:text-white group-hover/title:text-blue-600 transition-colors leading-tight">
-                            {ex.name}
-                          </span>
-                          <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover/title:text-blue-600 shrink-0 transition-colors inline-block" />
-                        </button>
-                        <div className="mt-0.5">
-                          <span className="font-semibold px-2 py-0.5 rounded-md bg-gray-200/60 dark:bg-zinc-700/60 text-[10px] text-gray-600 dark:text-gray-300">
-                            {ex.category}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Next Line: Sets/Reps Summary & Action Buttons */}
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-200/60 dark:border-zinc-700/40">
-                      <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 flex items-center gap-1.5">
-                        <span>{ex.targetSets} sets × {ex.targetReps} reps</span>
-                        {ex.weight && (
-                          <span className="text-blue-600 dark:text-blue-400 font-bold">
-                            • {ex.weight}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedSetsExercise(ex)}
-                          className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs"
-                          title="Set Reps & KG per set"
-                        >
-                          <SlidersHorizontal className="w-3.5 h-3.5" />
-                          <span>Sets & KG</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => removeExerciseFromDay(currentDay.dayIndex, ex.id)}
-                          className="px-2.5 py-1.5 rounded-xl text-red-500 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center gap-1 text-xs font-semibold transition-colors"
-                          title="Delete Exercise"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Delete</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SortablePlanExercises
+                key={currentDay.dayIndex}
+                exercises={currentDay.exercises}
+                onReorder={(activeId, overId) =>
+                  reorderExercisesInDay(currentDay.dayIndex, activeId, overId)
+                }
+                onGuide={setSelectedGuideName}
+                onEditSets={setSelectedSetsExercise}
+                onDelete={(id) => removeExerciseFromDay(currentDay.dayIndex, id)}
+              />
             )}
           </div>
         )}

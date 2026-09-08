@@ -1,177 +1,107 @@
 import { supabase } from '@/lib/supabase/client';
-import { habitKindSchema, reminderSnoozeMinutesSchema, type Habit } from '../types';
-import { z } from 'zod';
+import { readCompleteList, requireResult, textIdSchema } from '@/lib/supabase/request';
+import { habitRecordSchema, type Habit } from '../types';
+import { mapHabitRow, type HabitRow } from '../types/habit-row';
+export { habitRowSchema, type HabitRow } from '../types/habit-row';
 
-export const habitRowSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  color: z.string(),
-  emoji: z.string().nullish(),
-  frequency: z.string(),
-  repeat_days: z.array(z.number()).nullish(),
-  type: z.string().nullish(),
-  habit_kind: habitKindSchema.nullish(),
-  start_date: z.string().nullish(),
-  end_date: z.string().nullish(),
-  time_of_day: z.string().nullish(),
-  reminder_time: z.string().nullish(),
-  reminder_snooze_minutes: reminderSnoozeMinutesSchema.nullish(),
-  end_habit_date: z.string().nullish(),
-  end_habit_days: z.number().nullish(),
-  specific_dates: z.array(z.string()).nullish(),
-  unit_type: z.string().nullish(),
-  unit: z.string().nullish(),
-  goal_value: z.number().nullish(),
-  timer_mode: z.string().nullish(),
-  time_unit: z.string().nullish(),
-  history: z
-    .record(
-      z.union([
-        z.boolean(),
-        z.object({
-          completed: z.boolean(),
-          timeTaken: z.string().optional(),
-          count: z.string().optional(),
-          notes: z.string().optional(),
-        }),
-      ]),
-    )
-    .nullish(),
-  streak: z.number().nullish(),
-  sort_order: z.number().nullish(),
-  created_at: z.string().nullish(),
-});
-
-export type HabitRow = z.infer<typeof habitRowSchema>;
+const columns =
+  'id, name, color, emoji, frequency, repeat_days, type, habit_kind, start_date, end_date, time_of_day, reminder_time, reminder_snooze_minutes, end_habit_date, end_habit_days, specific_dates, unit_type, unit, goal_value, timer_mode, time_unit, history, streak, sort_order, created_at';
 
 export const habitsService = {
+  // Legacy background-sync adapter: null retains the last valid snapshot.
   async fetchHabits(): Promise<Habit[] | null> {
-    let { data, error } = await supabase
-      .from('habits')
-      .select('*')
-      .order('sort_order', { ascending: true });
-
-    // Keep habit creation working while the sort_order migration is being deployed.
-    if (error) {
-      const fallback = await supabase.from('habits').select('*').order('created_at', {
-        ascending: true,
-      });
-      data = fallback.data;
-      error = fallback.error;
-    }
-
-    if (error) {
-      console.warn('Error fetching habits from Supabase:', error.message);
+    try {
+      const { data } = await readCompleteList(
+        supabase.from('habits').select(columns, { count: 'exact' }).order('sort_order').order('id'),
+      );
+      return data.map(mapHabitRow);
+    } catch {
       return null;
     }
-    if (!data) return [];
-    return data.map((value) => {
-      const row = habitRowSchema.parse(value);
-      return {
-        id: row.id,
-        name: row.name,
-        color: row.color,
-        emoji: row.emoji || undefined,
-        frequency: (row.frequency || 'daily') as Habit['frequency'],
-        repeatDays: row.repeat_days || [],
-        type: (row.type || 'habit') as Habit['type'],
-        habitKind: row.habit_kind || 'build',
-        startDate: row.start_date || undefined,
-        endDate: row.end_date || undefined,
-        timeOfDay: (row.time_of_day || undefined) as Habit['timeOfDay'],
-        reminderTime: row.reminder_time || undefined,
-        reminderSnoozeMinutes: row.reminder_snooze_minutes || 10,
-        endHabitDate: row.end_habit_date || undefined,
-        endHabitDays: row.end_habit_days || undefined,
-        specificDates: row.specific_dates || undefined,
-        unitType: (row.unit_type || 'simple') as Habit['unitType'],
-        unit: row.unit || undefined,
-        goalValue: row.goal_value || undefined,
-        timerMode: (row.timer_mode || undefined) as Habit['timerMode'],
-        timeUnit: (row.time_unit || undefined) as Habit['timeUnit'],
-        history: row.history || {},
-        streak: row.streak || 0,
-        createdAt: row.created_at || new Date().toISOString(),
-        sortOrder: row.sort_order ?? undefined,
-      };
-    });
   },
 
-  async upsertHabit(habit: Habit): Promise<boolean> {
+  async saveHabit(habit: Habit): Promise<Habit> {
+    const validated = habitRecordSchema.parse(habit);
     const payload: HabitRow = {
-      id: habit.id,
-      name: habit.name,
-      color: habit.color,
-      emoji: habit.emoji || null,
-      frequency: habit.frequency,
-      repeat_days: habit.repeatDays,
-      type: habit.type || 'habit',
-      habit_kind: habit.habitKind || 'build',
-      start_date: habit.startDate || null,
-      end_date: habit.endDate || null,
-      time_of_day: habit.timeOfDay || null,
-      reminder_time: habit.reminderTime || null,
-      reminder_snooze_minutes: habit.reminderSnoozeMinutes || 10,
-      end_habit_date: habit.endHabitDate || null,
-      end_habit_days: habit.endHabitDays || null,
-      specific_dates: habit.specificDates || null,
-      unit_type: habit.unitType || 'simple',
-      unit: habit.unit || null,
-      goal_value: habit.goalValue || null,
-      timer_mode: habit.timerMode || null,
-      time_unit: habit.timeUnit || null,
-      history: habit.history,
-      streak: habit.streak,
-      created_at: habit.createdAt,
-      sort_order: habit.sortOrder ?? null,
+      id: validated.id,
+      name: validated.name,
+      color: validated.color,
+      emoji: validated.emoji || null,
+      frequency: validated.frequency,
+      repeat_days: validated.repeatDays,
+      type: validated.type || 'habit',
+      habit_kind: validated.habitKind || 'build',
+      start_date: validated.startDate || null,
+      end_date: validated.endDate || null,
+      time_of_day: validated.timeOfDay || null,
+      reminder_time: validated.reminderTime || null,
+      reminder_snooze_minutes: validated.reminderSnoozeMinutes || 10,
+      end_habit_date: validated.endHabitDate || null,
+      end_habit_days: validated.endHabitDays || null,
+      specific_dates: validated.specificDates || null,
+      unit_type: validated.unitType || 'simple',
+      unit: validated.unit || null,
+      goal_value: validated.goalValue || null,
+      timer_mode: validated.timerMode || null,
+      time_unit: validated.timeUnit || null,
+      history: validated.history,
+      streak: validated.streak,
+      created_at: validated.createdAt,
+      sort_order: validated.sortOrder ?? null,
     };
-    let { error } = await supabase.from('habits').upsert(payload, { onConflict: 'id' });
+    const result = await supabase
+      .from('habits')
+      .upsert(payload, { onConflict: 'id' })
+      .select(columns)
+      .single();
+    return mapHabitRow(requireResult(result, 'Could not save the habit. Please try again.'));
+  },
 
-    // Keep saves working while database migrations are being deployed.
-    const errorMessage = error?.message || '';
-    if (
-      ['sort_order', 'habit_kind', 'reminder_snooze_minutes'].some((column) =>
-        errorMessage.includes(column),
-      )
-    ) {
-      const legacyPayload: Partial<HabitRow> = { ...payload };
-      delete legacyPayload.sort_order;
-      delete legacyPayload.habit_kind;
-      delete legacyPayload.reminder_snooze_minutes;
-      const fallback = await supabase.from('habits').upsert(legacyPayload, { onConflict: 'id' });
-      error = fallback.error;
-    }
-
-    if (error) {
-      console.warn('Error upserting habit to Supabase:', error.message);
+  // Existing optimistic completion/reordering callers use a nonthrowing adapter.
+  async upsertHabit(habit: Habit): Promise<boolean> {
+    try {
+      await habitsService.saveHabit(habit);
+      return true;
+    } catch {
       return false;
     }
-    return true;
   },
 
-  async deleteHabit(id: string): Promise<void> {
-    const { error } = await supabase.from('habits').delete().eq('id', id);
-    if (error) {
-      console.warn('Error deleting habit from Supabase:', error.message);
-    }
+  async deleteHabit(id: string): Promise<boolean> {
+    const recordId = textIdSchema.parse(id);
+    const { data, error } = await supabase
+      .from('habits')
+      .delete()
+      .eq('id', recordId)
+      .select('id')
+      .single();
+    return !error && Boolean(data);
   },
 
   async fetchCustomUnits(): Promise<string[]> {
-    const { data, error } = await supabase.from('custom_units').select('name');
-    if (error) {
-      console.warn('Error fetching custom units:', error.message);
-      return [];
-    }
-    return data ? data.map((d) => d.name) : [];
+    const { data } = await readCompleteList(
+      supabase.from('custom_units').select('name', { count: 'exact' }).order('name'),
+    );
+    return data.map((row) => row.name);
   },
 
-  async addCustomUnit(name: string): Promise<void> {
-    const { error } = await supabase.from('custom_units').upsert({ name }, { onConflict: 'name' });
-    if (error) console.warn('Error adding custom unit:', error.message);
+  // Bulk synchronization callers intentionally use nonthrowing boolean outcomes.
+  async addCustomUnit(name: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('custom_units')
+      .upsert({ name: textIdSchema.parse(name) }, { onConflict: 'name' })
+      .select('name')
+      .single();
+    return !error && Boolean(data);
   },
 
-  async deleteCustomUnit(name: string): Promise<void> {
-    const { error } = await supabase.from('custom_units').delete().eq('name', name);
-    if (error) console.warn('Error deleting custom unit:', error.message);
+  async deleteCustomUnit(name: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('custom_units')
+      .delete()
+      .eq('name', textIdSchema.parse(name))
+      .select('name')
+      .single();
+    return !error && Boolean(data);
   },
 };

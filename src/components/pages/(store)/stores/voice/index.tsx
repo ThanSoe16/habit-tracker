@@ -115,29 +115,44 @@ export default function StoreVoicePage() {
     }
   }, [recordedUrl]);
 
+  const savePendingRef = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   // Save recording
   const saveRecording = useCallback(async () => {
     if (!recordedBlob || !recordedUrl) return;
 
-    const storageUrl = await uploadMediaToStorage(recordedBlob, 'voice_memo.webm');
+    if (savePendingRef.current) return;
+    savePendingRef.current = true;
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      const storageUrl = await uploadMediaToStorage(recordedBlob, 'voice_memo.webm');
 
-    const title =
-      memoTitle.trim() ||
-      `Voice Memo ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+      const title =
+        memoTitle.trim() ||
+        `Voice Memo ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
 
-    const entry: MediaEntry = {
-      id: crypto.randomUUID(),
-      type: 'voice',
-      title,
-      dataUrl: storageUrl || recordedUrl,
-      fileSize: recordedBlob.size,
-      duration: recordingTime,
-      mimeType: recordedBlob.type || 'audio/webm',
-      createdAt: new Date().toISOString(),
-    };
+      const entry: MediaEntry = {
+        id: crypto.randomUUID(),
+        type: 'voice',
+        title,
+        dataUrl: storageUrl || recordedUrl,
+        fileSize: recordedBlob.size,
+        duration: recordingTime,
+        mimeType: recordedBlob.type || 'audio/webm',
+        createdAt: new Date().toISOString(),
+      };
 
-    addMediaEntry(entry);
-    discardRecording();
+      await addMediaEntry(entry);
+      discardRecording();
+    } catch {
+      setSaveError('Could not save this file. Your preview has been kept. Please try again.');
+    } finally {
+      savePendingRef.current = false;
+      setIsSaving(false);
+    }
   }, [recordedBlob, recordedUrl, recordingTime, memoTitle, addMediaEntry, discardRecording]);
 
   // Play/pause preview
@@ -170,6 +185,16 @@ export default function StoreVoicePage() {
 
   return (
     <div className="space-y-5">
+      {saveError && (
+        <p role="alert" className="p-4 text-destructive">
+          {saveError}
+        </p>
+      )}
+      {isSaving && (
+        <p role="status" className="p-4 text-muted-foreground">
+          Saving file…
+        </p>
+      )}
       {/* Recording Section */}
       <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 rounded-3xl p-6 text-white shadow-xl shadow-emerald-600/20 space-y-6">
         {/* Timer Display */}
@@ -192,7 +217,7 @@ export default function StoreVoicePage() {
                 isRecording ? 'animate-pulse' : 'h-1',
               )}
               style={{
-                height: isRecording ? `${Math.random() * 40 + 8}px` : '4px',
+                height: isRecording ? `${((i * 17 + recordingTime * 7) % 40) + 8}px` : '4px',
                 animationDelay: `${i * 50}ms`,
               }}
             />
@@ -205,9 +230,7 @@ export default function StoreVoicePage() {
             {permissionGranted === false ? (
               <div className="text-center space-y-2">
                 <MicOff className="w-8 h-8 mx-auto text-red-300" />
-                <p className="text-xs font-bold text-red-200">
-                  Microphone permission denied
-                </p>
+                <p className="text-xs font-bold text-red-200">Microphone permission denied</p>
                 <button
                   type="button"
                   onClick={requestPermission}

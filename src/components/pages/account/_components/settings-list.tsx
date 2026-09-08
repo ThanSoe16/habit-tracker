@@ -14,7 +14,7 @@ import {
 import { NotificationPreferences } from '@/components/settings/notification-preferences';
 import { RingtoneDrawerModal } from './ringtone-drawer-modal';
 import { AppearanceDrawerModal } from './appearance-drawer-modal';
-import { version } from '../../../../../package.json';
+import packageInfo from '../../../../../package.json';
 
 const modules = [
   ['Habits', '/generals/settings'],
@@ -94,7 +94,7 @@ export function SettingsList() {
         </div>
       </SettingsSection>
       <SettingsSection title="About">
-        <FieldDescription>Habit Tracker · Version {version}</FieldDescription>
+        <FieldDescription>Habit Tracker · Version {packageInfo.version}</FieldDescription>
         <FieldDescription>
           Backup and data controls are available in the relevant module’s settings.
         </FieldDescription>

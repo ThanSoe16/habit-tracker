@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const currencyCodeSchema = z.enum(['USDT', 'MMK', 'THB', 'SGD']);
 export const budgetEntryTypeSchema = z.enum(['income', 'expense', 'exchange']);
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must use YYYY-MM-DD');
+const dateSchema = z.string().date('Enter a valid date using YYYY-MM-DD');
 
 export const budgetFilterSchema = z.object({
   currency: currencyCodeSchema.or(z.literal('ALL')).optional(),
@@ -21,7 +21,7 @@ export const expenseCreateSchema = z.object({
 });
 
 export const monthlySalarySchema = z.object({
-  id: z.string().min(1).optional(),
+  id: z.string().trim().min(1).optional(),
   title: z.string().trim().min(1, 'Salary name is required'),
   amount: z.number().positive('Amount must be greater than zero'),
   currency: currencyCodeSchema,
@@ -32,7 +32,7 @@ export const monthlySalarySchema = z.object({
 });
 
 export const budgetEntryDeleteSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().trim().min(1),
   type: budgetEntryTypeSchema,
 });
 

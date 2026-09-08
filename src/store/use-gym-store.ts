@@ -21,6 +21,7 @@ import {
   DEFAULT_INITIAL_PLAN,
 } from '@/features/gym/store/presets';
 import { syncUncompletedLogsWithPlan } from '@/features/gym/store/workout-plan-sync';
+import { reorderPlanExercises } from '@/features/gym/store/reorder-plan-exercises';
 import {
   DEFAULT_GYM_SETTINGS,
   type Exercise,
@@ -217,6 +218,13 @@ export const useGymStore = create<GymStore>()((set, get) => ({
         history: syncUncompletedLogsWithPlan(newPlan, state.history),
       };
     });
+  },
+
+  reorderExercisesInDay: (dayIndex, activeId, overId) => {
+    set(
+      (state) =>
+        reorderPlanExercises(state.weeklyPlan, state.history, dayIndex, activeId, overId) ?? state,
+    );
   },
 
   updatePlanExercise: (dayIndex, planExerciseId, updates) => {

@@ -1,15 +1,18 @@
+import { DataRequestError } from '@/lib/supabase/request';
 import { supabase } from '@/lib/supabase/client';
 
 export const userService = {
   async fetchProfile() {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('*')
+      .select(
+        'id, name, avatar_emoji, joined_at, reminders_enabled, daily_reminder_time, theme, appearance_settings, home_settings, ringtone, custom_ringtone_url, vibration_enabled, mood_settings',
+      )
       .eq('id', 'default_user')
       .maybeSingle();
 
     if (error) {
-      throw new Error(error.message);
+      throw new DataRequestError('Could not sync your profile. Please try again.', error);
     }
     return data;
   },
@@ -45,6 +48,6 @@ export const userService = {
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'id' });
-    if (error) throw new Error(error.message);
+    if (error) throw new DataRequestError('Could not sync your profile. Please try again.', error);
   },
 };

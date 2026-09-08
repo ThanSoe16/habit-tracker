@@ -1,16 +1,15 @@
+import { readCompleteList, DataRequestError } from '@/lib/supabase/request';
 import { supabase } from '@/lib/supabase/client';
 import type { Exercise, PlanDay, WorkoutLog } from '@/features/gym/store/model';
 
 export const gymService = {
   async fetchGymPlans(): Promise<PlanDay[]> {
-    const { data, error } = await supabase
-      .from('gym_plans')
-      .select('*')
-      .order('day_index', { ascending: true });
-    if (error) {
-      console.warn('Error fetching gym plans from Supabase:', error.message);
-      return [];
-    }
+    const { data } = await readCompleteList(
+      supabase
+        .from('gym_plans')
+        .select('day_index, day_name, title, is_rest_day, exercises', { count: 'exact' })
+        .order('day_index'),
+    );
     if (!data) return [];
     return data.map((row) => ({
       dayIndex: row.day_index,
@@ -35,11 +34,14 @@ export const gymService = {
   },
 
   async fetchCustomExercises(): Promise<Exercise[]> {
-    const { data, error } = await supabase.from('gym_custom_exercises').select('*');
-    if (error) {
-      console.warn('Error fetching custom exercises:', error.message);
-      return [];
-    }
+    const { data } = await readCompleteList(
+      supabase
+        .from('gym_custom_exercises')
+        .select('id, name, category, default_sets, default_reps, is_custom, image_url', {
+          count: 'exact',
+        })
+        .order('id'),
+    );
     if (!data) return [];
     return data.map((row) => ({
       id: row.id,
@@ -74,11 +76,12 @@ export const gymService = {
   },
 
   async fetchWorkoutLogs(): Promise<Record<string, WorkoutLog>> {
-    const { data, error } = await supabase.from('workout_logs').select('*');
-    if (error) {
-      console.warn('Error fetching workout logs from Supabase:', error.message);
-      return {};
-    }
+    const { data } = await readCompleteList(
+      supabase
+        .from('workout_logs')
+        .select('date_key, workout_data', { count: 'exact' })
+        .order('date_key'),
+    );
     const result: Record<string, WorkoutLog> = {};
     if (data) {
       for (const row of data) {
@@ -112,7 +115,8 @@ export const gymService = {
       .eq('id', 'default_user')
       .maybeSingle();
 
-    if (error) throw new Error(error.message);
+    if (error)
+      throw new DataRequestError('Could not sync workout settings. Please try again.', error);
     return data?.gym_settings || null;
   },
 
@@ -121,6 +125,7 @@ export const gymService = {
       .from('user_profiles')
       .upsert({ id: 'default_user', gym_settings: settings }, { onConflict: 'id' });
 
-    if (error) throw new Error(error.message);
+    if (error)
+      throw new DataRequestError('Could not sync workout settings. Please try again.', error);
   },
 };

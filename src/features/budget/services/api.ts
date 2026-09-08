@@ -1,10 +1,11 @@
 import { supabase } from '@/lib/supabase/client';
+import { z } from 'zod';
 import { budgetService } from './supabase';
 import {
-  BudgetEntryDeletePayload,
-  BudgetFilterParams,
-  ExpenseCreatePayload,
-  MonthlySalaryPayload,
+  type BudgetEntryDeletePayload,
+  type BudgetFilterParams,
+  type ExpenseCreatePayload,
+  type MonthlySalaryPayload,
   budgetEntryDeleteSchema,
   budgetFilterSchema,
   expenseCreateSchema,
@@ -15,14 +16,15 @@ const budgetApiService = {
   getBudgetData: async (params?: BudgetFilterParams) => {
     const filters = budgetFilterSchema.optional().parse(params);
     const data = await budgetService.fetchBudgetData();
-    if (!data) return null;
+    if (!data) throw new Error('Could not load your budget. Please try again.');
     const filteredEntries = (data.budgetEntries ?? []).filter((entry) => {
       if (filters?.currency && filters.currency !== 'ALL' && entry.currency !== filters.currency) {
         return false;
       }
       if (filters?.startDate && entry.date < filters.startDate) return false;
       if (filters?.endDate && entry.date > filters.endDate) return false;
-      if (filters?.category && entry.category !== filters.category) return false;
+      if (filters?.category && filters.category !== 'ALL' && entry.category !== filters.category)
+        return false;
       return true;
     });
 
@@ -42,10 +44,10 @@ const budgetApiService = {
         note: expense.note || null,
         date: expense.date,
       })
-      .select()
+      .select('id, title, category, amount, currency, note, date')
       .single();
 
-    if (error) throw error;
+    if (error || !data) throw new Error('Could not add the expense. Please try again.');
     return data;
   },
 
@@ -63,15 +65,21 @@ const budgetApiService = {
         disabled_reason: salary.disabledReason || null,
         note: salary.note || null,
       })
-      .select()
+      .select('id, title, amount, currency, category, is_enabled, disabled_reason, note')
       .single();
-    if (error) throw error;
+    if (error || !data) throw new Error('Could not save the salary. Please try again.');
     return data;
   },
 
   deleteMonthlySalary: async (id: string) => {
-    const { error } = await supabase.from('monthly_salary').delete().eq('id', id);
-    if (error) throw error;
+    const recordId = z.string().trim().min(1).parse(id);
+    const { data, error } = await supabase
+      .from('monthly_salary')
+      .delete()
+      .eq('id', recordId)
+      .select('id')
+      .single();
+    if (error || !data) throw new Error('Could not delete the salary. Please try again.');
     return true;
   },
 
@@ -83,8 +91,13 @@ const budgetApiService = {
         : entry.type === 'exchange'
           ? 'currency_exchanges'
           : 'expenses';
-    const { error } = await supabase.from(table).delete().eq('id', entry.id);
-    if (error) throw error;
+    const { data, error } = await supabase
+      .from(table)
+      .delete()
+      .eq('id', entry.id)
+      .select('id')
+      .single();
+    if (error || !data) throw new Error('Could not delete the entry. Please try again.');
     return true;
   },
 };

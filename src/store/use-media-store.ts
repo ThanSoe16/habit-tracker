@@ -3,24 +3,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { mediaItemsService } from '@/features/media/services/supabase';
-import { z } from 'zod';
 
-export const mediaTypeSchema = z.enum(['voice', 'photo', 'video']);
-export type MediaType = z.infer<typeof mediaTypeSchema>;
-
-export const mediaEntrySchema = z.object({
-  id: z.string(),
-  type: mediaTypeSchema,
-  title: z.string(),
-  dataUrl: z.string(),
-  thumbnailUrl: z.string().optional(),
-  fileSize: z.number().nonnegative(),
-  duration: z.number().nonnegative().optional(),
-  mimeType: z.string(),
-  createdAt: z.string(),
-});
-
-export type MediaEntry = z.infer<typeof mediaEntrySchema>;
+export * from '@/features/media/types';
+import type { MediaEntry } from '@/features/media/types';
 
 interface MediaStoreState {
   mediaEntries: MediaEntry[];
@@ -61,24 +46,24 @@ export const useMediaStore = create<MediaStoreState>()(
       },
 
       addMediaEntry: async (entry) => {
+        const saved = await mediaItemsService.insertMediaEntry(entry);
         set((state) => ({
-          mediaEntries: [entry, ...state.mediaEntries],
+          mediaEntries: [saved, ...state.mediaEntries.filter((item) => item.id !== saved.id)],
         }));
-        await mediaItemsService.insertMediaEntry(entry);
       },
 
       deleteMediaEntry: async (id) => {
+        await mediaItemsService.deleteMediaEntry(id);
         set((state) => ({
           mediaEntries: state.mediaEntries.filter((e) => e.id !== id),
         }));
-        await mediaItemsService.deleteMediaEntry(id);
       },
 
       updateMediaEntry: async (id, updates) => {
+        const saved = await mediaItemsService.updateMediaEntry(id, updates);
         set((state) => ({
-          mediaEntries: state.mediaEntries.map((e) => (e.id === id ? { ...e, ...updates } : e)),
+          mediaEntries: state.mediaEntries.map((e) => (e.id === id ? saved : e)),
         }));
-        await mediaItemsService.updateMediaEntry(id, updates);
       },
     }),
     {

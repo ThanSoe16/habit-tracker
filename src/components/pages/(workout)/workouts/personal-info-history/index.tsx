@@ -1,19 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   Scale,
   Trash2,
   Calendar,
-  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   TrendingDown,
   TrendingUp,
-  Plus,
-  Target,
-  Flame,
 } from 'lucide-react';
 import { useGymStore, kgToLbs, cmToFtIn } from '@/store/use-gym-store';
 import { ConfirmationDialog } from '@/components/shared/dialog/confirmation-dialog';
@@ -21,7 +16,6 @@ import { toast } from 'sonner';
 import { cn } from '@/utils/cn';
 
 export default function GymBodyMetricsHistoryPage() {
-  const router = useRouter();
   const { bodyMetricLogs, deleteBodyMetricLog, gymSettings, addBodyMetricLog } = useGymStore();
 
   const isLbs = gymSettings.weightUnit === 'lbs';
@@ -41,19 +35,9 @@ export default function GymBodyMetricsHistoryPage() {
 
   // Delete dialog state
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  // Extract all available months from logs and ensure current month is in list
-  const availableMonths = useMemo(() => {
-    const monthSet = new Set<string>();
-    monthSet.add(currentMonthKey);
-    bodyMetricLogs.forEach((log) => {
-      if (log.logged_at) {
-        const m = log.logged_at.slice(0, 7);
-        if (m) monthSet.add(m);
-      }
-    });
-    return Array.from(monthSet).sort().reverse();
-  }, [bodyMetricLogs, currentMonthKey]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Filter logs for the selected month
   const monthlyLogs = useMemo(() => {
@@ -122,29 +106,45 @@ export default function GymBodyMetricsHistoryPage() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deletingId) return;
-    await deleteBodyMetricLog(deletingId);
-    toast.success('Body metric log deleted');
-    setDeletingId(null);
+    if (!deletingId || isDeleting) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteBodyMetricLog(deletingId);
+      toast.success('Body metric log deleted');
+      setDeletingId(null);
+    } catch {
+      setDeleteError('Could not delete body metrics. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleQuickLog = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
+    setIsSaving(true);
     const todayStr = new Date().toLocaleDateString('en-CA');
     const weightKg = isLbs ? Number((quickWeight / 2.20462).toFixed(1)) : Number(quickWeight);
 
-    await addBodyMetricLog({
-      logged_at: todayStr,
-      height_cm: gymSettings.heightCm || 175,
-      weight_kg: weightKg,
-      target_weight_kg: gymSettings.targetWeightKg || 70,
-      dob: gymSettings.dob,
-      gender: gymSettings.gender,
-      fitness_goal: gymSettings.fitnessGoal,
-      body_fat_pct: quickFat ? Number(quickFat) : undefined,
-    });
-    setIsQuickLogOpen(false);
-    toast.success('New metric entry added!');
+    try {
+      await addBodyMetricLog({
+        logged_at: todayStr,
+        height_cm: gymSettings.heightCm || 175,
+        weight_kg: weightKg,
+        target_weight_kg: gymSettings.targetWeightKg || 70,
+        dob: gymSettings.dob,
+        gender: gymSettings.gender,
+        fitness_goal: gymSettings.fitnessGoal,
+        body_fat_pct: quickFat ? Number(quickFat) : undefined,
+      });
+      setIsQuickLogOpen(false);
+      toast.success('New metric entry added!');
+    } catch {
+      toast.error('Could not save body metrics. Your input has been kept.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -152,57 +152,61 @@ export default function GymBodyMetricsHistoryPage() {
       {/* Quick Add Metric Drawer */}
       {isQuickLogOpen && (
         <form
+          aria-busy={isSaving}
           onSubmit={handleQuickLog}
           className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-blue-100 dark:border-zinc-800 space-y-4 animate-in fade-in slide-in-from-top-4 duration-200"
         >
-          <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
-            <h3 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
-              <Scale className="w-4 h-4 text-blue-600" /> Log Today&apos;s Entry
-            </h3>
+          <fieldset disabled={isSaving} className="contents">
+            <legend className="sr-only">Body metrics</legend>
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
+              <h3 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <Scale className="w-4 h-4 text-blue-600" /> Log Today&apos;s Entry
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsQuickLogOpen(false)}
+                className="text-xs font-bold text-gray-400 hover:text-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  Weight ({weightUnitLabel})
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  required
+                  value={quickWeight}
+                  onChange={(e) => setQuickWeight(Number(e.target.value))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  Body Fat (%)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={quickFat}
+                  onChange={(e) => setQuickFat(Number(e.target.value))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                />
+              </div>
+            </div>
+
             <button
-              type="button"
-              onClick={() => setIsQuickLogOpen(false)}
-              className="text-xs font-bold text-gray-400 hover:text-gray-600"
+              type="submit"
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all"
             >
-              Cancel
+              Save Entry to {formatMonthTitle(currentMonthKey)}
             </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                Weight ({weightUnitLabel})
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                required
-                value={quickWeight}
-                onChange={(e) => setQuickWeight(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                Body Fat (%)
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                value={quickFat}
-                onChange={(e) => setQuickFat(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all"
-          >
-            Save Entry to {formatMonthTitle(currentMonthKey)}
-          </button>
+          </fieldset>
         </form>
       )}
 
@@ -323,10 +327,14 @@ export default function GymBodyMetricsHistoryPage() {
             {monthlyLogs.map((log, idx) => {
               const heightDetails = log.height_cm ? cmToFtIn(log.height_cm) : null;
               const prevLog = idx < monthlyLogs.length - 1 ? monthlyLogs[idx + 1] : null;
-              const delta = prevLog ? Math.round((log.weight_kg - prevLog.weight_kg) * 10) / 10 : null;
+              const delta = prevLog
+                ? Math.round((log.weight_kg - prevLog.weight_kg) * 10) / 10
+                : null;
               const dayNum = log.logged_at?.split('-')[2] || '--';
               const dayName = log.logged_at
-                ? new Date(log.logged_at + 'T00:00:00').toLocaleDateString('en', { weekday: 'short' })
+                ? new Date(log.logged_at + 'T00:00:00').toLocaleDateString('en', {
+                    weekday: 'short',
+                  })
                 : '';
 
               return (
@@ -336,7 +344,9 @@ export default function GymBodyMetricsHistoryPage() {
                 >
                   {/* Date Column */}
                   <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-zinc-800 flex flex-col items-center justify-center shrink-0 border border-gray-100 dark:border-zinc-700">
-                    <span className="text-base font-black text-gray-900 dark:text-white leading-none">{dayNum}</span>
+                    <span className="text-base font-black text-gray-900 dark:text-white leading-none">
+                      {dayNum}
+                    </span>
                     <span className="text-[9px] font-bold text-gray-400 uppercase">{dayName}</span>
                   </div>
 
@@ -348,13 +358,16 @@ export default function GymBodyMetricsHistoryPage() {
                       </span>
                       <span className="text-xs font-bold text-gray-400">{weightUnitLabel}</span>
                       {delta !== null && delta !== 0 && (
-                        <span className={cn(
-                          'text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ml-1',
-                          delta < 0
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600'
-                            : 'bg-red-50 dark:bg-red-950/40 text-red-500'
-                        )}>
-                          {delta > 0 ? '+' : ''}{displayWeight(delta)}
+                        <span
+                          className={cn(
+                            'text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ml-1',
+                            delta < 0
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600'
+                              : 'bg-red-50 dark:bg-red-950/40 text-red-500',
+                          )}
+                        >
+                          {delta > 0 ? '+' : ''}
+                          {displayWeight(delta)}
                         </span>
                       )}
                     </div>
@@ -398,6 +411,8 @@ export default function GymBodyMetricsHistoryPage() {
 
       {/* Confirmation Dialog for Deleting Log */}
       <ConfirmationDialog
+        isLoading={isDeleting}
+        error={deleteError}
         open={!!deletingId}
         onClose={() => setDeletingId(null)}
         title="Delete Body Metric Log"

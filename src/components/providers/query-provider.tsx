@@ -1,20 +1,40 @@
 'use client';
 
-import React, { useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-export function ReactQueryProvider({ children }: { children: React.ReactNode }) {
+const QueryIdentity = createContext<string | null>(null);
+export function useQueryIdentity() {
+  return useContext(QueryIdentity);
+}
+
+/** AuthGuard keys this boundary by identity, including its forms and query client. */
+export function ReactQueryProvider({
+  userId,
+  children,
+}: {
+  userId: string;
+  children: React.ReactNode;
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: {
-            staleTime: 1000 * 60 * 5, // 5 minutes
-            refetchOnWindowFocus: false,
-          },
+          queries: { staleTime: 300_000, refetchOnWindowFocus: false, retry: false },
+          mutations: { retry: false },
         },
-      })
+      }),
   );
-
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  useEffect(
+    () => () => {
+      void queryClient.cancelQueries();
+      queryClient.clear();
+    },
+    [queryClient],
+  );
+  return (
+    <QueryIdentity.Provider value={userId}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </QueryIdentity.Provider>
+  );
 }
