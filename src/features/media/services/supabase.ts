@@ -1,4 +1,6 @@
-import { supabase } from '@/lib/supabase/client';
+import { identityRevision, assertIdentityRevision } from '@/lib/supabase/identity-scope';
+import { durableMediaUrl, resolveMediaUrl } from '@/lib/supabase/private-media';
+import { accountService } from '@/lib/supabase/account-client';
 import {
   DataRequestError,
   readCompleteList,
@@ -42,46 +44,61 @@ function mapWrite(entry: Partial<MediaEntry>): Partial<MediaItemRow> {
 export const mediaItemsService = {
   // Legacy sync adapter retains its previous snapshot on null.
   async fetchMediaEntries(): Promise<MediaEntry[] | null> {
+    const { supabase, userId } = await accountService.getClient();
     try {
       const { data } = await readCompleteList(
         supabase
           .from('media_items')
           .select(columns, { count: 'exact' })
-          .eq('user_id', 'default_user')
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .order('id'),
       );
-      return data.map(mapEntry);
+      return Promise.all(
+        data.map(async (row) => {
+          const entry = mapEntry(row);
+          return {
+            ...entry,
+            dataUrl: await resolveMediaUrl(supabase, entry.dataUrl),
+            thumbnailUrl: entry.thumbnailUrl
+              ? await resolveMediaUrl(supabase, entry.thumbnailUrl)
+              : undefined,
+          };
+        }),
+      );
     } catch {
       return null;
     }
   },
 
   async insertMediaEntry(entry: MediaEntry): Promise<MediaEntry> {
+    const { supabase, userId } = await accountService.getClient();
     const validated = mediaEntrySchema.parse(entry);
     const result = await supabase
       .from('media_items')
       .upsert(
         {
-          ...mapWrite(validated),
+          ...mapWrite({ ...validated, dataUrl: durableMediaUrl(supabase, validated.dataUrl) }),
           id: textIdSchema.parse(validated.id),
-          user_id: 'default_user',
+          user_id: userId,
           created_at: validated.createdAt,
         },
         { onConflict: 'id' },
       )
       .select(columns)
       .single();
-    return mapEntry(requireResult(result, 'Could not save this file. Please try again.'));
+    const saved = mapEntry(requireResult(result, 'Could not save this file. Please try again.'));
+    return { ...saved, dataUrl: await resolveMediaUrl(supabase, saved.dataUrl) };
   },
 
   async deleteMediaEntry(id: string): Promise<void> {
+    const { supabase, userId } = await accountService.getClient();
     requireResult(
       await supabase
         .from('media_items')
         .delete()
         .eq('id', textIdSchema.parse(id))
-        .eq('user_id', 'default_user')
+        .eq('user_id', userId)
         .select('id')
         .single(),
       'Could not delete this file. Please try again.',
@@ -89,15 +106,22 @@ export const mediaItemsService = {
   },
 
   async updateMediaEntry(id: string, updates: Partial<MediaEntry>): Promise<MediaEntry> {
+    const { supabase, userId } = await accountService.getClient();
     const values = mediaEntrySchema.omit({ id: true, createdAt: true }).partial().parse(updates);
     const result = await supabase
       .from('media_items')
-      .update(mapWrite(values))
+      .update(
+        mapWrite({
+          ...values,
+          dataUrl: values.dataUrl ? durableMediaUrl(supabase, values.dataUrl) : undefined,
+        }),
+      )
       .eq('id', textIdSchema.parse(id))
-      .eq('user_id', 'default_user')
+      .eq('user_id', userId)
       .select(columns)
       .single();
-    return mapEntry(requireResult(result, 'Could not update this file. Please try again.'));
+    const saved = mapEntry(requireResult(result, 'Could not update this file. Please try again.'));
+    return { ...saved, dataUrl: await resolveMediaUrl(supabase, saved.dataUrl) };
   },
 };
 
@@ -105,6 +129,8 @@ export async function uploadMediaToStorage(
   fileOrBlob: Blob | File,
   filename?: string,
 ): Promise<string> {
+  const revision = identityRevision();
+  const { supabase, userId } = await accountService.getClient();
   const ext =
     filename
       ?.split('.')
@@ -115,7 +141,7 @@ export async function uploadMediaToStorage(
       : fileOrBlob.type.includes('video')
         ? 'mp4'
         : 'jpg');
-  const filePath = `store/${crypto.randomUUID()}.${ext}`;
+  const filePath = `${userId}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from('media_store').upload(filePath, fileOrBlob, {
     cacheControl: '3600',
     upsert: false,
@@ -124,5 +150,7 @@ export async function uploadMediaToStorage(
   if (error) throw new DataRequestError('Could not upload this file. Please try again.');
   const { data } = supabase.storage.from('media_store').getPublicUrl(filePath);
   if (!data.publicUrl) throw new DataRequestError('The uploaded file URL was unavailable.');
-  return data.publicUrl;
+  const url = await resolveMediaUrl(supabase, data.publicUrl);
+  assertIdentityRevision(revision);
+  return url;
 }

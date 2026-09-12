@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Dumbbell, Upload, Loader2, X } from 'lucide-react';
 import { Exercise, ExerciseCategory, useGymStore } from '@/store/use-gym-store';
 import { getExerciseImage } from '@/utils/workout-images';
-import { supabase } from '@/lib/supabase/client';
+import { uploadMediaToStorage } from '@/features/media/services/supabase';
 import { toast } from 'sonner';
 
 interface ExerciseFormModalProps {
@@ -65,21 +65,8 @@ export function ExerciseFormModal({
 
     try {
       setIsUploading(true);
-      const cleanCategory = category.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const cleanFileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-      const filePath = `${cleanCategory}/${cleanFileName}`;
-
-      const { error: uploadErr } = await supabase.storage
-        .from('workout-images')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadErr) throw uploadErr;
-
-      const { data: publicUrlData } = supabase.storage
-        .from('workout-images')
-        .getPublicUrl(filePath);
-
-      setImageUrl(publicUrlData.publicUrl);
+      const image = await uploadMediaToStorage(file, file.name);
+      setImageUrl(image);
       toast.success('Exercise image uploaded!');
     } catch (err) {
       toast.error((err as Error)?.message || 'Failed to upload image');
@@ -249,9 +236,7 @@ export function ExerciseFormModal({
                     className="hidden"
                   />
                 </label>
-                <p className="text-[11px] text-gray-400 mt-1 font-medium">
-                  PNG, JPG, or WebP
-                </p>
+                <p className="text-[11px] text-gray-400 mt-1 font-medium">PNG, JPG, or WebP</p>
               </div>
             </div>
           </div>

@@ -25,6 +25,8 @@ interface ConfirmationDialogProps {
   confirmText?: string;
   cancelText?: string;
   isLoading?: boolean;
+  loadingText?: string;
+  onCloseAutoFocus?: React.ComponentProps<typeof AlertDialogContent>['onCloseAutoFocus'];
   error?: string | null;
   onPress: () => void;
 }
@@ -39,12 +41,17 @@ export function ConfirmationDialog({
   confirmText = 'Delete',
   cancelText = 'Cancel',
   isLoading = false,
+  loadingText = 'Processing...',
+  onCloseAutoFocus,
   onPress,
   error,
 }: ConfirmationDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={(val) => !val && !isLoading && onClose()}>
-      <AlertDialogContent className="max-w-md p-6 rounded-3xl bg-card border-border">
+      <AlertDialogContent
+        className="max-w-md p-6 rounded-3xl bg-card border-border"
+        onCloseAutoFocus={onCloseAutoFocus}
+      >
         <AlertDialogHeader>
           <Flex align="center" gap="3" className="mb-2">
             {enableDeleteIcon && (
@@ -88,7 +95,7 @@ export function ConfirmationDialog({
                 : 'bg-primary text-primary-foreground',
             )}
           >
-            {isLoading ? 'Processing...' : confirmText}
+            {isLoading ? loadingText : confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,7 +1,7 @@
 'use client';
 import { useSettingsRouter } from '@/features/settings/use-unsaved-changes';
 
-import { LogOut, Moon, ShieldCheck, Sun } from 'lucide-react';
+import { Moon, ShieldCheck, Sun } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import {
   Sidebar,
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/sidebar';
 import { DIGITAL_WELLBEING_ROUTES } from '../constants/routes';
 import { useUserStore } from '@/store/use-user-store';
+import { LogoutButton } from '@/components/shared/buttons/logout-button';
 import { cn } from '@/utils/cn';
 
 export function WellbeingSidebar() {
@@ -125,14 +126,7 @@ export function WellbeingSidebar() {
               </span>
             </span>
           </button>
-          <button
-            type="button"
-            onClick={() => navigate('/account')}
-            className="flex size-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
-            title="Exit wellbeing"
-          >
-            <LogOut className="size-4" />
-          </button>
+          <LogoutButton />
         </div>
       </SidebarFooter>
     </Sidebar>

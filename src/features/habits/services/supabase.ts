@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client';
+import { accountService } from '@/lib/supabase/account-client';
 import { readCompleteList, requireResult, textIdSchema } from '@/lib/supabase/request';
 import { habitRecordSchema, type Habit } from '../types';
 import { mapHabitRow, type HabitRow } from '../types/habit-row';
@@ -10,6 +10,7 @@ const columns =
 export const habitsService = {
   // Legacy background-sync adapter: null retains the last valid snapshot.
   async fetchHabits(): Promise<Habit[] | null> {
+    const { supabase } = await accountService.getClient();
     try {
       const { data } = await readCompleteList(
         supabase.from('habits').select(columns, { count: 'exact' }).order('sort_order').order('id'),
@@ -21,6 +22,7 @@ export const habitsService = {
   },
 
   async saveHabit(habit: Habit): Promise<Habit> {
+    const { supabase } = await accountService.getClient();
     const validated = habitRecordSchema.parse(habit);
     const payload: HabitRow = {
       id: validated.id,
@@ -68,6 +70,7 @@ export const habitsService = {
   },
 
   async deleteHabit(id: string): Promise<boolean> {
+    const { supabase } = await accountService.getClient();
     const recordId = textIdSchema.parse(id);
     const { data, error } = await supabase
       .from('habits')
@@ -79,6 +82,7 @@ export const habitsService = {
   },
 
   async fetchCustomUnits(): Promise<string[]> {
+    const { supabase } = await accountService.getClient();
     const { data } = await readCompleteList(
       supabase.from('custom_units').select('name', { count: 'exact' }).order('name'),
     );
@@ -87,15 +91,17 @@ export const habitsService = {
 
   // Bulk synchronization callers intentionally use nonthrowing boolean outcomes.
   async addCustomUnit(name: string): Promise<boolean> {
+    const { supabase } = await accountService.getClient();
     const { data, error } = await supabase
       .from('custom_units')
-      .upsert({ name: textIdSchema.parse(name) }, { onConflict: 'name' })
+      .upsert({ name: textIdSchema.parse(name) }, { onConflict: 'user_id,name' })
       .select('name')
       .single();
     return !error && Boolean(data);
   },
 
   async deleteCustomUnit(name: string): Promise<boolean> {
+    const { supabase } = await accountService.getClient();
     const { data, error } = await supabase
       .from('custom_units')
       .delete()

@@ -24,11 +24,11 @@ import {
   Dumbbell,
   Sun,
   Moon,
-  LogOut,
   BarChart2,
   Edit,
   Scale,
 } from 'lucide-react';
+import { LogoutButton } from '@/components/shared/buttons/logout-button';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
 import { useRouter, usePathname } from 'next/navigation';
@@ -278,14 +278,7 @@ export function WorkoutAppSidebar({ onSelectTab }: WorkoutSidebarProps) {
             </div>
           </button>
 
-          <button
-            type="button"
-            onClick={() => router.push('/account')}
-            className="w-8 h-8 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 flex items-center justify-center text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            title="Account Settings"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          <LogoutButton />
         </div>
       </SidebarFooter>
     </Sidebar>

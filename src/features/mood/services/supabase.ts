@@ -1,13 +1,15 @@
 import { readCompleteList, requireResult, DataRequestError } from '@/lib/supabase/request';
 import { moodEntrySchema, moodRowSchema } from '../types';
 import { z } from 'zod';
-import { supabase } from '@/lib/supabase/client';
+import { accountService } from '@/lib/supabase/account-client';
 import type { MoodEntry } from '@/features/mood/types';
 
 const moodColumns = 'date_key, mood, label, emoji, tag, timestamp';
 const moodColumnsWithNotes = `${moodColumns}, note`;
 
-async function getMoodColumns(): Promise<string> {
+async function getMoodColumns(
+  supabase: Awaited<ReturnType<typeof accountService.getClient>>['supabase'],
+): Promise<string> {
   // Older deployments predate the optional reflection-note migration.
   const { error } = await supabase.from('mood_entries').select('note').range(0, 0);
   if (error?.code === '42703') return moodColumns;
@@ -23,7 +25,8 @@ function parseMoodRow(value: unknown) {
 
 export const moodService = {
   async fetchMoods(): Promise<Record<string, MoodEntry>> {
-    const columns = await getMoodColumns();
+    const { supabase } = await accountService.getClient();
+    const columns = await getMoodColumns(supabase);
     const { data } = await readCompleteList(
       supabase.from('mood_entries').select(columns, { count: 'exact' }).order('date_key'),
     );
@@ -45,9 +48,10 @@ export const moodService = {
   },
 
   async upsertMood(dateKey: string, entry: MoodEntry): Promise<MoodEntry> {
+    const { supabase } = await accountService.getClient();
     z.string().date().parse(dateKey);
     const validated = moodEntrySchema.parse(entry);
-    const columns = await getMoodColumns();
+    const columns = await getMoodColumns(supabase);
     const supportsNotes = columns === moodColumnsWithNotes;
     if (!supportsNotes && validated.note?.trim()) {
       throw new DataRequestError(
@@ -66,7 +70,7 @@ export const moodService = {
     };
     const result = await supabase
       .from('mood_entries')
-      .upsert(payload, { onConflict: 'date_key' })
+      .upsert(payload, { onConflict: 'user_id,date_key' })
       .select(columns)
       .single();
     const row = parseMoodRow(requireResult(result, 'Could not save your mood. Please try again.'));
@@ -78,6 +82,7 @@ export const moodService = {
   },
 
   async deleteAllMoods(): Promise<void> {
+    const { supabase } = await accountService.getClient();
     const { error } = await supabase.from('mood_entries').delete().neq('date_key', '');
     // Intentionally idempotent bulk clear; an empty history is already cleared.
     if (error) throw new DataRequestError('Could not clear your mood history.', error);

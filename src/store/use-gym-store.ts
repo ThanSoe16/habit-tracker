@@ -1,7 +1,10 @@
 'use client';
 
+import { identityRevision, assertIdentityRevision } from '@/lib/supabase/identity-scope';
+
 import { createSaveQueue } from '@/features/settings/save-queue';
 import { reportSettingsSync } from '@/features/settings/sync-status';
+import { isPartitioningStores } from '@/lib/supabase/identity-scope';
 import { create } from 'zustand';
 import { gymService } from '@/features/gym/services/supabase';
 import type { GymStore } from '@/features/gym/store/types';
@@ -46,17 +49,24 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   isLoaded: false,
 
   fetchFromSupabase: async () => {
+    const accountRevision = identityRevision();
     const settingsRevision = gymSettingsQueue.revision;
     try {
       const remotePlans = await gymService.fetchGymPlans();
+      assertIdentityRevision(accountRevision);
       const remoteCustomEx = await gymService.fetchCustomExercises();
+      assertIdentityRevision(accountRevision);
       const remoteHistory = await gymService.fetchWorkoutLogs();
+      assertIdentityRevision(accountRevision);
       const remoteSettings = await gymService.fetchGymSettings();
+      assertIdentityRevision(accountRevision);
       const remoteMetrics = await gymBodyMetricsService.fetchLogs();
+      assertIdentityRevision(accountRevision);
 
       if (remotePlans.length === 0) {
         for (const plan of DEFAULT_INITIAL_PLAN) {
           await gymService.upsertGymPlan(plan);
+          assertIdentityRevision(accountRevision);
         }
       }
 
@@ -76,6 +86,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
         });
       });
     } catch (e) {
+      assertIdentityRevision(accountRevision);
       reportSettingsSync(
         'workout',
         'error',
@@ -88,7 +99,9 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   },
 
   addBodyMetricLog: async (row) => {
+    const accountRevision = identityRevision();
     const saved = await gymBodyMetricsService.insertLog(row);
+    assertIdentityRevision(accountRevision);
     if (saved) {
       set((state) => ({
         bodyMetricLogs: [...state.bodyMetricLogs, saved].sort(
@@ -99,7 +112,9 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   },
 
   deleteBodyMetricLog: async (id) => {
+    const accountRevision = identityRevision();
     await gymBodyMetricsService.deleteLog(id);
+    assertIdentityRevision(accountRevision);
     set((state) => ({
       bodyMetricLogs: state.bodyMetricLogs.filter((m) => m.id !== id),
     }));
@@ -636,7 +651,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
 }));
 
 useGymStore.subscribe((state, previousState) => {
-  if (isApplyingRemoteGymState()) return;
+  if (isApplyingRemoteGymState() || isPartitioningStores()) return;
 
   if (state.weeklyPlan !== previousState.weeklyPlan) {
     const previousPlans = new Map(previousState.weeklyPlan.map((plan) => [plan.dayIndex, plan]));

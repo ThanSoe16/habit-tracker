@@ -1,9 +1,19 @@
+import {
+  identityRevision,
+  isIdentityRevisionCurrent,
+  onIdentityChange,
+} from '@/lib/supabase/identity-scope';
 import { gymService } from '@/features/gym/services/supabase';
 import type { PlanDay, WorkoutLog } from './model';
 
 const workoutLogSaveQueues = new Map<string, Promise<void>>();
 const gymPlanSaveTimers = new Map<number, ReturnType<typeof setTimeout>>();
 let isApplyingRemoteState = false;
+onIdentityChange(() => {
+  gymPlanSaveTimers.forEach(clearTimeout);
+  gymPlanSaveTimers.clear();
+  workoutLogSaveQueues.clear();
+});
 
 export function applyRemoteGymState(apply: () => void) {
   isApplyingRemoteState = true;
@@ -19,10 +29,13 @@ export function isApplyingRemoteGymState() {
 }
 
 export function saveWorkoutLog(dateStr: string, log: WorkoutLog) {
+  const revision = identityRevision();
   const previousSave = workoutLogSaveQueues.get(dateStr) ?? Promise.resolve();
   const nextSave = previousSave
     .catch(() => undefined)
-    .then(() => gymService.upsertWorkoutLog(dateStr, log));
+    .then(() =>
+      isIdentityRevisionCurrent(revision) ? gymService.upsertWorkoutLog(dateStr, log) : undefined,
+    );
 
   workoutLogSaveQueues.set(dateStr, nextSave);
   void nextSave.finally(() => {
@@ -33,12 +46,13 @@ export function saveWorkoutLog(dateStr: string, log: WorkoutLog) {
 }
 
 export function scheduleGymPlanSave(plan: PlanDay, delayMs = 250) {
+  const revision = identityRevision();
   const currentTimer = gymPlanSaveTimers.get(plan.dayIndex);
   if (currentTimer) clearTimeout(currentTimer);
 
   const timer = setTimeout(() => {
     gymPlanSaveTimers.delete(plan.dayIndex);
-    void gymService.upsertGymPlan(plan);
+    if (isIdentityRevisionCurrent(revision)) void gymService.upsertGymPlan(plan);
   }, delayMs);
   gymPlanSaveTimers.set(plan.dayIndex, timer);
 }

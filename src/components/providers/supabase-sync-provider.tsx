@@ -2,7 +2,8 @@
 
 import { useFocusSessionStore } from '@/features/wellbeing/store/use-focus-session-store';
 import { partitionStore } from '@/lib/supabase/partition-store';
-import { setIdentityScope } from '@/lib/supabase/identity-scope';
+import { useSettingsSync } from '@/features/settings/sync-status';
+import { partitionIdentityStores, setIdentityScope } from '@/lib/supabase/identity-scope';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useHabitStore } from '@/store/use-habit-store';
@@ -30,24 +31,24 @@ type RealtimeTarget = {
 };
 
 const REALTIME_TARGETS: RealtimeTarget[] = [
-  { table: 'habits', sync: 'habits' },
-  { table: 'custom_units', sync: 'habits' },
-  { table: 'user_profiles', sync: 'user' },
-  { table: 'mood_entries', sync: 'mood' },
-  { table: 'media_items', sync: 'media' },
-  { table: 'gym_plans', sync: 'gym' },
-  { table: 'gym_custom_exercises', sync: 'gym' },
-  { table: 'gym_body_metrics', sync: 'gym' },
-  { table: 'workout_logs', sync: 'gym' },
-  { table: 'current_budget', sync: 'budget' },
-  { table: 'family_budgets', sync: 'budget' },
-  { table: 'incomes', sync: 'budget' },
-  { table: 'expenses', sync: 'budget' },
-  { table: 'currency_exchanges', sync: 'budget' },
-  { table: 'monthly_salary', sync: 'budget' },
-  { table: 'budget_settings', sync: 'budget' },
-  { table: 'loans', sync: 'budget' },
-  { table: 'gold_holdings', sync: 'budget' },
+  { table: 'habits', sync: 'habits', userScoped: true },
+  { table: 'custom_units', sync: 'habits', userScoped: true },
+  { table: 'user_profiles', sync: 'user', userScoped: true },
+  { table: 'mood_entries', sync: 'mood', userScoped: true },
+  { table: 'media_items', sync: 'media', userScoped: true },
+  { table: 'gym_plans', sync: 'gym', userScoped: true },
+  { table: 'gym_custom_exercises', sync: 'gym', userScoped: true },
+  { table: 'gym_body_metrics', sync: 'gym', userScoped: true },
+  { table: 'workout_logs', sync: 'gym', userScoped: true },
+  { table: 'current_budget', sync: 'budget', userScoped: true },
+  { table: 'family_budgets', sync: 'budget', userScoped: true },
+  { table: 'incomes', sync: 'budget', userScoped: true },
+  { table: 'expenses', sync: 'budget', userScoped: true },
+  { table: 'currency_exchanges', sync: 'budget', userScoped: true },
+  { table: 'monthly_salary', sync: 'budget', userScoped: true },
+  { table: 'budget_settings', sync: 'budget', userScoped: true },
+  { table: 'loans', sync: 'budget', userScoped: true },
+  { table: 'gold_holdings', sync: 'budget', userScoped: true },
   { table: 'digital_wellbeing_profiles', sync: 'wellbeing-store', userScoped: true },
   { table: 'social_media_sessions', sync: 'wellbeing-store', userScoped: true },
   { table: 'social_media_urges', sync: 'wellbeing-store', userScoped: true },
@@ -142,8 +143,25 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
       });
     }
 
-    function partitionWellbeing(userId: string | null) {
+    function partitionAccounts(userId: string | null) {
       setIdentityScope(userId);
+      if ('serviceWorker' in navigator) {
+        void navigator.serviceWorker.ready
+          .then((registration) => {
+            // Read the latest identity when the worker becomes ready, including logout.
+            registration.active?.postMessage({ type: 'ACCOUNT_CHANGED', userId: syncedUserId });
+          })
+          .catch(() => undefined);
+      }
+      partitionIdentityStores(() => {
+        useHabitStore.setState(useHabitStore.getInitialState(), true);
+        useUserStore.setState(useUserStore.getInitialState(), true);
+        useMoodStore.setState(useMoodStore.getInitialState(), true);
+        useGymStore.setState(useGymStore.getInitialState(), true);
+        useSettingsSync.setState(useSettingsSync.getInitialState(), true);
+        void partitionStore(useBudgetStore, `budget:${userId ?? 'signed-out'}`, Boolean(userId));
+        void partitionStore(useMediaStore, `media:${userId ?? 'signed-out'}`, Boolean(userId));
+      });
       // Preserve old/unassigned storage. Never import another account's pending data.
       void partitionStore(
         useDigitalWellbeingStore,
@@ -159,7 +177,8 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
 
     function syncForUser(userId: string) {
       if (syncedUserId === userId) return;
-      partitionWellbeing(userId);
+      clearUserSync();
+      partitionAccounts(userId);
       syncedUserId = userId;
       startRealtimeSync(userId);
       void syncAllStores();
@@ -182,8 +201,6 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
         const user = data?.session?.user || null;
 
         if (user) {
-          const nameFromMeta = user.user_metadata?.name || user.email?.split('@')[0];
-          if (nameFromMeta) useUserStore.setState({ name: nameFromMeta });
           syncForUser(user.id);
         }
       } catch (error) {
@@ -192,22 +209,31 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     }
 
     void checkAuthStatus();
+    const mediaRefresh = window.setInterval(
+      () => {
+        if (syncedUserId) {
+          scheduleSync('media');
+          scheduleSync('gym');
+          scheduleSync('user');
+        }
+      },
+      30 * 60 * 1000,
+    );
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       authObserved = true;
       const user = session?.user || null;
       if (user) {
-        const nameFromMeta = user.user_metadata?.name || user.email?.split('@')[0];
-        if (nameFromMeta) useUserStore.setState({ name: nameFromMeta });
         syncForUser(user.id);
       } else {
-        partitionWellbeing(null);
+        partitionAccounts(null);
         clearUserSync();
       }
     });
 
     return () => {
       cancelled = true;
+      window.clearInterval(mediaRefresh);
       clearUserSync();
       authListener.subscription.unsubscribe();
     };

@@ -1,3 +1,5 @@
+import { readCompleteList } from '@/lib/supabase/request';
+import { z } from 'zod';
 import { createSupabaseAdmin } from '@/lib/supabase/admin';
 import { habitRowSchema, type HabitRow } from './supabase';
 import {
@@ -17,6 +19,7 @@ import {
 
 const getOrCreateDelivery = async (
   subscriptionId: string,
+  userId: string,
   habitId: string,
   reminderDate: string,
   scheduledTime: string,
@@ -38,6 +41,7 @@ const getOrCreateDelivery = async (
   const inserted = await supabase
     .from('habit_reminder_deliveries')
     .insert({
+      user_id: userId,
       subscription_id: subscriptionId,
       habit_id: habitId,
       reminder_date: reminderDate,
@@ -61,6 +65,7 @@ const createPushPayload = (
   const isQuitHabit = habit.habit_kind === 'quit';
 
   return {
+    userId: subscription.user_id,
     title: isQuitHabit ? 'Bad-habit check-in' : 'Habit reminder',
     body: isQuitHabit
       ? `Stay strong: avoid ${habit.name} today.`
@@ -107,15 +112,25 @@ const deliverReminder = async (
 export const processHabitPushReminders = async (now = new Date()) => {
   const supabase = createSupabaseAdmin();
   const [subscriptionsResult, habitsResult] = await Promise.all([
-    supabase.from('push_subscriptions').select('*'),
-    supabase.from('habits').select('*').not('reminder_time', 'is', null),
+    readCompleteList(
+      supabase.from('push_subscriptions').select('*', { count: 'exact' }).order('id'),
+    ),
+    readCompleteList(
+      supabase
+        .from('habits')
+        .select('*', { count: 'exact' })
+        .not('reminder_time', 'is', null)
+        .order('id'),
+    ),
   ]);
 
   if (subscriptionsResult.error) throw subscriptionsResult.error;
   if (habitsResult.error) throw habitsResult.error;
 
   const subscriptions = subscriptionsResult.data.map((row) => pushSubscriptionRowSchema.parse(row));
-  const habits = habitsResult.data.map((row) => habitRowSchema.parse(row));
+  const habits = habitsResult.data.map((row) =>
+    habitRowSchema.extend({ user_id: z.string().uuid() }).parse(row),
+  );
   const subscriptionsById = new Map(
     subscriptions.map((subscription) => [subscription.id, subscription]),
   );
@@ -123,25 +138,35 @@ export const processHabitPushReminders = async (now = new Date()) => {
   let sent = 0;
   let removed = 0;
 
-  const snoozesResult = await supabase
-    .from('habit_reminder_deliveries')
-    .select('*')
-    .not('snoozed_until', 'is', null)
-    .is('snooze_sent_at', null)
-    .lte('snoozed_until', now.toISOString());
+  const snoozesResult = await readCompleteList(
+    supabase
+      .from('habit_reminder_deliveries')
+      .select('*', { count: 'exact' })
+      .not('snoozed_until', 'is', null)
+      .is('snooze_sent_at', null)
+      .lte('snoozed_until', now.toISOString())
+      .order('id'),
+  );
   if (snoozesResult.error) throw snoozesResult.error;
 
   for (const value of snoozesResult.data) {
     const delivery = reminderDeliveryRowSchema.parse(value);
     const subscription = subscriptionsById.get(delivery.subscription_id);
     const habit = habitsById.get(delivery.habit_id);
-    if (!subscription || !habit) continue;
+    if (
+      !subscription ||
+      !habit ||
+      subscription.user_id !== habit.user_id ||
+      delivery.user_id !== habit.user_id
+    )
+      continue;
     if (isHabitCompleted(habit, delivery.reminder_date)) {
       await markDelivery(delivery.id, 'snooze_sent_at');
       continue;
     }
     const result = await deliverReminder(subscription, habit, delivery, 'snooze_sent_at');
-    result === 'sent' ? sent++ : removed++;
+    if (result === 'sent') sent++;
+    else removed++;
   }
 
   for (const subscription of subscriptions) {
@@ -153,12 +178,14 @@ export const processHabitPushReminders = async (now = new Date()) => {
     }
 
     for (const habit of habits) {
+      if (habit.user_id !== subscription.user_id) continue;
       if (!isHabitReminderDue(habit, zonedDate)) continue;
       if (!isHabitScheduledForDate(habit, zonedDate, subscription.timezone)) continue;
       if (isHabitCompleted(habit, zonedDate.date)) continue;
 
       const delivery = await getOrCreateDelivery(
         subscription.id,
+        subscription.user_id,
         habit.id,
         zonedDate.date,
         zonedDate.time,

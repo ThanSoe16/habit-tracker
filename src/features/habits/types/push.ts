@@ -26,6 +26,7 @@ export const snoozePushReminderSchema = z.object({
 });
 
 export const pushSubscriptionRowSchema = z.object({
+  user_id: z.string().uuid(),
   id: z.string().uuid(),
   endpoint: z.string().url(),
   p256dh: z.string().min(1),
@@ -35,6 +36,7 @@ export const pushSubscriptionRowSchema = z.object({
 });
 
 export const reminderDeliveryRowSchema = z.object({
+  user_id: z.string().uuid(),
   id: z.string().uuid(),
   subscription_id: z.string().uuid(),
   habit_id: z.string(),
@@ -46,6 +48,7 @@ export const reminderDeliveryRowSchema = z.object({
 });
 
 export const pushNotificationPayloadSchema = z.object({
+  userId: z.string().uuid().optional(),
   title: z.string().min(1),
   body: z.string().min(1),
   icon: z.string().optional(),

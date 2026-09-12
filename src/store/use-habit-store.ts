@@ -1,5 +1,11 @@
 'use client';
 
+import {
+  identityRevision,
+  assertIdentityRevision,
+  onIdentityChange,
+} from '@/lib/supabase/identity-scope';
+
 import { create } from 'zustand';
 import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/date-utils';
 import habitsApiService from '@/features/habits/services/api';
@@ -118,6 +124,10 @@ const calculateStreak = (habit: Habit, history: Habit['history']): number => {
 
 let pendingWrites = 0;
 let writeRevision = 0;
+onIdentityChange(() => {
+  pendingWrites = 0;
+  writeRevision++;
+});
 
 export const useHabitStore = create<HabitStore>()((set, get) => ({
   habits: [],
@@ -126,12 +136,15 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
   loadError: null,
 
   fetchFromSupabase: async () => {
+    const accountRevision = identityRevision();
     if (pendingWrites > 0) return;
     const revision = writeRevision;
     try {
       const before = get().habits;
       const remoteHabits = await habitsApiService.getHabits();
+      assertIdentityRevision(accountRevision);
       const remoteUnits = await habitsService.fetchCustomUnits();
+      assertIdentityRevision(accountRevision);
       if (pendingWrites > 0 || revision !== writeRevision) return;
 
       set((state) => ({
@@ -141,6 +154,7 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
         loadError: null,
       }));
     } catch (e) {
+      assertIdentityRevision(accountRevision);
       console.warn('Failed to fetch habits from Supabase:', e);
       set({ isLoaded: true, loadError: 'Could not load your habits. Please try again.' });
     }
@@ -200,6 +214,7 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
     habitKind = 'build',
     reminderSnoozeMinutes = 10,
   ) => {
+    const accountRevision = identityRevision();
     const newHabit: Habit = {
       id: crypto.randomUUID(),
       name,
@@ -232,31 +247,36 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
     set((state) => ({ habits: [...state.habits, newHabit] }));
     try {
       const saved = await habitsApiService.saveHabit(newHabit);
+      assertIdentityRevision(accountRevision);
       set((state) => ({
         habits: state.habits.map((habit) => (habit === newHabit ? saved : habit)),
       }));
       return saved;
     } catch (error) {
+      assertIdentityRevision(accountRevision);
       set((state) => ({ habits: state.habits.filter((habit) => habit !== newHabit) }));
       throw error;
     } finally {
-      pendingWrites--;
+      if (identityRevision() === accountRevision) pendingWrites--;
     }
   },
 
   removeHabit: async (id) => {
+    const accountRevision = identityRevision();
     // Keep the record mounted until persistence succeeds so a failed dialog retains context.
     pendingWrites++;
     writeRevision++;
     try {
       await habitsApiService.deleteHabit(id);
+      assertIdentityRevision(accountRevision);
       set((state) => ({ habits: state.habits.filter((habit) => habit.id !== id) }));
     } finally {
-      pendingWrites--;
+      if (identityRevision() === accountRevision) pendingWrites--;
     }
   },
 
   updateHabit: async (id, updates) => {
+    const accountRevision = identityRevision();
     const currentHabit = get().habits.find((habit) => habit.id === id);
     if (!currentHabit) throw new Error('This habit is unavailable. Please refresh.');
     const updated = { ...currentHabit, ...updates };
@@ -265,17 +285,19 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
     set((state) => ({ habits: state.habits.map((habit) => (habit.id === id ? updated : habit)) }));
     try {
       const saved = await habitsApiService.saveHabit(updated);
+      assertIdentityRevision(accountRevision);
       set((state) => ({
         habits: state.habits.map((habit) => (habit === updated ? saved : habit)),
       }));
       return saved;
     } catch (error) {
+      assertIdentityRevision(accountRevision);
       set((state) => ({
         habits: state.habits.map((habit) => (habit === updated ? currentHabit : habit)),
       }));
       throw error;
     } finally {
-      pendingWrites--;
+      if (identityRevision() === accountRevision) pendingWrites--;
     }
   },
 

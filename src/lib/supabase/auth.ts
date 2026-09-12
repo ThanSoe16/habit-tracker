@@ -1,5 +1,6 @@
+import { disconnectBrowserPush } from '@/features/habits/services/disconnect-browser-push';
 import { supabase } from './client';
-import { User, Session } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import { z } from 'zod';
 
 export const authUserSchema = z.object({
@@ -20,6 +21,7 @@ export const authService = {
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           name: name || email.split('@')[0],
         },
@@ -80,8 +82,9 @@ export const authService = {
    * Sign out current session
    */
   async signOut() {
+    await disconnectBrowserPush();
     const { error } = await supabase.auth.signOut();
-    if (error) console.warn('Sign out warning:', error.message);
+    if (error) throw error;
   },
 
   /**

@@ -1,5 +1,7 @@
 'use client';
 
+import { identityRevision, assertIdentityRevision } from '@/lib/supabase/identity-scope';
+
 import { create } from 'zustand';
 import { format } from 'date-fns';
 import { moodService } from '@/features/mood/services/supabase';
@@ -38,17 +40,21 @@ export const useMoodStore = create<MoodStore>()((set, get) => ({
   error: null,
 
   fetchFromSupabase: async () => {
+    const accountRevision = identityRevision();
     set({ isLoading: true, error: null });
     try {
       const remoteMoods = await moodService.fetchMoods();
+      assertIdentityRevision(accountRevision);
       set({ history: remoteMoods, isLoaded: true, isLoading: false, error: null });
     } catch (e) {
+      assertIdentityRevision(accountRevision);
       console.warn('Failed to fetch moods from Supabase:', e);
       set({ isLoading: false, error: 'Could not load your mood history. Please try again.' });
     }
   },
 
   setMood: async (date, mood, tag, note) => {
+    const accountRevision = identityRevision();
     const dateKey = format(date, 'yyyy-MM-dd');
     const entry: MoodEntry = {
       mood: mood.label,
@@ -63,6 +69,7 @@ export const useMoodStore = create<MoodStore>()((set, get) => ({
     };
 
     const saved = await moodService.upsertMood(dateKey, entry);
+    assertIdentityRevision(accountRevision);
     set((state) => ({
       history: {
         ...state.history,
@@ -72,7 +79,9 @@ export const useMoodStore = create<MoodStore>()((set, get) => ({
   },
 
   clearHistory: async () => {
+    const accountRevision = identityRevision();
     await moodService.deleteAllMoods();
+    assertIdentityRevision(accountRevision);
     set({ history: {} });
   },
 

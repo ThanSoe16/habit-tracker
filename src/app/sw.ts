@@ -17,7 +17,59 @@ installSerwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: [
+    {
+      matcher: ({ url }) =>
+        url.pathname.startsWith('/rest/v1/') ||
+        url.pathname.startsWith('/storage/v1/') ||
+        url.pathname.startsWith('/auth/v1/'),
+      handler: ({ request }) => fetch(request),
+    },
+    ...defaultCache,
+  ],
+});
+
+// Remove historical API/media cache entries created before account isolation.
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then(async (names) => {
+      await Promise.all(
+        names.map(async (name) => {
+          const cache = await caches.open(name);
+          const requests = await cache.keys();
+          await Promise.all(
+            requests
+              .filter((request) => {
+                const path = new URL(request.url).pathname;
+                return (
+                  path.startsWith('/rest/v1/') ||
+                  path.startsWith('/storage/v1/') ||
+                  path.startsWith('/auth/v1/')
+                );
+              })
+              .map((request) => cache.delete(request)),
+          );
+        }),
+      );
+    }),
+  );
+});
+
+const accountCacheName = 'habit-active-account';
+const accountCacheKey = new URL('/__active-account', self.location.origin).href;
+self.addEventListener('message', (event) => {
+  if (event.data?.type !== 'ACCOUNT_CHANGED') return;
+  const userId = typeof event.data.userId === 'string' ? event.data.userId : null;
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(accountCacheName);
+      await cache.put(accountCacheKey, new Response(JSON.stringify({ userId })));
+      const notifications = await self.registration.getNotifications();
+      notifications
+        .filter((notification) => notification.data?.userId !== userId)
+        .forEach((notification) => notification.close());
+    })(),
+  );
 });
 
 self.addEventListener('push', (event) => {
@@ -40,7 +92,15 @@ self.addEventListener('push', (event) => {
       : undefined,
   };
 
-  event.waitUntil(self.registration.showNotification(data.title, options));
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(accountCacheName);
+      const response = await cache.match(accountCacheKey);
+      const active = response ? await response.json() : null;
+      if (!data.userId || active?.userId !== data.userId) return;
+      await self.registration.showNotification(data.title, options);
+    })(),
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {

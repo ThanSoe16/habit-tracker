@@ -1,3 +1,8 @@
+> Account isolation update (2026-09-12): the new migration replaces the legacy public
+> policies and scopes account data. See [rollout and verification](account-ownership.md).
+> Earlier gaps below describe the pre-migration baseline, not the new intended schema;
+> hosted deployment and generated database types still require the documented steps.
+
 # Rules adoption — 2026-09-07
 
 ## Installed guidance

@@ -245,6 +245,6 @@ export const useDigitalWellbeingStore = create<DigitalWellbeingStore>()(
           .catch((error) => console.warn('Failed to sync social urge:', error));
       },
     }),
-    { name: 'digital-wellbeing-store' },
+    { skipHydration: true, name: 'digital-wellbeing-store' },
   ),
 );

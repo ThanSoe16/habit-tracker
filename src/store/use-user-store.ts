@@ -1,5 +1,7 @@
 'use client';
 
+import { identityRevision, assertIdentityRevision } from '@/lib/supabase/identity-scope';
+
 import { create } from 'zustand';
 import { userService } from '@/features/users/services/supabase';
 import { createSaveQueue } from '@/features/settings/save-queue';
@@ -132,10 +134,12 @@ export const useUserStore = create<UserStore>()((set, get) => ({
   isLoaded: false,
 
   fetchFromSupabase: async () => {
+    const accountRevision = identityRevision();
     if (profileQueue.hasPending) return;
     const revision = profileQueue.revision;
     try {
       const profile = await userService.fetchProfile();
+      assertIdentityRevision(accountRevision);
       if (profileQueue.hasPending || revision !== profileQueue.revision) return;
       if (profile) {
         reportSettingsSync('profile', 'idle', () => profileQueue.retry());
@@ -169,6 +173,7 @@ export const useUserStore = create<UserStore>()((set, get) => ({
         saveProfile(state);
       }
     } catch (e) {
+      assertIdentityRevision(accountRevision);
       reportSettingsSync(
         'profile',
         'error',

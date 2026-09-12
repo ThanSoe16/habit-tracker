@@ -1,4 +1,5 @@
-import { test } from 'node:test';
+import { test, beforeEach } from 'node:test';
+import { accountService } from '../src/lib/supabase/account-client.ts';
 import assert from 'node:assert/strict';
 import { supabase } from '../src/lib/supabase/client.ts';
 import { budgetReadService } from '../src/features/budget/services/budget-read-service.ts';
@@ -413,4 +414,11 @@ test('wellbeing writes strip protected fields and reject invalid limits before t
     }),
   );
   assert.equal(calls.length, 2);
+});
+
+beforeEach((t) => {
+  t.mock.method(accountService, 'getClient', async () => ({
+    supabase,
+    userId: '11111111-1111-4111-8111-111111111111',
+  }));
 });

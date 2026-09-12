@@ -1,5 +1,5 @@
 import { DataRequestError } from '@/lib/supabase/request';
-import { supabase } from '@/lib/supabase/client';
+import { accountService } from '@/lib/supabase/account-client';
 import type {
   BudgetEntry,
   FamilyTransaction,
@@ -107,6 +107,7 @@ function toGoldPayload(holding: GoldHolding) {
 /** Idempotent snapshot writes used by the retry queue; CRUD uses the API boundary. */
 export const budgetWriteService = {
   async upsertWalletBalances(balances: Partial<WalletBalances>): Promise<void> {
+    const { supabase } = await accountService.getClient();
     const payloads = Object.entries(balances).map(([currency, balance]) => ({
       currency,
       balance,
@@ -114,22 +115,24 @@ export const budgetWriteService = {
     }));
     if (payloads.length === 0) return;
     await runMutation(
-      supabase.from('current_budget').upsert(payloads, { onConflict: 'currency' }),
+      supabase.from('current_budget').upsert(payloads, { onConflict: 'user_id,currency' }),
       'Unable to update wallet balances',
     );
   },
 
   async upsertFamilyTransactions(transactions: FamilyTransaction[]): Promise<void> {
+    const { supabase } = await accountService.getClient();
     if (transactions.length === 0) return;
     await runMutation(
       supabase
         .from('family_budgets')
-        .upsert(transactions.map(toFamilyPayload), { onConflict: 'id' }),
+        .upsert(transactions.map(toFamilyPayload), { onConflict: 'user_id,id' }),
       'Unable to update family transactions',
     );
   },
 
   async upsertBudgetEntries(entries: BudgetEntry[]): Promise<void> {
+    const { supabase } = await accountService.getClient();
     const incomes = entries.filter((entry) => entry.type === 'income').map(toIncomePayload);
     const expenses = entries.filter((entry) => entry.type === 'expense').map(toIncomePayload);
     const exchanges = entries.filter((entry) => entry.type === 'exchange').map(toExchangePayload);
@@ -137,19 +140,19 @@ export const budgetWriteService = {
     const results = await Promise.allSettled([
       incomes.length > 0
         ? runMutation(
-            supabase.from('incomes').upsert(incomes, { onConflict: 'id' }),
+            supabase.from('incomes').upsert(incomes, { onConflict: 'user_id,id' }),
             'Unable to update incomes',
           )
         : Promise.resolve(),
       expenses.length > 0
         ? runMutation(
-            supabase.from('expenses').upsert(expenses, { onConflict: 'id' }),
+            supabase.from('expenses').upsert(expenses, { onConflict: 'user_id,id' }),
             'Unable to update expenses',
           )
         : Promise.resolve(),
       exchanges.length > 0
         ? runMutation(
-            supabase.from('currency_exchanges').upsert(exchanges, { onConflict: 'id' }),
+            supabase.from('currency_exchanges').upsert(exchanges, { onConflict: 'user_id,id' }),
             'Unable to update currency exchanges',
           )
         : Promise.resolve(),
@@ -159,25 +162,32 @@ export const budgetWriteService = {
   },
 
   async upsertMonthlySalaries(salaries: MonthlySalary[]): Promise<void> {
+    const { supabase } = await accountService.getClient();
     if (salaries.length === 0) return;
     await runMutation(
-      supabase.from('monthly_salary').upsert(salaries.map(toSalaryPayload), { onConflict: 'id' }),
+      supabase
+        .from('monthly_salary')
+        .upsert(salaries.map(toSalaryPayload), { onConflict: 'user_id,id' }),
       'Unable to update monthly salaries',
     );
   },
 
   async upsertLoans(loans: LoanTransaction[]): Promise<void> {
+    const { supabase } = await accountService.getClient();
     if (loans.length === 0) return;
     await runMutation(
-      supabase.from('loans').upsert(loans.map(toLoanPayload), { onConflict: 'id' }),
+      supabase.from('loans').upsert(loans.map(toLoanPayload), { onConflict: 'user_id,id' }),
       'Unable to update loans',
     );
   },
 
   async upsertGoldHoldings(holdings: GoldHolding[]): Promise<void> {
+    const { supabase } = await accountService.getClient();
     if (holdings.length === 0) return;
     await runMutation(
-      supabase.from('gold_holdings').upsert(holdings.map(toGoldPayload), { onConflict: 'id' }),
+      supabase
+        .from('gold_holdings')
+        .upsert(holdings.map(toGoldPayload), { onConflict: 'user_id,id' }),
       'Unable to update gold holdings',
     );
   },
@@ -186,6 +196,7 @@ export const budgetWriteService = {
     currency: string | undefined,
     lastProcessedMonth: string | undefined,
   ): Promise<void> {
+    const { supabase } = await accountService.getClient();
     await runMutation(
       supabase.from('budget_settings').upsert(
         {
@@ -194,7 +205,7 @@ export const budgetWriteService = {
           last_processed_month: lastProcessedMonth || '',
           updated_at: new Date().toISOString(),
         },
-        { onConflict: 'id' },
+        { onConflict: 'user_id,id' },
       ),
       'Unable to update budget settings',
     );

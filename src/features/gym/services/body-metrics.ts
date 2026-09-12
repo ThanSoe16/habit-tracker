@@ -4,7 +4,7 @@ import {
   DataRequestError,
   textIdSchema,
 } from '@/lib/supabase/request';
-import { supabase } from '@/lib/supabase/client';
+import { accountService } from '@/lib/supabase/account-client';
 import { z } from 'zod';
 
 export const bodyMetricRowSchema = z.object({
@@ -40,11 +40,12 @@ function parseMetric(row: unknown): BodyMetricRow {
 
 export const gymBodyMetricsService = {
   async fetchLogs(): Promise<BodyMetricRow[]> {
+    const { supabase, userId } = await accountService.getClient();
     const { data } = await readCompleteList(
       supabase
         .from('gym_body_metrics')
         .select(columns, { count: 'exact' })
-        .eq('user_id', 'default_user')
+        .eq('user_id', userId)
         .order('logged_at')
         .order('id'),
     );
@@ -52,9 +53,10 @@ export const gymBodyMetricsService = {
   },
 
   async insertLog(row: BodyMetricRow): Promise<BodyMetricRow> {
+    const { supabase, userId } = await accountService.getClient();
     row = bodyMetricRowSchema.parse(row);
     const payload = {
-      user_id: 'default_user',
+      user_id: userId,
       logged_at: row.logged_at,
       height_cm: row.height_cm,
       weight_kg: row.weight_kg,
@@ -79,12 +81,13 @@ export const gymBodyMetricsService = {
   },
 
   async deleteLog(id: string): Promise<void> {
+    const { supabase, userId } = await accountService.getClient();
     requireResult(
       await supabase
         .from('gym_body_metrics')
         .delete()
         .eq('id', textIdSchema.parse(id))
-        .eq('user_id', 'default_user')
+        .eq('user_id', userId)
         .select('id')
         .single(),
       'Could not delete body metrics. Please try again.',

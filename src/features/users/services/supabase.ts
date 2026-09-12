@@ -1,20 +1,25 @@
+import { durableMediaTree, resolveMediaTree } from '@/lib/supabase/private-media';
 import { DataRequestError } from '@/lib/supabase/request';
-import { supabase } from '@/lib/supabase/client';
+import { accountService } from '@/lib/supabase/account-client';
 
 export const userService = {
   async fetchProfile() {
+    const { supabase, userId } = await accountService.getClient();
     const { data, error } = await supabase
       .from('user_profiles')
       .select(
         'id, name, avatar_emoji, joined_at, reminders_enabled, daily_reminder_time, theme, appearance_settings, home_settings, ringtone, custom_ringtone_url, vibration_enabled, mood_settings',
       )
-      .eq('id', 'default_user')
-      .maybeSingle();
+      .in('id', ['default_user', userId])
+      .limit(2);
 
     if (error) {
       throw new DataRequestError('Could not sync your profile. Please try again.', error);
     }
-    return data;
+    return resolveMediaTree(
+      supabase,
+      data?.find((row) => row.id === 'default_user') ?? data?.[0] ?? null,
+    );
   },
 
   async upsertProfile(profile: {
@@ -31,7 +36,9 @@ export const userService = {
     vibrationEnabled?: boolean;
     moodSettings?: Record<string, unknown>;
   }) {
+    const { supabase, userId } = await accountService.getClient();
     const payload = {
+      user_id: userId,
       id: 'default_user',
       name: profile.name,
       avatar_emoji: profile.avatarEmoji,
@@ -47,7 +54,9 @@ export const userService = {
       mood_settings: profile.moodSettings || {},
       updated_at: new Date().toISOString(),
     };
-    const { error } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'id' });
+    const { error } = await supabase
+      .from('user_profiles')
+      .upsert(durableMediaTree(supabase, payload), { onConflict: 'user_id,id' });
     if (error) throw new DataRequestError('Could not sync your profile. Please try again.', error);
   },
 };

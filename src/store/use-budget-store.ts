@@ -1,5 +1,8 @@
 'use client';
 
+import { identityRevision, assertIdentityRevision } from '@/lib/supabase/identity-scope';
+
+import { isPartitioningStores } from '@/lib/supabase/identity-scope';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { budgetService } from '@/features/budget/services/supabase';
@@ -7,7 +10,6 @@ import {
   createBudgetSyncScheduler,
   type BudgetSnapshot,
 } from '@/features/budget/store/budget-sync';
-import { DEFAULT_ENTRIES, DEFAULT_SALARIES } from '@/features/budget/store/defaults';
 import type { BudgetStoreState } from '@/features/budget/store/types';
 import type {
   BudgetEntry,
@@ -39,13 +41,13 @@ export const useBudgetStore = create<BudgetStoreState>()(
   persist(
     (set, get) => ({
       walletBalances: {
-        USDT: 1000,
-        THB: 8000,
-        MMK: 36000000,
+        USDT: 0,
+        THB: 0,
+        MMK: 0,
         SGD: 0,
       },
-      monthlySalaries: DEFAULT_SALARIES,
-      budgetEntries: DEFAULT_ENTRIES,
+      monthlySalaries: [],
+      budgetEntries: [],
       familyTransactions: [],
       loans: [],
       goldHoldings: [],
@@ -568,9 +570,11 @@ export const useBudgetStore = create<BudgetStoreState>()(
         })),
 
       fetchFromSupabase: async () => {
+        const accountRevision = identityRevision();
         if (budgetSyncScheduler.hasPending) return;
         const revision = budgetSyncScheduler.revision;
         const remoteData = await budgetService.fetchBudgetData();
+        assertIdentityRevision(accountRevision);
         if (budgetSyncScheduler.hasPending || revision !== budgetSyncScheduler.revision) return;
         if (remoteData) {
           isApplyingRemoteBudgetState = true;
@@ -592,12 +596,13 @@ export const useBudgetStore = create<BudgetStoreState>()(
       },
     }),
     {
+      skipHydration: true,
       name: 'budget-store-v2',
     },
   ),
 );
 
 useBudgetStore.subscribe((state, previousState) => {
-  if (isApplyingRemoteBudgetState) return;
+  if (isApplyingRemoteBudgetState || isPartitioningStores()) return;
   budgetSyncScheduler.schedule(selectBudgetSnapshot(state), selectBudgetSnapshot(previousState));
 });

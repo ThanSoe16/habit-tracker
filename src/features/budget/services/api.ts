@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client';
+import { accountService } from '@/lib/supabase/account-client';
 import { z } from 'zod';
 import { budgetService } from './supabase';
 import {
@@ -33,6 +33,7 @@ const budgetApiService = {
 
   addExpense: async (payload: ExpenseCreatePayload) => {
     const expense = expenseCreateSchema.parse(payload);
+    const { supabase } = await accountService.getClient();
     const { data, error } = await supabase
       .from('expenses')
       .insert({
@@ -53,18 +54,22 @@ const budgetApiService = {
 
   upsertMonthlySalary: async (payload: MonthlySalaryPayload) => {
     const salary = monthlySalarySchema.parse(payload);
+    const { supabase } = await accountService.getClient();
     const { data, error } = await supabase
       .from('monthly_salary')
-      .upsert({
-        id: salary.id ?? crypto.randomUUID(),
-        title: salary.title,
-        amount: salary.amount,
-        currency: salary.currency,
-        category: salary.category ?? 'Salary',
-        is_enabled: salary.isEnabled ?? true,
-        disabled_reason: salary.disabledReason || null,
-        note: salary.note || null,
-      })
+      .upsert(
+        {
+          id: salary.id ?? crypto.randomUUID(),
+          title: salary.title,
+          amount: salary.amount,
+          currency: salary.currency,
+          category: salary.category ?? 'Salary',
+          is_enabled: salary.isEnabled ?? true,
+          disabled_reason: salary.disabledReason || null,
+          note: salary.note || null,
+        },
+        { onConflict: 'user_id,id' },
+      )
       .select('id, title, amount, currency, category, is_enabled, disabled_reason, note')
       .single();
     if (error || !data) throw new Error('Could not save the salary. Please try again.');
@@ -73,6 +78,7 @@ const budgetApiService = {
 
   deleteMonthlySalary: async (id: string) => {
     const recordId = z.string().trim().min(1).parse(id);
+    const { supabase } = await accountService.getClient();
     const { data, error } = await supabase
       .from('monthly_salary')
       .delete()
@@ -91,6 +97,7 @@ const budgetApiService = {
         : entry.type === 'exchange'
           ? 'currency_exchanges'
           : 'expenses';
+    const { supabase } = await accountService.getClient();
     const { data, error } = await supabase
       .from(table)
       .delete()

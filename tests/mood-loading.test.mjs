@@ -1,3 +1,5 @@
+import { beforeEach } from 'node:test';
+import { accountService } from '../src/lib/supabase/account-client.ts';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { supabase } from '../src/lib/supabase/client.ts';
@@ -176,4 +178,11 @@ test('background refresh failure keeps previously loaded mood history', async (t
   assert.equal(useMoodStore.getState().isLoaded, true);
   assert.equal(useMoodStore.getState().isLoading, false);
   assert.ok(useMoodStore.getState().error);
+});
+
+beforeEach((t) => {
+  t.mock.method(accountService, 'getClient', async () => ({
+    supabase,
+    userId: '11111111-1111-4111-8111-111111111111',
+  }));
 });

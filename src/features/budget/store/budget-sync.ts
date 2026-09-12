@@ -1,3 +1,4 @@
+import { onIdentityChange } from '@/lib/supabase/identity-scope';
 import { reportSettingsSync } from '@/features/settings/sync-status';
 import { budgetService } from '@/features/budget/services/supabase';
 import type {
@@ -128,7 +129,19 @@ export function createBudgetSyncScheduler(
   let running = false;
   let failed = false;
   let revision = 0;
+  let generation = 0;
+  onIdentityChange(() => {
+    generation++;
+    revision++;
+    if (timer) clearTimeout(timer);
+    timer = undefined;
+    pending = undefined;
+    queue.length = 0;
+    running = false;
+    failed = false;
+  });
   const flush = async () => {
+    const currentGeneration = generation;
     if (running) return;
     running = true;
     failed = false;
@@ -136,8 +149,10 @@ export function createBudgetSyncScheduler(
     while (queue.length) {
       try {
         await synchronize(queue[0].current, queue[0].previous);
+        if (currentGeneration !== generation) return;
         queue.shift();
       } catch (error) {
+        if (currentGeneration !== generation) return;
         running = false;
         failed = true;
         reportSettingsSync(

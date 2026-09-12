@@ -1,5 +1,7 @@
 import { readCompleteList, DataRequestError, textIdSchema } from '@/lib/supabase/request';
-import { supabase } from '@/lib/supabase/client';
+import { accountService } from '@/lib/supabase/account-client';
+import { durableMediaTree, resolveMediaTree } from '@/lib/supabase/private-media';
+import { uploadMediaToStorage } from '@/features/media/services/supabase';
 import { z } from 'zod';
 
 export const workoutExerciseRowSchema = z.object({
@@ -19,6 +21,7 @@ const columns = 'id, name, category, image_url, default_sets, default_reps, is_c
 
 export const workoutExercisesService = {
   async fetchExercises(): Promise<WorkoutExerciseRow[]> {
+    const { supabase } = await accountService.getClient();
     const { data } = await readCompleteList(
       supabase
         .from('workout_exercises')
@@ -31,14 +34,15 @@ export const workoutExercisesService = {
     if (!result.success) {
       throw new DataRequestError('Workout exercise data was incomplete.');
     }
-    return result.data;
+    return resolveMediaTree(supabase, result.data);
   },
 
   async upsertExercise(exercise: Partial<WorkoutExerciseRow>): Promise<WorkoutExerciseRow | null> {
     const payload = workoutExerciseRowSchema.partial().parse(exercise);
+    const { supabase } = await accountService.getClient();
     const { data, error } = await supabase
       .from('workout_exercises')
-      .upsert(payload, { onConflict: 'name' })
+      .upsert(durableMediaTree(supabase, payload), { onConflict: 'user_id,name' })
       .select(columns)
       .single();
 
@@ -51,26 +55,12 @@ export const workoutExercisesService = {
       console.warn('Invalid upserted workout exercise data:', result.error.message);
       return null;
     }
-    return result.data;
+    return resolveMediaTree(supabase, result.data);
   },
 
   async uploadExerciseImage(file: File, fileName: string): Promise<string | null> {
     try {
-      const cleanFileName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const { data, error } = await supabase.storage
-        .from('workout-images')
-        .upload(cleanFileName, file, { upsert: true });
-
-      if (error) {
-        console.warn('Error uploading image to Supabase storage:', error.message);
-        return null;
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from('workout-images')
-        .getPublicUrl(data.path);
-
-      return publicUrlData.publicUrl;
+      return await uploadMediaToStorage(file, fileName);
     } catch (err) {
       console.warn('Error in uploadExerciseImage:', err);
       return null;
@@ -78,6 +68,7 @@ export const workoutExercisesService = {
   },
 
   async deleteExercise(id: string): Promise<boolean> {
+    const { supabase } = await accountService.getClient();
     const { data, error } = await supabase
       .from('workout_exercises')
       .delete()

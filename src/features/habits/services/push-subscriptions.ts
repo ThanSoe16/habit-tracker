@@ -8,13 +8,16 @@ import {
 export const savePushSubscription = async (
   subscription: WebPushSubscription,
   timezone: string,
+  userId: string,
 ): Promise<PushSubscriptionRow> => {
   const supabase = createSupabaseAdmin();
   const { data, error } = await supabase
     .from('push_subscriptions')
     .upsert(
       {
+        user_id: userId,
         endpoint: subscription.endpoint,
+        action_token: crypto.randomUUID(),
         p256dh: subscription.keys.p256dh,
         auth: subscription.keys.auth,
         timezone,
@@ -29,9 +32,13 @@ export const savePushSubscription = async (
   return pushSubscriptionRowSchema.parse(data);
 };
 
-export const removePushSubscription = async (endpoint: string) => {
+export const removePushSubscription = async (endpoint: string, userId: string) => {
   const supabase = createSupabaseAdmin();
-  const { error } = await supabase.from('push_subscriptions').delete().eq('endpoint', endpoint);
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('endpoint', endpoint)
+    .eq('user_id', userId);
   if (error) throw error;
 };
 

@@ -1,10 +1,11 @@
 import { readCompleteList } from '@/lib/supabase/request';
-import { supabase } from '@/lib/supabase/client';
+import { accountService } from '@/lib/supabase/account-client';
 import type { WalletBalances } from '@/features/budget/store/model';
 import type { BudgetData } from '../types/budget-sync';
 
 export const budgetReadService = {
   async fetchBudgetData(): Promise<BudgetData | null> {
+    const { supabase } = await accountService.getClient();
     try {
       const [
         walletsRes,

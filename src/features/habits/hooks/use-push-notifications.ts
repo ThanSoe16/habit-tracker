@@ -1,5 +1,15 @@
+import { supabase } from '@/lib/supabase/client';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+async function pushHeaders() {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) throw new Error('Sign in required');
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${data.session.access_token}`,
+  };
+}
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -11,7 +21,7 @@ export function usePushNotifications() {
   const saveSubscription = useCallback(async (value: PushSubscription) => {
     const response = await fetch('/api/push/subscribe', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await pushHeaders(),
       body: JSON.stringify({
         subscription: value.toJSON(),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
@@ -68,7 +78,7 @@ export function usePushNotifications() {
     try {
       await fetch('/api/push/subscribe', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await pushHeaders(),
         body: JSON.stringify({ endpoint: subscription.endpoint }),
       });
       await subscription.unsubscribe();
@@ -85,9 +95,7 @@ export function usePushNotifications() {
     if (!subscription) return;
     await fetch('/api/push/send', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: await pushHeaders(),
       body: JSON.stringify({
         subscription,
         title: 'Test Push',
