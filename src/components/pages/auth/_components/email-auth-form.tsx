@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Flex } from '@radix-ui/themes';
@@ -19,8 +18,6 @@ import { authService } from '@/lib/supabase/auth';
 import { credentialsSchema } from '@/features/users/types/credentials';
 
 export function EmailAuthForm({ onSignedIn }: { onSignedIn: () => void }) {
-  const [register, setRegister] = useState(false);
-  const [message, setMessage] = useState('');
   const form = useForm<z.infer<typeof credentialsSchema>>({
     resolver: zodResolver(credentialsSchema),
     defaultValues: { email: '', password: '' },
@@ -28,24 +25,14 @@ export function EmailAuthForm({ onSignedIn }: { onSignedIn: () => void }) {
   const pending = form.formState.isSubmitting;
 
   async function submit(values: z.infer<typeof credentialsSchema>) {
-    setMessage('');
     try {
-      const result = register
-        ? await authService.signUpWithEmail(values.email, values.password)
-        : await authService.signInWithEmail(values.email, values.password);
-      if (result.session) {
-        form.reset();
-        onSignedIn();
-      } else {
-        setMessage('Check your email to confirm your account, then sign in.');
-        form.reset({ email: values.email, password: '' });
-        setRegister(false);
-      }
+      const { session } = await authService.signInWithEmail(values.email, values.password);
+      if (!session) throw new Error('Sign-in did not establish a session');
+      form.reset();
+      onSignedIn();
     } catch {
       form.setError('root', {
-        message: register
-          ? 'Could not create your account. Please check your details and try again.'
-          : 'Could not sign in. Check your email and password, then try again.',
+        message: 'Could not sign in. Check your email and password, then try again.',
       });
     }
   }
@@ -53,7 +40,7 @@ export function EmailAuthForm({ onSignedIn }: { onSignedIn: () => void }) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(submit)}>
-        <Flex direction="column" gap="4">
+        <Flex direction="column" className="flex flex-col gap-5">
           <FormField
             control={form.control}
             name="email"
@@ -77,7 +64,7 @@ export function EmailAuthForm({ onSignedIn }: { onSignedIn: () => void }) {
                   <Input
                     {...field}
                     type="password"
-                    autoComplete={register ? 'new-password' : 'current-password'}
+                    autoComplete="current-password"
                     disabled={pending}
                   />
                 </FormControl>
@@ -90,31 +77,8 @@ export function EmailAuthForm({ onSignedIn }: { onSignedIn: () => void }) {
               {form.formState.errors.root.message}
             </p>
           )}
-          {message && (
-            <p role="status" className="text-sm text-muted-foreground">
-              {message}
-            </p>
-          )}
-          <Button type="submit" disabled={pending}>
-            {pending
-              ? register
-                ? 'Creating account…'
-                : 'Signing in…'
-              : register
-                ? 'Create account'
-                : 'Sign in'}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={pending}
-            onClick={() => {
-              setRegister(!register);
-              setMessage('');
-              form.clearErrors();
-            }}
-          >
-            {register ? 'Already have an account? Sign in' : 'New here? Create an account'}
+          <Button type="submit" disabled={pending} className="w-full">
+            {pending ? 'Signing in…' : 'Sign in'}
           </Button>
         </Flex>
       </form>

@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { authService } from '@/lib/supabase/auth';
 import { EmailAuthForm } from './_components/email-auth-form';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const getPostLoginPath = () => {
     const requestedPath = new URLSearchParams(window.location.search).get('next');
@@ -40,15 +39,6 @@ export default function LoginPage() {
     };
   }, [router]);
 
-  const handleOAuthLogin = async (provider: 'google' | 'github') => {
-    try {
-      setErrorMsg(null);
-      await authService.signInWithOAuth(provider, getPostLoginPath());
-    } catch (err: any) {
-      setErrorMsg(err.message || `Failed to sign in with ${provider}.`);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background dark:bg-zinc-950 text-gray-900 dark:text-white flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-100 dark:border-zinc-800 space-y-6 relative overflow-hidden">
@@ -69,50 +59,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Notification Alerts */}
-        {errorMsg && (
-          <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl text-xs font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
         <EmailAuthForm onSignedIn={() => router.replace(getPostLoginPath())} />
-
-        {/* Divider */}
-        <div className="relative flex items-center justify-center my-4">
-          <div className="border-t border-gray-100 dark:border-zinc-800 w-full" />
-          <span className="bg-white dark:bg-zinc-900 px-3 text-[10px] font-black uppercase text-gray-400 shrink-0">
-            or continue with
-          </span>
-        </div>
-
-        {/* OAuth Options */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => handleOAuthLogin('google')}
-            className="py-3 px-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
-          >
-            <span>🌐 Google</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleOAuthLogin('github')}
-            className="py-3 px-4 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
-          >
-            <span>💻 GitHub</span>
-          </button>
-        </div>
-
-        {/* Security Footer Note */}
-        <div className="pt-2 text-center border-t border-gray-100 dark:border-zinc-800">
-          <p className="text-[10px] font-bold text-gray-400 flex items-center justify-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Powered by Supabase Auth &
-            PostgreSQL RLS
-          </p>
-        </div>
       </div>
     </div>
   );

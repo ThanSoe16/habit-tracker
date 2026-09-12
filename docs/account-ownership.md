@@ -1,8 +1,8 @@
 # Account ownership and rollout
 
-The app now supports separate personal accounts, including email registration and the
-existing Google/GitHub sign-in options. It does not implement shared household/team
-workspaces. Personal tables use `user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE`,
+The app supports separate personal accounts through email/password login for existing
+accounts. The login page does not offer registration or Google/GitHub sign-in. It does
+not implement shared household/team workspaces. Personal tables use `user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE`,
 with defaults from `auth.uid()` and owner-only database policies. Natural keys include
 `user_id`, so accounts can independently use the same date, currency, day, unit, or
 budget backup record ID.
@@ -107,9 +107,9 @@ No hosted database was changed during implementation.
    the earlier chain first and provision an explicit owner before this migration;
    review those demo rows with that owner. This migration does not silently discard
    them. New people registering after rollout start with empty budgets.
-5. Deploy the matching app and worker. Enable desired signup/providers in Supabase
-   Auth, configure the site's URL and `/auth/callback` redirect allowlist, and verify
-   email delivery. No Supabase Auth provider settings were changed by this task.
+5. Deploy the matching app and worker. Provision accounts through trusted Supabase
+   administration so people can sign in with email and password. No hosted Supabase
+   Auth signup/provider settings were changed by removing the login-page options.
 6. Verify with two test accounts through the hosted ordinary-user APIs: registration,
    confirmation, login, CRUD, file upload/playback, reminders, logout, and switching
    accounts on the same browser. Update/install the new service worker before sharing.
