@@ -30,6 +30,7 @@ import {
   Sun,
   Moon,
   Gem,
+  PiggyBank,
 } from 'lucide-react';
 import { LogoutButton } from '@/components/shared/buttons/logout-button';
 import { cn } from '@/utils/cn';
@@ -136,6 +137,16 @@ export function BudgetAppSidebar() {
             setOpenMobile(false);
           },
           isActive: isGoldActive,
+        },
+        {
+          id: 'budget-savings',
+          label: 'Savings',
+          icon: PiggyBank,
+          action: () => {
+            router.push('/budget/savings');
+            setOpenMobile(false);
+          },
+          isActive: pathname === '/budget/savings',
         },
       ],
     },

@@ -26,6 +26,7 @@ import {
   Car,
   Utensils,
   Zap,
+  PiggyBank,
 } from 'lucide-react';
 import {
   useBudgetStore,
@@ -36,6 +37,8 @@ import {
   BudgetEntry,
 } from '@/store/use-budget-store';
 import { MoneyInput } from '@/components/ui/money-input';
+import { Button } from '@/components/ui/button';
+import { CurrentBudgetBalance } from '../_components/current-budget-balance';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -232,9 +235,7 @@ export default function BudgetMainPage() {
       <div className="bg-white dark:bg-black text-slate-950 dark:text-white rounded-[32px] p-6 shadow-xl border border-gray-200/80 dark:border-zinc-800 space-y-6">
         <div className="text-center space-y-2">
           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">Current Balance</p>
-          <h1 className="text-4xl font-black tracking-tight text-slate-950 dark:text-white tabular-nums">
-            {formatCurrency(currentBalance, selectedCurrency)}
-          </h1>
+          <CurrentBudgetBalance currency={selectedCurrency} spendable={currentBalance} />
 
           {/* Currency Dropdown Selector Pill */}
           <div className="flex justify-center pt-1">
@@ -320,6 +321,9 @@ export default function BudgetMainPage() {
       </div>
 
       {/* 2. RECENT TRANSACTION CARD (WHITE IN LIGHT MODE, BLACK IN DARK MODE) */}
+      <Button variant="outline" className="w-full" onClick={() => router.push('/budget/savings')}>
+        <PiggyBank data-icon="inline-start" /> Savings · money set aside for later
+      </Button>
       <div className="bg-white dark:bg-black rounded-[32px] p-6 shadow-sm border border-gray-200/80 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-extrabold text-gray-900 dark:text-white">

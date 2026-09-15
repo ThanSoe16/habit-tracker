@@ -24,6 +24,28 @@ export * from '@/features/budget/store/model';
 const budgetSyncScheduler = createBudgetSyncScheduler();
 let isApplyingRemoteBudgetState = false;
 
+/** Savings transfers must not race this tab's pending snapshot writes. */
+export function assertBudgetReadyForSavings() {
+  if (budgetSyncScheduler.hasPending) {
+    throw new Error('Your budget is still saving. Finish syncing it before withdrawing into your budget.');
+  }
+}
+
+export async function refreshBudgetAfterSavings(): Promise<boolean> {
+  const accountRevision = identityRevision();
+  const revision = budgetSyncScheduler.revision;
+  const remote = await budgetService.fetchBudgetData();
+  assertIdentityRevision(accountRevision);
+  if (!remote || budgetSyncScheduler.hasPending || revision !== budgetSyncScheduler.revision) return false;
+  isApplyingRemoteBudgetState = true;
+  try {
+    useBudgetStore.setState({ walletBalances: remote.walletBalances, budgetEntries: remote.budgetEntries });
+  } finally {
+    isApplyingRemoteBudgetState = false;
+  }
+  return true;
+}
+
 function selectBudgetSnapshot(state: BudgetStoreState): BudgetSnapshot {
   return {
     walletBalances: state.walletBalances,

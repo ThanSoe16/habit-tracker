@@ -3,12 +3,13 @@ import * as React from 'react';
 
 import CurrencyInput from 'react-currency-input-field';
 
-interface CurrencyInputProps {
+interface CurrencyInputProps extends React.AriaAttributes {
   className?: string;
   disabled?: boolean;
   value: string | number | undefined;
   setValue?: (value: string) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
   maxLength?: number;
   postfix?: React.ReactNode;
   preFix?: React.ReactNode;
@@ -30,6 +31,7 @@ const MoneyInput = ({
   value,
   setValue,
   onChange,
+  onBlur,
   maxLength,
   postfix,
   preFix,
@@ -43,6 +45,7 @@ const MoneyInput = ({
   step,
   name,
   id,
+  ...ariaProps
 }: CurrencyInputProps) => {
   const isMaterial = variant === 'material';
   const strValue = value === undefined || value === null ? '' : String(value);
@@ -50,9 +53,13 @@ const MoneyInput = ({
   return (
     <div className="relative flex items-center w-full">
       <CurrencyInput
+        {...ariaProps}
         ref={ref}
         id={id}
         name={name}
+        onBlur={onBlur}
+        inputMode="decimal"
+        step={step !== undefined && Number.isFinite(Number(step)) ? Number(step) : undefined}
         className={cn(
           disabled ? 'bg-gray-100 cursor-not-allowed border-none' : ' ',
           error ? 'border-error' : 'border-border',
