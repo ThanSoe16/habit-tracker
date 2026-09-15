@@ -11,6 +11,7 @@ import {
 } from '../src/features/savings/types/index.ts';
 import { savingsKeys } from '../src/features/savings/services/query-keys.ts';
 import { createSavingsService } from '../src/features/savings/services/savings-service.ts';
+import { getCurrentBalance } from '../src/features/budget/utils/current-balance.ts';
 
 const userId = '11111111-1111-4111-8111-111111111111';
 const id = '22222222-2222-4222-8222-222222222222';
@@ -35,6 +36,19 @@ const input = {
   unlock_rule: 'either',
   note: '',
 };
+
+test('Home adds relationship funds to the displayed MMK total and waits for complete balances', () => {
+  assert.equal(getCurrentBalance(11764523, 110000, 250000, 'MMK'), 12124523);
+  assert.equal(getCurrentBalance(11764523, 110000, 0, 'MMK'), 11874523);
+  assert.equal(getCurrentBalance(11764523, 110000, -50000, 'MMK'), 11824523);
+  assert.equal(getCurrentBalance(11764523, 110000, null, 'MMK'), null);
+  assert.equal(getCurrentBalance(11764523, null, 250000, 'MMK'), null);
+  // Do not add an MMK amount to a wallet in a different currency.
+  for (const currency of ['USDT', 'THB', 'SGD']) {
+    assert.equal(getCurrentBalance(100, 20, 250000, currency), 120);
+    assert.equal(getCurrentBalance(100, 20, null, currency), 120);
+  }
+});
 
 test('Home current balance includes existing savings and deposits without counting transfers twice', () => {
   const rows = [

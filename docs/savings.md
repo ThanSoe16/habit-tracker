@@ -2,7 +2,8 @@
 
 `/budget/savings` tracks money held aside, including deposits received from someone
 such as Mom. Home's **Current Balance** is the spendable wallet balance plus all
-savings balances in the selected currency. Deposits increase that total immediately;
+savings balances in the selected currency, plus the relationship fund balance when
+MMK is selected (see [Relationship Funds](relationship-funds.md)). Deposits increase that total immediately;
 existing savings are included too. The Available/In savings breakdown distinguishes
 spendable money from money still held aside. A saving has a currency and
 at least one withdrawal condition: a target amount or a UTC unlock date. With both
@@ -50,7 +51,7 @@ as a saved withdrawal requiring a reload. The legacy wallet still writes absolut
 balances: concurrent budget edits from other tabs/devices retain that pre-existing
 last-writer-wins limitation. Savings balances/history themselves are serialized.
 
-Home's combined balance is a read-only presentation of the two existing balances;
+Home's combined balance is a read-only presentation of the existing balances;
 this change needs no additional migration or backfill and never credits savings a
 second time. Savings totals use complete bounded reads across every savings page,
 scoped to the signed-in account, with errors shown instead of silently assuming zero.

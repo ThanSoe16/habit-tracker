@@ -5,6 +5,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSavingsBalances } from '@/features/savings/services/queries';
 import { getSavingsBalance } from '@/features/savings/types';
 import { formatCurrency, type CurrencyCode } from '@/features/budget/store/model';
+import { getCurrentBalance } from '@/features/budget/utils/current-balance';
+import { useFundMonth } from '@/features/relationship-funds/services/queries';
+import { getFundSummary } from '@/features/relationship-funds/types';
+import { RelationshipFundBalance } from './relationship-fund-balance';
 
 export function CurrentBudgetBalance({
   currency,
@@ -14,24 +18,28 @@ export function CurrentBudgetBalance({
   spendable: number;
 }) {
   const savings = useSavingsBalances();
+  const fund = useFundMonth(null);
   const reserved = savings.data ? getSavingsBalance(savings.data, currency) : null;
+  const relationshipFunds = fund.data ? getFundSummary(fund.data).remaining : null;
+  const total = getCurrentBalance(spendable, reserved, relationshipFunds, currency);
   return (
     <Flex className="flex flex-col items-center gap-2" aria-live="polite">
-      {reserved !== null ? (
+      {total !== null && reserved !== null ? (
         <>
           <h2 className="text-4xl font-black tracking-tight tabular-nums">
-            {formatCurrency(spendable + reserved, currency)}
+            {formatCurrency(total, currency)}
           </h2>
           <Flex className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs font-medium text-muted-foreground">
             <span>Available: {formatCurrency(spendable, currency)}</span>
             <span>In savings: {formatCurrency(reserved, currency)}</span>
           </Flex>
         </>
-      ) : savings.isPending ? (
+      ) : savings.isPending || (currency === 'MMK' && fund.isPending) ? (
         <Skeleton className="h-10 w-64 max-w-full" />
       ) : (
         <p className="text-sm text-muted-foreground">Current balance unavailable</p>
       )}
+      <RelationshipFundBalance fund={fund} remaining={relationshipFunds} />
       {savings.isError && (
         <Flex className="flex flex-col items-center gap-1">
           <p role="alert" className="text-xs text-destructive">

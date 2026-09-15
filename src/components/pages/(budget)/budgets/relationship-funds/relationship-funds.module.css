@@ -1,0 +1,55 @@
+/* Local palette matching the supplied Family Budget reference. */
+.theme {
+  --fund-positive: #00a875;
+  --fund-positive-icon: #00bf8a;
+  --fund-negative: #ff0046;
+  --fund-negative-icon: #ff245c;
+  --primary: var(--fund-negative);
+  --primary-foreground: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --foreground: #111827;
+  --muted: #f7f8fa;
+  --muted-foreground: #8c96a8;
+  --border: #edf0f4;
+  --input: #e5e7eb;
+  --secondary: #fff1f7;
+  --secondary-foreground: #ec0067;
+  --ring: var(--fund-negative);
+}
+:global(.dark) .theme {
+  --fund-positive: #34d399;
+  --fund-negative: #fb7185;
+  --primary: #e11d48;
+  --card: #09090b;
+  --card-foreground: #fafafa;
+  --foreground: #fafafa;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --border: #27272a;
+  --input: #3f3f46;
+  --secondary: #331522;
+  --secondary-foreground: #f472b6;
+}
+.positive {
+  color: var(--fund-positive);
+}
+.negative {
+  color: var(--fund-negative);
+}
+.saveIcon {
+  background: var(--fund-positive-icon);
+  color: white;
+}
+.spendIcon {
+  background: var(--fund-negative-icon);
+  color: white;
+}
+.savedBadge {
+  background: color-mix(in srgb, var(--fund-positive) 16%, transparent);
+  color: var(--fund-positive);
+}
+.spentBadge {
+  background: color-mix(in srgb, var(--fund-negative) 12%, transparent);
+  color: var(--fund-negative);
+}

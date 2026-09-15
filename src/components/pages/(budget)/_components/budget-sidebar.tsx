@@ -31,6 +31,7 @@ import {
   Moon,
   Gem,
   PiggyBank,
+  HeartHandshake,
 } from 'lucide-react';
 import { LogoutButton } from '@/components/shared/buttons/logout-button';
 import { cn } from '@/utils/cn';
@@ -77,6 +78,16 @@ export function BudgetAppSidebar() {
             setOpenMobile(false);
           },
           isActive: isFamilyActive,
+        },
+        {
+          id: 'budget-relationship-funds',
+          label: 'Relationship Funds',
+          icon: HeartHandshake,
+          action: () => {
+            router.push('/budget/relationship-funds');
+            setOpenMobile(false);
+          },
+          isActive: pathname === '/budget/relationship-funds',
         },
         {
           id: 'budget-income',
