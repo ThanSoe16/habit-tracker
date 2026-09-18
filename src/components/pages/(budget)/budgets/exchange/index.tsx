@@ -3,35 +3,21 @@
 import React, { useState } from 'react';
 import {
   ArrowRightLeft,
-  ArrowUpDown,
-  Download,
   Trash2,
-  CheckCircle2,
-  AlertCircle,
-  History,
-  Coins,
-  X,
   Calendar,
   Pencil,
 } from 'lucide-react';
 import {
   useBudgetStore,
   CurrencyCode,
-  CURRENCIES,
   formatCurrency,
   DEFAULT_EXCHANGE_RATES,
+  type BudgetEntry,
 } from '@/store/use-budget-store';
-import { MoneyInput } from '@/components/ui/money-input';
 import { ExportTableModal } from '../../_components/export-table-modal';
 import { cn } from '@/utils/cn';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import { ExchangeBalanceCard } from './_components/exchange-balance-card';
+import { ExchangeDrawer } from './_components/exchange-drawer';
 
 export default function CurrencyExchangePage() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -65,7 +51,7 @@ export default function CurrencyExchangePage() {
 
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
 
-  const handleOpenEdit = (entry: any) => {
+  const handleOpenEdit = (entry: BudgetEntry) => {
     setEditingEntryId(entry.id);
     setFromCurrency(entry.fromCurrency || entry.currency || 'USDT');
     setToCurrency(entry.toCurrency || 'THB');
@@ -130,22 +116,7 @@ export default function CurrencyExchangePage() {
 
   return (
     <div className="space-y-5">
-      {/* WALLET BALANCES SUMMARY BAR */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
-          <div
-            key={code}
-            className="bg-white dark:bg-zinc-900 rounded-2xl p-3.5 border border-gray-200/80 dark:border-zinc-800 shadow-sm text-center flex flex-col justify-between"
-          >
-            <span className="text-xs block font-bold text-gray-500 dark:text-gray-400">
-              {CURRENCIES[code].flag} {code}
-            </span>
-            <span className="text-sm font-black text-slate-950 dark:text-white block mt-1 tabular-nums truncate">
-              {formatCurrency(walletBalances[code] || 0, code)}
-            </span>
-          </div>
-        ))}
-      </div>
+      <ExchangeBalanceCard />
 
       {/* 1. HERO BALANCE CARD WITH ACTION BUTTONS */}
       <div className="bg-white dark:bg-black text-slate-950 dark:text-white rounded-[32px] p-6 shadow-xl border border-gray-200/80 dark:border-zinc-800 space-y-4">
@@ -167,153 +138,18 @@ export default function CurrencyExchangePage() {
         </p>
       </div>
 
-      {/* POPUP DRAWER: INSTANT CURRENCY CONVERTER */}
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="bg-white dark:bg-zinc-950 text-slate-950 dark:text-white p-6 max-w-lg mx-auto rounded-t-[32px] space-y-5 border-t border-gray-200 dark:border-zinc-800">
-          <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                <ArrowRightLeft className="w-4 h-4" />
-              </div>
-              <DrawerTitle className="text-sm font-extrabold text-gray-900 dark:text-white">
-                Instant Currency Converter
-              </DrawerTitle>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsDrawerOpen(false)}
-              className="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-400 hover:text-gray-600 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {errorMsg && (
-            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl text-xs font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {successMsg && (
-            <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 rounded-2xl text-xs font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleExecuteExchange} className="space-y-4">
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                  From Currency
-                </label>
-                <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400">
-                  Available: {formatCurrency(availableBalance, fromCurrency)}
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <Select
-                  value={fromCurrency}
-                  onValueChange={(val) => {
-                    const selected = val as CurrencyCode;
-                    setFromCurrency(selected);
-                    if (selected === toCurrency) {
-                      setToCurrency(selected === 'USDT' ? 'THB' : 'USDT');
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-36 h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-sm font-semibold">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="z-[105]">
-                    {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
-                      <SelectItem key={code} value={code} className="text-sm font-semibold py-2.5">
-                        <span className="text-base mr-1">{CURRENCIES[code].flag}</span> {code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <MoneyInput
-                  placeholder="Amount to send..."
-                  value={fromAmount}
-                  setValue={setFromAmount}
-                  className="flex-1 px-4 py-3 bg-gray-50 dark:bg-zinc-800 rounded-2xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleSwap}
-                className="w-10 h-10 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
-                title="Swap Currencies"
-              >
-                <ArrowUpDown className="w-4 h-4" />
-              </button>
-
-              <div className="flex-1">
-                <label className="text-[10px] font-bold text-gray-400 block mb-0.5">
-                  Exchange Rate (1 {fromCurrency} = ? {toCurrency})
-                </label>
-                <MoneyInput
-                  placeholder={`Rate (${defaultRate})`}
-                  value={customRate}
-                  setValue={setCustomRate}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-800 rounded-xl text-xs font-bold border border-gray-200 dark:border-zinc-700 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                To Currency (You Receive)
-              </label>
-
-              <div className="flex gap-2">
-                <Select
-                  value={toCurrency}
-                  onValueChange={(val) => {
-                    const selected = val as CurrencyCode;
-                    setToCurrency(selected);
-                    if (selected === fromCurrency) {
-                      setFromCurrency(selected === 'USDT' ? 'THB' : 'USDT');
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-36 h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-sm font-semibold">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="z-[105]">
-                    {(['USDT', 'THB', 'MMK', 'SGD'] as const).map((code) => (
-                      <SelectItem key={code} value={code} className="text-sm font-semibold py-2.5">
-                        <span className="text-base mr-1">{CURRENCIES[code].flag}</span> {code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <div className="flex-1 px-4 py-3 bg-blue-50/70 dark:bg-blue-950/40 rounded-2xl border border-blue-200/60 dark:border-blue-900/60 flex items-center justify-between">
-                  <span className="text-xs font-black text-blue-700 dark:text-blue-300 tabular-nums">
-                    +{formatCurrency(calculatedToAmount, toCurrency)}
-                  </span>
-                  <Coins className="w-4 h-4 text-blue-400" />
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold rounded-2xl text-xs shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <ArrowRightLeft className="w-4 h-4" /> Convert & Execute Exchange
-            </button>
-          </form>
-        </DrawerContent>
-      </Drawer>
+      <ExchangeDrawer
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
+        handleExecuteExchange={handleExecuteExchange}
+        handleSwap={handleSwap}
+        fields={{ fromCurrency, setFromCurrency, toCurrency, setToCurrency, fromAmount, setFromAmount, customRate, setCustomRate }}
+        availableBalance={availableBalance}
+        defaultRate={defaultRate}
+        calculatedToAmount={calculatedToAmount}
+        errorMsg={errorMsg}
+        successMsg={successMsg}
+      />
 
       {/* 2. TOP CURRENCY FILTER TAB BAR (MATCHING PHOTO 2) */}
       <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-1.5 rounded-full border border-gray-100 dark:border-zinc-800 shadow-xs">
