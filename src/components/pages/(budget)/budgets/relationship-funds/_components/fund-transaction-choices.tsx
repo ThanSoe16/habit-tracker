@@ -1,5 +1,5 @@
 'use client';
-import { useWatch, type UseFormReturn } from 'react-hook-form';
+import { type UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import {
   Select,
@@ -28,19 +28,9 @@ const choices = [
       ['Nway', 'Nway'],
     ],
   },
-  {
-    name: 'money_source',
-    label: 'Money source',
-    options: [
-      ['current_budget', 'Current budget'],
-      ['extra', 'Extra money'],
-    ],
-  },
 ] as const;
 
 export function FundTransactionChoices({ form }: { form: UseFormReturn<FundTransactionInput> }) {
-  const kind = useWatch({ control: form.control, name: 'kind' });
-  const source = useWatch({ control: form.control, name: 'money_source' });
   return (
     <>
       {choices.map(({ name, label, options }) => (
@@ -77,11 +67,7 @@ export function FundTransactionChoices({ form }: { form: UseFormReturn<FundTrans
         />
       ))}
       <p className="text-xs leading-relaxed text-muted-foreground" aria-live="polite">
-        {source === 'extra'
-          ? 'Records this transaction in the relationship fund. Your current budget stays unchanged.'
-          : kind === 'save'
-            ? 'Adds this amount to the relationship fund and your current MMK budget.'
-            : 'Subtracts this amount from the relationship fund and your current MMK budget.'}
+        Saving and spending change only your relationship fund. Available stays unchanged.
       </p>
     </>
   );

@@ -24,7 +24,6 @@ import {
 } from '@/features/relationship-funds/types';
 import { DataRequestError } from '@/lib/supabase/request';
 import { FundTransactionForm } from './fund-transaction-form';
-import { refreshBudgetAfterTransfer } from '@/store/use-budget-store';
 import styles from '../relationship-funds.module.css';
 import { cn } from '@/utils/cn';
 
@@ -63,7 +62,7 @@ export function FundTransactionDialog({
           note: '',
           kind,
           person: 'TSO',
-          money_source: 'current_budget',
+          money_source: 'extra',
         },
   });
   useUnsavedChanges(form.formState.isDirty);
@@ -80,7 +79,6 @@ export function FundTransactionDialog({
         input,
         mode,
       });
-      const refreshed = await refreshBudgetAfterTransfer().catch(() => false);
       if (!scope.isCurrent()) return;
       form.reset({
         title: saved.title,
@@ -91,11 +89,7 @@ export function FundTransactionDialog({
         person: saved.person ?? input.person,
         money_source: saved.money_source,
       });
-      toast.success(
-        refreshed
-          ? 'Fund transaction saved'
-          : 'Transaction saved. Reload to refresh your current budget.',
-      );
+      toast.success('Fund transaction saved');
       onClose();
     } catch (error) {
       if (scope.isCurrent())

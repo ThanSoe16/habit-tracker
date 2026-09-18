@@ -61,11 +61,11 @@ export default function SavingsPage() {
             </Flex>
             <Flex className="flex min-w-0 flex-col gap-1.5">
               <CardTitle className="text-sm font-extrabold">
-                Included in your current balance
+                Savings are separate from Available
               </CardTitle>
               <CardDescription className="text-xs leading-relaxed">
-                Adding money here increases your Home balance. It stays reserved in savings until
-                you can withdraw it.
+                Adding money here increases In savings and your total Current Balance.
+                Withdrawing reduces both. Your Available amount stays unchanged.
               </CardDescription>
             </Flex>
           </Flex>

@@ -82,9 +82,6 @@ export function FundTransactionRow({
             {transaction.date} · {transaction.title}
             {transaction.note ? ` · ${transaction.note}` : ''}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {transaction.money_source === 'current_budget' ? 'Current budget' : 'Extra money'}
-          </p>
         </Flex>
         <Flex gap="1" className="flex gap-1 shrink-0 text-muted-foreground">
           <Button

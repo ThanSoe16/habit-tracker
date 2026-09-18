@@ -22,16 +22,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { MoneyInput } from '@/components/ui/money-input';
-import { CURRENCIES } from '@/features/budget/store/model';
+import { CURRENCIES, formatCurrency } from '@/features/budget/store/model';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useQueryIdentity } from '@/components/providers/query-provider';
 import { useSubmissionScope } from '@/features/base/hooks/use-submission-scope';
 import {
@@ -44,11 +36,6 @@ import {
   type SavingsGoal,
   type SavingsTransactionInput,
 } from '@/features/savings/types';
-import {
-  formatCurrency,
-  assertBudgetReadyForSavings,
-  refreshBudgetAfterSavings,
-} from '@/store/use-budget-store';
 import { DataRequestError } from '@/lib/supabase/request';
 
 export function SavingsTransactionDialog({
@@ -72,7 +59,7 @@ export function SavingsTransactionDialog({
       amount: 0,
       person: '',
       note: '',
-      to_budget: kind === 'withdrawal',
+      to_budget: false,
     },
   });
   const pending = form.formState.isSubmitting;
@@ -88,17 +75,6 @@ export function SavingsTransactionDialog({
     }
     try {
       await scope.assertCurrent();
-      if (input.to_budget) {
-        try {
-          assertBudgetReadyForSavings();
-        } catch {
-          form.setError('root', {
-            message:
-              'Your budget is still saving. Finish syncing before withdrawing into your budget.',
-          });
-          return;
-        }
-      }
       const fingerprint = JSON.stringify(input);
       if (request.current?.fingerprint !== fingerprint)
         request.current = { fingerprint, id: crypto.randomUUID() };
@@ -113,20 +89,9 @@ export function SavingsTransactionDialog({
         });
       return;
     }
-    // The write is committed. A failed refresh must never invite another withdrawal.
-    let refreshed = true;
-    if (input.to_budget) {
-      try {
-        refreshed = await refreshBudgetAfterSavings();
-      } catch {
-        refreshed = false;
-      }
-    }
     if (!scope.isCurrent()) return;
     form.reset(input);
     toast.success(kind === 'deposit' ? 'Money added to savings.' : 'Withdrawal recorded.');
-    if (!refreshed)
-      toast.warning('Withdrawal saved. Reload your budget to see the updated balance.');
     onClose();
   }
   return (
@@ -187,8 +152,8 @@ export function SavingsTransactionDialog({
                           />
                         </FormControl>
                         <FormDescription>
-                          This increases your savings and the Current Balance on Home. It stays
-                          reserved until you withdraw.
+                          This increases In savings and your total Current Balance. Your Available
+                          amount stays unchanged.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -196,37 +161,10 @@ export function SavingsTransactionDialog({
                   />
                 )}
                 {kind === 'withdrawal' && (
-                  <FormField
-                    control={form.control}
-                    name="to_budget"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Where is the money going?</FormLabel>
-                        <Select
-                          value={field.value ? 'budget' : 'outside'}
-                          onValueChange={(value) => field.onChange(value === 'budget')}
-                          disabled={pending}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-12 w-full rounded-2xl">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="budget">Move to available balance</SelectItem>
-                              <SelectItem value="outside">Withdraw outside my budget</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Moving to available balance keeps your Home total unchanged. Withdrawing
-                          outside your budget reduces the total.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <p className="text-sm text-muted-foreground">
+                    This reduces In savings and your total Current Balance. Your Available amount
+                    stays unchanged.
+                  </p>
                 )}
                 <FormField
                   control={form.control}

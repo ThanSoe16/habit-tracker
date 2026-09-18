@@ -57,13 +57,18 @@ test('Home current balance includes existing savings and deposits without counti
     { id: 'thb', currency: 'THB', balance: 500 },
   ];
   const available = 11214523;
-  assert.equal(available + getSavingsBalance(rows, 'MMK'), 11324523);
+  const currentBalance = () =>
+    getCurrentBalance(available, getSavingsBalance(rows, 'MMK'), 250000, 'MMK');
+  assert.equal(currentBalance(), 11574523);
   rows[1].balance += 10000;
-  const afterDeposit = available + getSavingsBalance(rows, 'MMK');
-  assert.equal(afterDeposit, 11334523);
+  const afterDeposit = currentBalance();
+  assert.equal(afterDeposit, 11584523);
+  assert.equal(available, 11214523);
+  assert.equal(getSavingsBalance(rows, 'MMK'), 120000);
+  // Withdrawals reduce savings and the combined total without crediting Available.
   rows[1].balance -= 20000;
-  assert.equal(available + 20000 + getSavingsBalance(rows, 'MMK'), afterDeposit);
-  assert.equal(available + getSavingsBalance(rows, 'MMK'), afterDeposit - 20000);
+  assert.equal(currentBalance(), afterDeposit - 20000);
+  assert.equal(available, 11214523);
   assert.equal(getSavingsBalance(rows, 'THB'), 500);
   assert.equal(getSavingsBalance(rows, 'SGD'), 0);
 });
@@ -297,12 +302,24 @@ test('RPC requests require a single persisted row through the actual Supabase cl
     amount: 10,
     person: '',
     note: '',
-    to_budget: true,
+    to_budget: false,
   });
   assert.equal(requests.length, 2);
   for (const request of requests) assert.equal(request.accept, 'application/vnd.pgrst.object+json');
   assert.ok(requests[1].url.endsWith('/rpc/record_savings_transaction'));
-  assert.equal(requests[1].body.p_to_budget, true);
+  assert.equal(requests[1].body.p_to_budget, false);
+  // Reject attempts to credit Available before making a request.
+  await assert.rejects(
+    service.transact(userId, id, {
+      goal_id: id,
+      kind: 'withdrawal',
+      amount: 10,
+      person: '',
+      note: '',
+      to_budget: true,
+    }),
+  );
+  assert.equal(requests.length, 2);
 });
 
 test('budget transfer refresh preserves failed or stale snapshots and rejects an account switch', async (t) => {

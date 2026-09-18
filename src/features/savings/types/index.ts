@@ -23,19 +23,14 @@ export const savingsGoalInputSchema = z
     path: ['target_amount'],
     message: 'Set a target amount or an unlock date',
   });
-export const savingsTransactionInputSchema = z
-  .object({
-    goal_id: z.string().uuid(),
-    kind: z.enum(['deposit', 'withdrawal']),
-    amount: savingsMoneySchema,
-    person: z.string().trim().max(100),
-    note: z.string().trim().max(500),
-    to_budget: z.boolean(),
-  })
-  .refine((value) => value.kind === 'withdrawal' || !value.to_budget, {
-    path: ['to_budget'],
-    message: 'Deposits go directly into savings',
-  });
+export const savingsTransactionInputSchema = z.object({
+  goal_id: z.string().uuid(),
+  kind: z.enum(['deposit', 'withdrawal']),
+  amount: savingsMoneySchema,
+  person: z.string().trim().max(100),
+  note: z.string().trim().max(500),
+  to_budget: z.literal(false),
+});
 export const savingsGoalSchema = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),

@@ -57,6 +57,34 @@ assert.equal(
   'spend,extra,true',
 );
 sql(asUser(`DELETE FROM relationship_fund_transactions WHERE id='${id}';`));
+// Upgrade an already funded row without rewriting wallets or historical metadata.
+sql(
+  asUser(`INSERT INTO relationship_fund_transactions(id,title,amount,date,note,kind,person,money_source)
+  VALUES ('${id}','Historical save',50000,'2026-09-15','','save','TSO','current_budget');`),
+);
+const beforeSeparation = sql(
+  'SELECT jsonb_agg(t) FROM (SELECT * FROM current_budget ORDER BY user_id,currency) t;',
+);
+const ledgerBeforeSeparation = sql('SELECT row_to_json(t) FROM relationship_fund_transactions t;');
+for (const name of readdirSync('supabase/migrations')
+  .sort()
+  .filter((name) => name > upgrade))
+  sql(readFileSync(`supabase/migrations/${name}`, 'utf8'));
+assert.equal(
+  sql('SELECT jsonb_agg(t) FROM (SELECT * FROM current_budget ORDER BY user_id,currency) t;'),
+  beforeSeparation,
+);
+assert.equal(
+  sql('SELECT row_to_json(t) FROM relationship_fund_transactions t;'),
+  ledgerBeforeSeparation,
+);
+sql(asUser(`UPDATE relationship_fund_transactions SET amount=75000 WHERE id='${id}';`));
+sql(asUser(`DELETE FROM relationship_fund_transactions WHERE id='${id}';`));
+assert.equal(
+  sql('SELECT jsonb_agg(t) FROM (SELECT * FROM current_budget ORDER BY user_id,currency) t;'),
+  beforeSeparation,
+);
+
 const table = 'relationship_fund_transactions';
 const insert = (
   kind = 'save',
@@ -72,46 +100,46 @@ sql(asUser("UPDATE current_budget SET balance=100000 WHERE currency='MMK';"));
 const personalExpenses = sql('SELECT count(*) FROM expenses;');
 const personalIncome = sql('SELECT count(*) FROM incomes;');
 sql(asUser(insert()));
-assert.equal(wallet(), 225000);
-sql(asUser(insert()), true); // Duplicate UUID must not credit twice.
-assert.equal(wallet(), 225000);
+assert.equal(wallet(), 100000);
+sql(asUser(insert()), true); // Duplicate UUID must not duplicate the fund entry.
+assert.equal(wallet(), 100000);
 sql(asUser(`UPDATE ${table} SET amount=200000, person='Nway' WHERE id='${id}';`));
-assert.equal(wallet(), 300000);
+assert.equal(wallet(), 100000);
 sql(asUser(`UPDATE ${table} SET amount=200000, person='Nway' WHERE id='${id}';`));
-assert.equal(wallet(), 300000); // An identical retry has zero delta.
+assert.equal(wallet(), 100000);
 sql(asUser(`UPDATE ${table} SET kind='spend',amount=30000 WHERE id='${id}';`));
-assert.equal(wallet(), 70000); // Reverse 200k saving, subtract 30k spending.
+assert.equal(wallet(), 100000);
 sql(asUser(`UPDATE ${table} SET money_source='extra' WHERE id='${id}';`));
 assert.equal(wallet(), 100000);
 sql(asUser(`UPDATE ${table} SET kind='save',amount=90000 WHERE id='${id}';`));
 assert.equal(wallet(), 100000);
 sql(asUser(`UPDATE ${table} SET money_source='current_budget' WHERE id='${id}';`));
-assert.equal(wallet(), 190000);
+assert.equal(wallet(), 100000);
 sql(asUser(`DELETE FROM ${table} WHERE id='${id}';`));
 assert.equal(wallet(), 100000);
 for (const person of ['TSO', 'Nway'])
   for (const kind of ['save', 'spend'])
     for (const source of ['current_budget', 'extra']) {
       sql(asUser(insert(kind, source, 175000, person)));
-      assert.equal(wallet(), source === 'extra' ? 100000 : kind === 'save' ? 275000 : -75000);
+      assert.equal(wallet(), 100000);
       sql(asUser(`DELETE FROM ${table} WHERE id='${id}';`));
       assert.equal(wallet(), 100000);
     }
 console.log(
-  'PASS: migration preserves old expenses; flexible TSO/Nway saves/spends; both money sources; create/edit/delete/retry exact wallet effects including negative balances',
+  'PASS: migration preserves old expenses; flexible TSO/Nway saves/spends; legacy money sources; create/edit/delete/retry never change Available',
 );
 
 sql(asUser(insert()));
 assert.equal(sql(asUser(`SELECT count(*) FROM ${table};`, other)), '0');
 sql(asUser(`UPDATE ${table} SET amount=1 WHERE id='${id}';`, other));
 sql(asUser(`DELETE FROM ${table} WHERE id='${id}';`, other));
-assert.equal(wallet(), 225000);
+assert.equal(wallet(), 100000);
 for (const source of [
   `UPDATE ${table} SET user_id='${other}';`,
   `UPDATE ${table} SET id=gen_random_uuid();`,
   `UPDATE ${table} SET created_at=now();`,
   `INSERT INTO ${table}(user_id,title,amount,date,kind,person,money_source) VALUES ('${other}','x',1,'2026-09-15','save','TSO','current_budget');`,
-  `SELECT public.apply_relationship_fund_wallet_change();`,
+  `SELECT public.validate_relationship_fund_transaction();`,
 ])
   sql(asUser(source), true);
 for (const amount of ['0', '-1', '0.1', "'NaN'::numeric", "'Infinity'::numeric", '1000000000001'])
@@ -137,10 +165,10 @@ for (const source of [
 sql(`SET ROLE authenticated; ${insert('save', 'current_budget', 100, 'TSO', other)}`, true);
 assert.equal(sql(`SELECT user_id FROM ${table};`), owner);
 assert.equal(sql(`SELECT amount FROM ${table};`), '125000');
-assert.equal(wallet(), 225000);
-// A later transaction error rolls back both the ledger and the wallet trigger.
+assert.equal(wallet(), 100000);
+// A later transaction error rolls back the ledger and leaves the wallet unchanged.
 sql(asUser(`BEGIN; UPDATE ${table} SET amount=500000; SELECT 1/0; COMMIT;`), true);
-assert.equal(wallet(), 225000);
+assert.equal(wallet(), 100000);
 assert.equal(sql(`SELECT amount FROM ${table};`), '125000');
 sql(asUser(`DELETE FROM ${table} WHERE id='${id}';`));
 assert.equal(wallet(), 100000);
@@ -150,7 +178,7 @@ console.log(
   'PASS: owner CRUD; cross-account/anonymous denial; protected fields; invalid inputs leave wallets unchanged; transaction rollback; separate history',
 );
 
-// Concurrent independent contributions must add without lost wallet updates.
+// Concurrent independent contributions change only the fund.
 function concurrent(source) {
   return new Promise((resolve) => {
     const process = spawn('psql', [url, '-X', '-v', 'ON_ERROR_STOP=1', '-At']);
@@ -170,7 +198,10 @@ const results = await Promise.all(
   ),
 );
 assert.deepEqual(results, [0, 0]);
-assert.equal(wallet(), 124690);
+assert.equal(sql(`SELECT sum(amount) FROM ${table};`), '24690');
+assert.equal(wallet(), 100000);
 sql(`DELETE FROM auth.users WHERE id='${owner}';`);
 assert.equal(sql(`SELECT count(*) FROM ${table} WHERE user_id='${owner}';`), '0');
-console.log('PASS: concurrent contributions add exactly; account deletion cascade succeeds');
+console.log(
+  'PASS: concurrent contributions leave Available unchanged; account deletion cascade succeeds',
+);

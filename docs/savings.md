@@ -4,18 +4,17 @@
 such as Mom. Home's **Current Balance** is the spendable wallet balance plus all
 savings balances in the selected currency, plus the relationship fund balance when
 MMK is selected (see [Relationship Funds](relationship-funds.md)). Deposits increase that total immediately;
-existing savings are included too. The Available/In savings breakdown distinguishes
+existing savings are included too. Deposits never increase Available. The Available/In savings breakdown distinguishes
 spendable money from money still held aside. A saving has a currency and
 at least one withdrawal condition: a target amount or a UTC unlock date. With both
 conditions, the user chooses either/OR or both/AND. Reaching the target is recorded
 permanently, so partial withdrawals do not lock the pot again.
 
-Withdrawals can go into the spendable budget (the default) or be recorded outside
-the budget. The database atomically deducts savings, records history, and, for budget
-withdrawals, credits the wallet and creates an Income entry in category Savings.
-These entries therefore appear in existing income reports. A withdrawal into the wallet
-leaves Home's combined total unchanged: the savings amount falls by exactly the wallet
-credit. A withdrawal outside the budget reduces the combined total. Deposits represent money
+Withdrawals reduce savings and Home's combined total without adding to Available
+or creating an Income entry. The application always submits `to_budget: false`
+and rejects requests to credit the wallet. The database atomically deducts savings
+and records history using its existing outside-budget withdrawal path.
+Deposits represent money
 received directly for saving; moving existing wallet funds into savings is not part
 of this flow. The UI explains this distinction.
 
@@ -44,12 +43,10 @@ Stable request UUIDs make identical retries idempotent. A reused UUID with diffe
 details is rejected. Currency, amounts, precision, notes, and withdrawal conditions
 are constrained independently of the forms.
 
-Budget credits use the existing current_budget/incomes ownership schema. Pending
-budget writes in this tab block a transfer. After success, the persisted wallet and
-income rows refresh without queuing competing writes. A failed refresh is reported
-as a saved withdrawal requiring a reload. The legacy wallet still writes absolute
-balances: concurrent budget edits from other tabs/devices retain that pre-existing
-last-writer-wins limitation. Savings balances/history themselves are serialized.
+Historical budget withdrawals and their wallet/income entries remain unchanged.
+The database retains its legacy transfer option for compatibility, but the current
+application no longer offers or submits it. Savings withdrawals do not wait for or
+refresh the budget store. Savings balances/history themselves are serialized.
 
 Home's combined balance is a read-only presentation of the existing balances;
 this change needs no additional migration or backfill and never credits savings a
@@ -85,7 +82,7 @@ pnpm build
 Focused Node tests cover input validation, UTC unlock logic, cache-key isolation,
 bounded reads, incomplete/error results, persisted writes, sanitized errors, and
 session mismatch. Home balance regression tests include existing savings, deposits,
-internal transfers without double counting, withdrawals outside the budget, currency
+withdrawals without wallet credits, rejection of transfer requests, currency
 separation, and totals spanning more than 500 savings records. They do not substitute
 for real database authorization tests.
 

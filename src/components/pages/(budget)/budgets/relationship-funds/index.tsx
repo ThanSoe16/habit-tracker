@@ -16,7 +16,6 @@ import { useDeleteFundTransaction } from '@/features/relationship-funds/services
 import { type FundTransaction } from '@/features/relationship-funds/types';
 import { FundTransactionDialog } from './_components/fund-transaction-dialog';
 import { toast } from 'sonner';
-import { refreshBudgetAfterTransfer } from '@/store/use-budget-store';
 import { DataRequestError } from '@/lib/supabase/request';
 import { FundSummaryCard } from './_components/fund-summary-card';
 import { FundTransactionRow } from './_components/fund-transaction-row';
@@ -56,14 +55,9 @@ export default function RelationshipFundsPage() {
     try {
       await scope.assertCurrent();
       await deletion.mutateAsync({ userId: userId!, id: deleteTarget.id });
-      const refreshed = await refreshBudgetAfterTransfer().catch(() => false);
       if (!scope.isCurrent()) return;
       setDeleteTarget(null);
-      toast.success(
-        refreshed
-          ? 'Fund transaction deleted'
-          : 'Transaction deleted. Reload to refresh your current budget.',
-      );
+      toast.success('Fund transaction deleted');
     } catch (error) {
       if (scope.isCurrent())
         setDeleteError(
@@ -186,7 +180,7 @@ export default function RelationshipFundsPage() {
           rows={(query.data ?? []).map((transaction) => ({
             date: transaction.date,
             from: `${transaction.person ?? 'Unassigned'} · ${transaction.title}`,
-            categoryOrType: `${transaction.kind === 'save' ? 'Saved' : 'Spent'} · ${transaction.money_source === 'current_budget' ? 'Current budget' : 'Extra money'}`,
+            categoryOrType: transaction.kind === 'save' ? 'Saved' : 'Spent',
             amount: transaction.amount,
             currency: 'MMK',
             isPositive: transaction.kind === 'save',
@@ -197,7 +191,7 @@ export default function RelationshipFundsPage() {
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         title="Delete fund transaction?"
-        desc={`Remove “${deleteTarget?.title ?? ''}” and reverse its effect on the fund and, when selected, your current budget.`}
+        desc={`Remove “${deleteTarget?.title ?? ''}” and reverse its effect on the relationship fund. Available stays unchanged.`}
         isLoading={deletion.isPending}
         error={deleteError}
         onPress={() => void remove()}
