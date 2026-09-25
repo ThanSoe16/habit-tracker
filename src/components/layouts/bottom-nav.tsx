@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import Image from 'next/image';
-import { Dumbbell, ShieldCheck, Wallet } from 'lucide-react';
+import { Dumbbell, Flag, Wallet } from 'lucide-react';
 
 interface NavItem {
   label: string;
@@ -12,7 +12,7 @@ interface NavItem {
   icon?: string;
   activeIcon?: string;
   useLucide?: boolean;
-  lucideIcon?: 'dumbbell' | 'wallet' | 'wellbeing';
+  lucideIcon?: 'dumbbell' | 'wallet' | 'goals';
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -41,10 +41,10 @@ const NAV_ITEMS: NavItem[] = [
     href: '/budget',
   },
   {
-    label: 'Wellbeing',
+    label: 'Goals',
     useLucide: true,
-    lucideIcon: 'wellbeing',
-    href: '/digital-wellbeing',
+    lucideIcon: 'goals',
+    href: '/goals',
   },
 ];
 
@@ -52,8 +52,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const isWorkoutManagementRoute =
     pathname === '/managements/plan' || pathname === '/managements/edit-personal-info';
-  const isHabitManagementRoute =
-    pathname.startsWith('/managements') && !isWorkoutManagementRoute;
+  const isHabitManagementRoute = pathname.startsWith('/managements') && !isWorkoutManagementRoute;
 
   return (
     <div className="fixed bottom-4 left-0 right-0 z-40 pointer-events-none flex justify-center px-4">
@@ -86,18 +85,14 @@ export function BottomNav() {
               pathname.startsWith('/store-generals');
           } else if (item.href === '/budget') {
             isActive = pathname.startsWith('/budget') || pathname.startsWith('/budget-generals');
-          } else if (item.href === '/digital-wellbeing') {
-            isActive = pathname.startsWith('/digital-wellbeing') || pathname.startsWith('/wellbeing');
+          } else if (item.href === '/goals') {
+            isActive = pathname.startsWith('/goals');
           } else {
             isActive = pathname.startsWith(item.href);
           }
 
           const LucideIcon =
-            item.lucideIcon === 'wallet'
-              ? Wallet
-              : item.lucideIcon === 'wellbeing'
-                ? ShieldCheck
-                : Dumbbell;
+            item.lucideIcon === 'wallet' ? Wallet : item.lucideIcon === 'goals' ? Flag : Dumbbell;
 
           return (
             <Link

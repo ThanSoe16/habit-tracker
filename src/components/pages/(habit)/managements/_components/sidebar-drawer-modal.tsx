@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 import {
   Calendar,
   BarChart2,
@@ -16,7 +11,7 @@ import {
   CheckSquare,
   Wallet,
   User,
-  Brain,
+  Flag,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -29,27 +24,40 @@ interface SidebarDrawerModalProps {
   onSelectViewMode?: (mode: 'today' | 'weekly' | 'overall') => void;
 }
 
-export function SidebarDrawerModal({
-  isOpen,
-  onClose,
-  onSelectViewMode,
-}: SidebarDrawerModalProps) {
+export function SidebarDrawerModal({ isOpen, onClose, onSelectViewMode }: SidebarDrawerModalProps) {
   const { name, avatarEmoji } = useUserStore();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
 
-  const isTodayActive = pathname === '/habits/today' || pathname === '/today' || pathname === '/home/today' || pathname === '/home' || pathname === '/';
-  const isWeeklyActive = pathname === '/habits/weekly' || pathname === '/weekly' || pathname === '/home/weekly';
-  const isOverallActive = pathname === '/habits/overall' || pathname === '/overall' || pathname === '/home/overall';
-  const isRegularHabitActive = pathname === '/managements/regular' || pathname === '/habits/regular' || (pathname === '/habits' && tabParam !== 'task');
-  const isOneTimeTaskActive = pathname === '/managements/one-time' || pathname === '/habits/one-time' || (pathname === '/habits' && tabParam === 'task');
-  const isReportPage = pathname === '/generals/reports' || pathname === '/general/reports' || pathname === '/report';
-  const isSettingsPage = pathname === '/generals/settings' || pathname === '/general/settings' || pathname === '/settings';
+  const isTodayActive =
+    pathname === '/habits/today' ||
+    pathname === '/today' ||
+    pathname === '/home/today' ||
+    pathname === '/home' ||
+    pathname === '/';
+  const isWeeklyActive =
+    pathname === '/habits/weekly' || pathname === '/weekly' || pathname === '/home/weekly';
+  const isOverallActive =
+    pathname === '/habits/overall' || pathname === '/overall' || pathname === '/home/overall';
+  const isRegularHabitActive =
+    pathname === '/managements/regular' ||
+    pathname === '/habits/regular' ||
+    (pathname === '/habits' && tabParam !== 'task');
+  const isOneTimeTaskActive =
+    pathname === '/managements/one-time' ||
+    pathname === '/habits/one-time' ||
+    (pathname === '/habits' && tabParam === 'task');
+  const isReportPage =
+    pathname === '/generals/reports' || pathname === '/general/reports' || pathname === '/report';
+  const isSettingsPage =
+    pathname === '/generals/settings' ||
+    pathname === '/general/settings' ||
+    pathname === '/settings';
   const isAccountPage = pathname === '/account';
   const isBudgetPage = pathname === '/budget';
-  const isDigitalWellbeingPage = pathname.startsWith('/digital-wellbeing');
+  const isGoalsPage = pathname.startsWith('/goals');
 
   const menuSections = [
     {
@@ -110,11 +118,11 @@ export function SidebarDrawerModal({
       title: 'GENERAL',
       items: [
         {
-          id: 'digital-wellbeing',
-          label: 'Digital Wellbeing',
-          icon: Brain,
-          action: () => router.push('/digital-wellbeing'),
-          isActive: isDigitalWellbeingPage,
+          id: 'goals',
+          label: 'Goals',
+          icon: Flag,
+          action: () => router.push('/goals'),
+          isActive: isGoalsPage,
         },
         {
           id: 'budget',

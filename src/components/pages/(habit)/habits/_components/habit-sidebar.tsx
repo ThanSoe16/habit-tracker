@@ -25,7 +25,7 @@ import {
   Sun,
   Moon,
   Hexagon,
-  Brain,
+  Flag,
 } from 'lucide-react';
 import { LogoutButton } from '@/components/shared/buttons/logout-button';
 import { cn } from '@/utils/cn';
@@ -68,7 +68,7 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
     pathname === '/generals/settings' ||
     pathname === '/general/settings' ||
     pathname === '/settings';
-  const isDigitalWellbeingPage = pathname.startsWith('/digital-wellbeing');
+  const isGoalsPage = pathname.startsWith('/goals');
 
   const menuSections = [
     {
@@ -138,14 +138,14 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
       title: 'GENERAL',
       items: [
         {
-          id: 'digital-wellbeing',
-          label: 'Digital Wellbeing',
-          icon: Brain,
+          id: 'goals',
+          label: 'Goals',
+          icon: Flag,
           action: () => {
-            router.push('/digital-wellbeing');
+            router.push('/goals');
             setOpenMobile(false);
           },
-          isActive: isDigitalWellbeingPage,
+          isActive: isGoalsPage,
         },
         {
           id: 'reports',

@@ -9,7 +9,7 @@ import {
   Archive,
   ChevronRight,
   Wallet,
-  ShieldCheck,
+  Flag,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -65,11 +65,11 @@ export function AccountSidebarDrawerModal({ isOpen, onClose }: AccountSidebarDra
           isActive: pathname.startsWith('/store'),
         },
         {
-          id: 'wellbeing',
-          label: 'Digital Wellbeing',
-          icon: ShieldCheck,
-          action: () => router.push('/digital-wellbeing'),
-          isActive: pathname.startsWith('/digital-wellbeing'),
+          id: 'goals',
+          label: 'Goals',
+          icon: Flag,
+          action: () => router.push('/goals'),
+          isActive: pathname.startsWith('/goals'),
         },
       ],
     },

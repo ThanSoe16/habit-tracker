@@ -13,6 +13,8 @@ import { useGymStore } from '@/store/use-gym-store';
 import { useBudgetStore } from '@/store/use-budget-store';
 import { useMediaStore } from '@/store/use-media-store';
 import { useDigitalWellbeingStore } from '@/store/use-digital-wellbeing-store';
+import { useGoalsStore } from '@/features/goals/store/use-goals-store';
+import { activateGoalsSync, isGoalsSyncActive } from '@/features/goals/store/goals-sync';
 
 type SyncTarget =
   | 'habits'
@@ -22,7 +24,8 @@ type SyncTarget =
   | 'gym'
   | 'budget'
   | 'wellbeing-store'
-  | 'wellbeing-event';
+  | 'wellbeing-event'
+  | 'goals';
 
 type RealtimeTarget = {
   table: string;
@@ -49,6 +52,8 @@ const REALTIME_TARGETS: RealtimeTarget[] = [
   { table: 'budget_settings', sync: 'budget', userScoped: true },
   { table: 'loans', sync: 'budget', userScoped: true },
   { table: 'gold_holdings', sync: 'budget', userScoped: true },
+  { table: 'goals', sync: 'goals', userScoped: true },
+  { table: 'goal_settings', sync: 'goals', userScoped: true },
   { table: 'digital_wellbeing_profiles', sync: 'wellbeing-store', userScoped: true },
   { table: 'social_media_sessions', sync: 'wellbeing-store', userScoped: true },
   { table: 'social_media_urges', sync: 'wellbeing-store', userScoped: true },
@@ -89,6 +94,9 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
       media: () => useMediaStore.getState().fetchFromSupabase(),
       gym: () => useGymStore.getState().fetchFromSupabase(),
       budget: () => useBudgetStore.getState().fetchFromSupabase(),
+      goals: () => {
+        if (isGoalsSyncActive()) return useGoalsStore.getState().fetchFromSupabase();
+      },
       'wellbeing-store': () => useDigitalWellbeingStore.getState().fetchFromSupabase(),
       'wellbeing-event': () => {
         window.dispatchEvent(new Event('digital-wellbeing-change'));
@@ -144,6 +152,7 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     }
 
     function partitionAccounts(userId: string | null) {
+      let goalsHydration: void | Promise<void> = undefined;
       setIdentityScope(userId);
       if ('serviceWorker' in navigator) {
         void navigator.serviceWorker.ready
@@ -159,6 +168,11 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
         useMoodStore.setState(useMoodStore.getInitialState(), true);
         useGymStore.setState(useGymStore.getInitialState(), true);
         useSettingsSync.setState(useSettingsSync.getInitialState(), true);
+        goalsHydration = partitionStore(
+          useGoalsStore,
+          `goals:${userId ?? 'signed-out'}`,
+          Boolean(userId),
+        );
         void partitionStore(useBudgetStore, `budget:${userId ?? 'signed-out'}`, Boolean(userId));
         void partitionStore(useMediaStore, `media:${userId ?? 'signed-out'}`, Boolean(userId));
       });
@@ -173,15 +187,23 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
         `focus-session:${userId ?? 'signed-out'}`,
         Boolean(userId),
       );
+      return Promise.resolve(goalsHydration);
     }
 
     function syncForUser(userId: string) {
       if (syncedUserId === userId) return;
       clearUserSync();
-      partitionAccounts(userId);
+      const goalsHydration = partitionAccounts(userId);
       syncedUserId = userId;
       startRealtimeSync(userId);
       void syncAllStores();
+      void goalsHydration
+        .then(async () => {
+          if (syncedUserId !== userId) return;
+          activateGoalsSync();
+          await useGoalsStore.getState().fetchFromSupabase();
+        })
+        .catch((error) => console.warn('Unable to sync goals:', error));
     }
 
     function clearUserSync() {
@@ -226,7 +248,7 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
       if (user) {
         syncForUser(user.id);
       } else {
-        partitionAccounts(null);
+        void partitionAccounts(null);
         clearUserSync();
       }
     });

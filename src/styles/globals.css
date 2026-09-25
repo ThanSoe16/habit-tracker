@@ -191,6 +191,20 @@ html.dark[data-accent] {
   --sidebar-accent-foreground: var(--foreground);
 }
 
+/* Per-card progress colors for the goals home list. */
+.goal-tone-blue {
+  --primary: oklch(0.62 0.16 245);
+}
+.goal-tone-green {
+  --primary: oklch(0.62 0.15 150);
+}
+.goal-tone-amber {
+  --primary: oklch(0.63 0.17 70);
+}
+.goal-tone-violet {
+  --primary: oklch(0.62 0.19 315);
+}
+
 /*
  * Legacy accent bridge
  *

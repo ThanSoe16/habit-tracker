@@ -22,7 +22,7 @@ const modules = [
   ['Mood', '/mood-generals/settings'],
   ['Budget', '/budget-generals/settings'],
   ['Media', '/store-generals/settings'],
-  ['Digital wellbeing', '/digital-wellbeing/settings'],
+  ['Goals', '/goals/settings'],
 ];
 
 export function SettingsList() {

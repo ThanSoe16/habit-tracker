@@ -11,7 +11,7 @@ import {
   CheckSquare,
   Wallet,
   User,
-  Brain,
+  Flag,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useUserStore } from '@/store/use-user-store';
@@ -57,7 +57,7 @@ export function SidebarDrawerModal({ isOpen, onClose, onSelectViewMode }: Sideba
     pathname === '/settings';
   const isAccountPage = pathname === '/account';
   const isBudgetPage = pathname === '/budget';
-  const isDigitalWellbeingPage = pathname.startsWith('/digital-wellbeing');
+  const isGoalsPage = pathname.startsWith('/goals');
 
   const menuSections = [
     {
@@ -118,11 +118,11 @@ export function SidebarDrawerModal({ isOpen, onClose, onSelectViewMode }: Sideba
       title: 'GENERAL',
       items: [
         {
-          id: 'digital-wellbeing',
-          label: 'Digital Wellbeing',
-          icon: Brain,
-          action: () => router.push('/digital-wellbeing'),
-          isActive: isDigitalWellbeingPage,
+          id: 'goals',
+          label: 'Goals',
+          icon: Flag,
+          action: () => router.push('/goals'),
+          isActive: isGoalsPage,
         },
         {
           id: 'budget',
