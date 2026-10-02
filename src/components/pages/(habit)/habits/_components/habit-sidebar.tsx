@@ -19,6 +19,7 @@ import {
   Calendar,
   BarChart2,
   TrendingUp,
+  History,
   Sparkles,
   CheckSquare,
   Settings,
@@ -33,7 +34,7 @@ import { useUserStore } from '@/store/use-user-store';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 interface HabitSidebarProps {
-  onSelectViewMode?: (mode: 'today' | 'weekly' | 'overall') => void;
+  onSelectViewMode?: (mode: 'today' | 'weekly' | 'overall' | 'history') => void;
 }
 
 export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
@@ -54,6 +55,7 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
     pathname === '/habits/weekly' || pathname === '/weekly' || pathname === '/home/weekly';
   const isOverallActive =
     pathname === '/habits/overall' || pathname === '/overall' || pathname === '/home/overall';
+  const isHistoryActive = pathname === '/habits/history';
   const isRegularHabitActive =
     pathname === '/managements/regular' ||
     pathname === '/habits/regular' ||
@@ -106,6 +108,17 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
             setOpenMobile(false);
           },
           isActive: isOverallActive,
+        },
+        {
+          id: 'history',
+          label: 'History',
+          icon: History,
+          action: () => {
+            if (onSelectViewMode) onSelectViewMode('history');
+            router.push('/habits/history');
+            setOpenMobile(false);
+          },
+          isActive: isHistoryActive,
         },
       ],
     },

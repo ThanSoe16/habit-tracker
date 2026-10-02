@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { Button } from '@/components/ui/button';
 import type { FundTransactionInput } from '@/features/relationship-funds/types';
 import { FundTransactionChoices } from './fund-transaction-choices';
@@ -58,15 +59,15 @@ export function FundTransactionForm({
                 <FormItem>
                   <FormLabel className="text-xs font-bold">Amount (MMK)</FormLabel>
                   <FormControl>
-                    <Input
-                      inputClassName="rounded-2xl bg-muted/50"
-                      {...field}
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      step={1}
+                    <MoneyInput
+                      className="bg-muted/50"
+                      name={field.name}
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      disabled={pending}
                       value={field.value || ''}
-                      onChange={(event) => field.onChange(Number(event.target.value))}
+                      setValue={(value) => field.onChange(Number(value))}
+                      placeholder="0"
                     />
                   </FormControl>
                   <FormMessage />

@@ -14,7 +14,7 @@ import { useSubmissionScope } from '@/features/base/hooks/use-submission-scope';
 import { useFundMonth } from '@/features/relationship-funds/services/queries';
 import { useDeleteFundTransaction } from '@/features/relationship-funds/services/mutations';
 import { type FundTransaction } from '@/features/relationship-funds/types';
-import { FundTransactionDialog } from './_components/fund-transaction-dialog';
+import { FundTransactionDrawer } from './_components/fund-transaction-drawer';
 import { toast } from 'sonner';
 import { DataRequestError } from '@/lib/supabase/request';
 import { FundSummaryCard } from './_components/fund-summary-card';
@@ -163,7 +163,7 @@ export default function RelationshipFundsPage() {
         </CardContent>
       </Card>
       {action && (
-        <FundTransactionDialog
+        <FundTransactionDrawer
           key={`${userId}:${action.transaction?.id ?? 'new'}`}
           transaction={action.transaction}
           kind={action.kind}

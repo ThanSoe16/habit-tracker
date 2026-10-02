@@ -5,6 +5,7 @@ import {
   Calendar,
   BarChart2,
   TrendingUp,
+  History,
   Settings,
   ChevronRight,
   Sparkles,
@@ -20,8 +21,8 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 interface SidebarDrawerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentViewMode?: 'today' | 'weekly' | 'overall';
-  onSelectViewMode?: (mode: 'today' | 'weekly' | 'overall') => void;
+  currentViewMode?: 'today' | 'weekly' | 'overall' | 'history';
+  onSelectViewMode?: (mode: 'today' | 'weekly' | 'overall' | 'history') => void;
 }
 
 export function SidebarDrawerModal({ isOpen, onClose, onSelectViewMode }: SidebarDrawerModalProps) {
@@ -41,6 +42,7 @@ export function SidebarDrawerModal({ isOpen, onClose, onSelectViewMode }: Sideba
     pathname === '/habits/weekly' || pathname === '/weekly' || pathname === '/home/weekly';
   const isOverallActive =
     pathname === '/habits/overall' || pathname === '/overall' || pathname === '/home/overall';
+  const isHistoryActive = pathname === '/habits/history';
   const isRegularHabitActive =
     pathname === '/managements/regular' ||
     pathname === '/habits/regular' ||
@@ -92,6 +94,16 @@ export function SidebarDrawerModal({ isOpen, onClose, onSelectViewMode }: Sideba
             router.push('/habits/overall');
           },
           isActive: isOverallActive,
+        },
+        {
+          id: 'history',
+          label: 'History',
+          icon: History,
+          action: () => {
+            if (onSelectViewMode) onSelectViewMode('history');
+            router.push('/habits/history');
+          },
+          isActive: isHistoryActive,
         },
       ],
     },

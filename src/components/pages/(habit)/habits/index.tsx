@@ -14,12 +14,12 @@ import { OverallHabitList } from './_components/overall-habit-list';
 import { SidebarDrawerModal } from './_components/sidebar-drawer-modal';
 import { useUserStore } from '@/store/use-user-store';
 interface HomePageProps {
-  initialViewMode?: 'today' | 'weekly' | 'overall';
+  initialViewMode?: 'today' | 'weekly' | 'overall' | 'history';
 }
 
 export default function Home({ initialViewMode = 'today' }: HomePageProps) {
   const router = useRouter();
-  const { name: userName, avatarEmoji, homeSettings } = useUserStore();
+  const { name: userName, avatarEmoji } = useUserStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -56,7 +56,7 @@ export default function Home({ initialViewMode = 'today' }: HomePageProps) {
     };
   });
 
-  const handleSelectViewMode = (mode: 'today' | 'weekly' | 'overall') => {
+  const handleSelectViewMode = (mode: 'today' | 'weekly' | 'overall' | 'history') => {
     router.push(`/habits/${mode}`);
   };
 

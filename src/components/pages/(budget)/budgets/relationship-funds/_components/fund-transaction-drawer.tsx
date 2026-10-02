@@ -2,14 +2,10 @@
 import { useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from '@/components/ui/drawer';
 import { useQueryIdentity } from '@/components/providers/query-provider';
 import { useSubmissionScope } from '@/features/base/hooks/use-submission-scope';
 import {
@@ -27,7 +23,7 @@ import { FundTransactionForm } from './fund-transaction-form';
 import styles from '../relationship-funds.module.css';
 import { cn } from '@/utils/cn';
 
-export function FundTransactionDialog({
+export function FundTransactionDrawer({
   transaction,
   kind,
   date,
@@ -102,23 +98,39 @@ export function FundTransactionDialog({
     }
   }
   return (
-    <Dialog
+    <Drawer
       open
       onOpenChange={(open) => {
         if (!open) close();
       }}
     >
-      <DialogContent
-        className={cn(styles.theme, 'max-h-dvh overflow-y-auto rounded-3xl p-6 sm:max-w-lg')}
+      <DrawerContent
+        className={cn(
+          styles.theme,
+          'mx-auto w-full max-w-lg max-h-[85dvh] overflow-y-auto rounded-t-[36px] bg-card p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-foreground',
+        )}
       >
-        <DialogHeader>
-          <DialogTitle className="text-lg font-extrabold tracking-tight">
+        <div className="flex items-center justify-between gap-3 border-b border-border pb-2">
+          <DrawerTitle className="flex items-center gap-2 text-base font-black">
+            <Wallet className="size-5 text-primary" />
             {mode === 'edit' ? 'Edit fund transaction' : 'Record Money'}
-          </DialogTitle>
-          <DialogDescription>Record any MMK amount for TSO or Nway.</DialogDescription>
-        </DialogHeader>
+          </DrawerTitle>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={close}
+            aria-label="Close"
+          >
+            <X />
+          </Button>
+        </div>
+        <DrawerDescription className="py-3">
+          Record any MMK amount for TSO or Nway.
+        </DrawerDescription>
         <FundTransactionForm form={form} mode={mode} onSubmit={submit} onCancel={close} />
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
