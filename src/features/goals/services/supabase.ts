@@ -81,10 +81,9 @@ function mapGoal(value: unknown): Goal {
   });
 }
 
-function goalPayload(value: Goal) {
+function goalChanges(value: Goal) {
   const goal = goalSchema.parse(value);
   return {
-    id: goal.id,
     title: goal.title,
     why: goal.why,
     target_date: goal.targetDate || null,
@@ -97,9 +96,13 @@ function goalPayload(value: Goal) {
     completion_note: goal.completionNote,
     energy_score: goal.energyScore,
     completed_at: goal.completedAt,
-    created_at: goal.createdAt,
     updated_at: goal.updatedAt,
   };
+}
+
+function goalPayload(value: Goal) {
+  const goal = goalSchema.parse(value);
+  return { id: goal.id, created_at: goal.createdAt, ...goalChanges(goal) };
 }
 
 export const goalsService = {
@@ -134,13 +137,31 @@ export const goalsService = {
   },
 
   async saveGoal(goal: Goal): Promise<Goal> {
-    const { supabase } = await accountService.getClient();
-    const result = await supabase
+    const { supabase, userId } = await accountService.getClient();
+    const message = 'Could not save this goal. Please try again.';
+    const updateExisting = () =>
+      supabase
+        .from('goals')
+        .update(goalChanges(goal))
+        .eq('id', goal.id)
+        .eq('user_id', userId)
+        .select(columns)
+        .maybeSingle();
+    const updated = await updateExisting();
+    if (updated.error) throw new DataRequestError(message, updated.error);
+    if (updated.data) return mapGoal(updated.data);
+
+    const inserted = await supabase
       .from('goals')
-      .upsert(goalPayload(goal), { onConflict: 'id' })
+      .insert(goalPayload(goal))
       .select(columns)
       .single();
-    return mapGoal(requireResult(result, 'Could not save this goal. Please try again.'));
+    if (inserted.error?.code === '23505') {
+      const retried = await updateExisting();
+      if (retried.error) throw new DataRequestError(message, retried.error);
+      if (retried.data) return mapGoal(retried.data);
+    }
+    return mapGoal(requireResult(inserted, message));
   },
 
   async deleteGoal(id: string): Promise<void> {

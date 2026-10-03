@@ -81,6 +81,19 @@ const INITIAL_SYNCS = [
 
 export function SupabaseSyncProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'development' || !('serviceWorker' in navigator)) return;
+
+    void navigator.serviceWorker
+      .getRegistrations()
+      .then((registrations) =>
+        Promise.all(registrations.map((registration) => registration.unregister())),
+      )
+      .catch((error) =>
+        console.warn('Unable to unregister the development service worker:', error),
+      );
+  }, []);
+
+  useEffect(() => {
     let syncedUserId: string | null = null;
     let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
     let cancelled = false;
