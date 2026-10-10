@@ -41,11 +41,18 @@ export const useMoodStore = create<MoodStore>()((set, get) => ({
 
   fetchFromSupabase: async () => {
     const accountRevision = identityRevision();
+    const historyAtStart = get().history;
     set({ isLoading: true, error: null });
     try {
       const remoteMoods = await moodService.fetchMoods();
       assertIdentityRevision(accountRevision);
-      set({ history: remoteMoods, isLoaded: true, isLoading: false, error: null });
+      set((state) => ({
+        // A read started before a successful check-in must not erase that save.
+        history: state.history === historyAtStart ? remoteMoods : state.history,
+        isLoaded: true,
+        isLoading: false,
+        error: null,
+      }));
     } catch (e) {
       assertIdentityRevision(accountRevision);
       console.warn('Failed to fetch moods from Supabase:', e);

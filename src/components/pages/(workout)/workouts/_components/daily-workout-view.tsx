@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { Play, Trophy, Calendar, Dumbbell } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,8 @@ import { getLocalDateString } from '@/utils/date-utils';
 import { ExerciseGuideModal } from './exercise-guide-modal';
 import { RestTimerCountdownModal } from './rest-timer-countdown-modal';
 import { toast } from 'sonner';
+import { useWorkoutRestTimer } from '@/features/gym/hooks/use-workout-rest-timer';
+import { RestTimerFloatingButton } from './rest-timer-floating-button';
 
 interface DailyWorkoutViewProps {
   date?: Date;
@@ -54,10 +56,7 @@ function WorkoutSession({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [selectedGuideName, setSelectedGuideName] = useState<string | null>(null);
-  const [activeRestTimerExercise, setActiveRestTimerExercise] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
+  const restTimer = useWorkoutRestTimer(dateStr, gymSettings.restTimerSeconds);
 
   // Purely fetch current log for date without setState in render
   const log = getWorkoutLogForDate(dateStr);
@@ -85,11 +84,6 @@ function WorkoutSession({
       setPending(false);
     }
   };
-
-  const handleRestComplete = useCallback(() => {
-    if (!activeRestTimerExercise || !canEdit) return;
-    updateCompletedSet(dateStr, activeRestTimerExercise.id, 1);
-  }, [activeRestTimerExercise, canEdit, dateStr, updateCompletedSet]);
 
   if (!log || log.exercises.length === 0) {
     return (
@@ -211,7 +205,7 @@ function WorkoutSession({
             onRemoveSet={(id) => updateCompletedSet(dateStr, id, -1)}
             onAddSet={(exercise) => {
               if (gymSettings.restTimerSeconds) {
-                setActiveRestTimerExercise({ id: exercise.id, name: exercise.name });
+                restTimer.open({ id: exercise.id, name: exercise.name });
               } else {
                 updateCompletedSet(dateStr, exercise.id, 1);
               }
@@ -242,7 +236,7 @@ function WorkoutSession({
           <Button
             type="button"
             onClick={() => void saveSession('finish')}
-            disabled={pending || !!activeRestTimerExercise}
+            disabled={pending || !!restTimer.session?.exercise}
             className="h-12 w-full rounded-2xl font-bold"
           >
             <Trophy className="size-4" />
@@ -258,14 +252,17 @@ function WorkoutSession({
         onClose={() => setSelectedGuideName(null)}
       />
 
-      {/* Rest Timer Countdown Overlay */}
-      {activeRestTimerExercise && (
+      {!restTimer.session && <RestTimerFloatingButton onClick={() => restTimer.open()} />}
+      {restTimer.session && (
         <RestTimerCountdownModal
-          isOpen
-          onClose={() => setActiveRestTimerExercise(null)}
-          exerciseName={activeRestTimerExercise.name}
-          initialSeconds={gymSettings?.restTimerSeconds || 180}
-          onComplete={handleRestComplete}
+          isOpen={restTimer.expanded}
+          onOpenChange={restTimer.setExpanded}
+          onClose={restTimer.close}
+          exerciseName={restTimer.session.exercise?.name}
+          initialSeconds={restTimer.session.seconds}
+          autoStart={!!restTimer.session.exercise}
+          sound={restTimer.session.sound}
+          onComplete={restTimer.complete}
         />
       )}
 

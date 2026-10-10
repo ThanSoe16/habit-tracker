@@ -12,6 +12,7 @@ import { WeeklyHabitList } from './_components/weekly-habit-list';
 import { OverallHabitList } from './_components/overall-habit-list';
 import { SidebarDrawerModal } from './_components/sidebar-drawer-modal';
 import { useUserStore } from '@/store/use-user-store';
+import { HomeMoodCheckIn } from './_components/home-mood-check-in';
 interface HomePageProps {
   initialViewMode?: 'today' | 'weekly' | 'overall' | 'history';
 }
@@ -142,6 +143,8 @@ export default function Home({ initialViewMode = 'today' }: HomePageProps) {
           )}
         </section>
       </div>
+
+      {viewMode === 'today' && <HomeMoodCheckIn />}
 
       {/* Navigation Sidebar Drawer */}
       <SidebarDrawerModal

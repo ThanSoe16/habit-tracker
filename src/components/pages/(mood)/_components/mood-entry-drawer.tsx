@@ -1,7 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { MOODS, useMoodStore } from '@/store/use-mood-store';
 import { toast } from 'sonner';
@@ -87,7 +94,8 @@ const TAG_GROUPS: Record<string, string[]> = {
 };
 
 export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDrawerProps) {
-  const { setMood, getMood } = useMoodStore();
+  const setMood = useMoodStore((state) => state.setMood);
+  const getMood = useMoodStore((state) => state.getMood);
   const enableNotes = useUserStore((state) => state.moodSettings.enableNotes);
   const [note, setNote] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -140,8 +148,9 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
   return (
     <Drawer
       open={isOpen}
+      dismissible={!saving}
       onOpenChange={(open) => {
-        if (!open) {
+        if (!open && !saving) {
           onClose();
           setTimeout(() => setStep('mood'), 300);
         }
@@ -155,6 +164,9 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
                 <DrawerTitle className="text-center text-xl font-bold tracking-tight text-foreground">
                   How is your mood today?
                 </DrawerTitle>
+                <DrawerDescription className="mt-2 text-center">
+                  {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'Choose your mood.'}
+                </DrawerDescription>
               </DrawerHeader>
 
               <div className="grid grid-cols-3 gap-y-12 mb-16">
@@ -200,6 +212,9 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
                 <DrawerTitle className="text-center text-xl font-bold tracking-tight text-foreground">
                   {selectedMood?.label}! How would you describe your feelings?
                 </DrawerTitle>
+                <DrawerDescription className="mt-2 text-center">
+                  {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'Choose a feeling.'}
+                </DrawerDescription>
               </DrawerHeader>
 
               <div className="grid grid-cols-3 gap-2 mb-10 overflow-y-auto max-h-[300px] px-1 py-2 no-scrollbar">
@@ -207,6 +222,7 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
                   TAG_GROUPS[selectedMood.label]?.map((tag) => (
                     <button
                       key={tag}
+                      disabled={saving}
                       onClick={() => setSelectedTag(tag)}
                       className={cn(
                         'h-10 rounded-full px-4 text-xs font-bold transition-all border',
@@ -225,6 +241,7 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
                   <FieldLabel htmlFor="mood-note">Reflection (optional)</FieldLabel>
                   <Textarea
                     id="mood-note"
+                    disabled={saving}
                     maxLength={2000}
                     value={note ?? (selectedDate ? getMood(selectedDate)?.note : undefined) ?? ''}
                     onChange={(event) => setNote(event.target.value)}
@@ -236,7 +253,7 @@ export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDraw
                 disabled={!selectedTag || saving}
                 className="w-full h-14 rounded-full text-lg font-bold bg-primary hover:bg-primary/80 border-none text-white shadow-xl shadow-primary/20 disabled:opacity-30 transition-all active:scale-[0.98]"
               >
-                I Feel {selectedTag}!
+                {saving ? 'Saving…' : `I Feel ${selectedTag}!`}
               </Button>
             </>
           )}

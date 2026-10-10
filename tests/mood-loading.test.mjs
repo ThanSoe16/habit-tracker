@@ -186,3 +186,51 @@ beforeEach((t) => {
     userId: '11111111-1111-4111-8111-111111111111',
   }));
 });
+
+test('today has no saved mood while a check-in is pending or rejected', async (t) => {
+  const original = useMoodStore.getState();
+  t.after(() => useMoodStore.setState(original, true));
+  useMoodStore.setState({ history: {}, isLoaded: true });
+  const today = new Date(2026, 9, 10);
+  let rejectSave;
+  t.mock.method(
+    moodService,
+    'upsertMood',
+    () =>
+      new Promise((_, reject) => {
+        rejectSave = reject;
+      }),
+  );
+  const saving = useMoodStore.getState().setMood(today, entry, 'Calm');
+  assert.equal(useMoodStore.getState().getMood(today), null);
+  rejectSave(new Error('Offline'));
+  await assert.rejects(saving, /Offline/);
+  assert.equal(useMoodStore.getState().getMood(today), null);
+});
+
+test('a confirmed local-date check-in survives a refresh that started before the save', async (t) => {
+  const original = useMoodStore.getState();
+  t.after(() => useMoodStore.setState(original, true));
+  useMoodStore.setState({ history: {}, isLoaded: true });
+  let resolveRead;
+  t.mock.method(
+    moodService,
+    'fetchMoods',
+    () =>
+      new Promise((resolve) => {
+        resolveRead = resolve;
+      }),
+  );
+  t.mock.method(moodService, 'upsertMood', async (dateKey, values) => {
+    assert.equal(dateKey, '2026-10-10');
+    return values;
+  });
+  const refreshing = useMoodStore.getState().fetchFromSupabase();
+  const today = new Date(2026, 9, 10, 0, 5);
+  await useMoodStore.getState().setMood(today, entry, 'Calm');
+  assert.equal(useMoodStore.getState().getMood(today)?.tag, 'Calm');
+  assert.equal(useMoodStore.getState().getMood(new Date(2026, 9, 11)), null);
+  resolveRead({});
+  await refreshing;
+  assert.equal(useMoodStore.getState().getMood(today)?.tag, 'Calm');
+});
