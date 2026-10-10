@@ -1,6 +1,8 @@
+import { ADDITIONAL_EXERCISES } from '../data/additional-exercises';
 import type { Exercise, PlanDay, PlanExercise } from './model';
 
 export const PRESET_EXERCISES: Exercise[] = [
+  ...ADDITIONAL_EXERCISES,
   // Chest & Push-up Variations
   {
     id: 'ex-1',

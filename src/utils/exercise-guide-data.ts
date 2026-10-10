@@ -1,3 +1,5 @@
+import { ADDITIONAL_EXERCISE_GUIDES } from '@/features/gym/data/additional-exercises';
+
 export interface ExerciseGuide {
   name: string;
   category: string;
@@ -10,6 +12,7 @@ export interface ExerciseGuide {
 }
 
 export const EXERCISE_GUIDES: Record<string, ExerciseGuide> = {
+  ...ADDITIONAL_EXERCISE_GUIDES,
   'Basic Crunches (Abs)': {
     name: 'Basic Crunches (Abs)',
     category: 'Core',
@@ -491,10 +494,10 @@ export const EXERCISE_GUIDES: Record<string, ExerciseGuide> = {
 };
 
 export function getExerciseGuide(exerciseName: string): ExerciseGuide {
-  // Direct match or partial match fallback
-  if (EXERCISE_GUIDES[exerciseName]) {
-    return EXERCISE_GUIDES[exerciseName];
-  }
+  // Resolve exact names before substring matches (e.g. reverse vs. regular wrist curls).
+  const normalized = exerciseName.trim().toLowerCase();
+  const exactKey = Object.keys(EXERCISE_GUIDES).find((key) => key.toLowerCase() === normalized);
+  if (exactKey) return EXERCISE_GUIDES[exactKey];
 
   // Fallback search
   const foundKey = Object.keys(EXERCISE_GUIDES).find((k) =>

@@ -1,6 +1,9 @@
+import { ADDITIONAL_EXERCISE_IMAGES } from '@/features/gym/data/additional-exercises';
+
 const LOCAL_IMAGE_BASE_URL = '/work-out';
 
 export const EXERCISE_IMAGES_MAP: Record<string, string> = {
+  ...ADDITIONAL_EXERCISE_IMAGES,
   'Reverse Fly (Rear Delts)': `${LOCAL_IMAGE_BASE_URL}/back/reverse-fly.png`,
   'Sumo Squat': `${LOCAL_IMAGE_BASE_URL}/legs/sumo-squat.png`,
   'Wrist Curl (Forearms)': `${LOCAL_IMAGE_BASE_URL}/forearms/wrist-curl.png`,
@@ -93,6 +96,8 @@ export function getExerciseImage(
 
   // Fuzzy match fallback
   const lower = trimmed.toLowerCase();
+  const exactKey = Object.keys(EXERCISE_IMAGES_MAP).find((key) => key.toLowerCase() === lower);
+  if (exactKey) return EXERCISE_IMAGES_MAP[exactKey];
   for (const [key, value] of Object.entries(EXERCISE_IMAGES_MAP)) {
     if (lower.includes(key.toLowerCase()) || key.toLowerCase().includes(lower)) {
       return value;

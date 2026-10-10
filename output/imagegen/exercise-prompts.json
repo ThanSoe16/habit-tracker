@@ -1,0 +1,217 @@
+{
+  "mode": "built-in image_gen",
+  "assets": [
+    {
+      "id": "ex-dumbbell-bicep-curl",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-2667dbea-3946-47e3-9427-fa588204a8e6.png",
+      "destination": "public/work-out/additions/dumbbell-bicep-curl.webp",
+      "prompt": "Use case: scientific-educational. Generate one square gym exercise library illustration for DUMBBELL BICEP CURL. White background, polished grayscale anatomical male mannequin wearing dark charcoal training shorts, cyan-blue highlight on biceps, gray dumbbells. Full body centered with generous whitespace and subtle ground shadow; front three-quarter view, standing upright curling dumbbells with palms facing upward, upper arms by sides. Match a clean fitness textbook 3D anatomical illustration. Light pale-blue header strip at top with exact navy uppercase title 'DUMBBELL BICEP CURL'. No extra text, no logo, no watermark, no border, no arrows. Anatomically correct limbs and equipment. One exercise only."
+    },
+    {
+      "id": "ex-dumbbell-skullcrusher",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-cebd06ca-0756-4c39-8b27-20ff57371b8c.png",
+      "destination": "public/work-out/additions/dumbbell-skullcrusher.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'DUMBBELL SKULLCRUSHER'. Target muscles: Triceps. Pose: side three-quarter view lying face up on bench, feet on floor, upper arms vertical, elbows bent with two dumbbells beside head."
+    },
+    {
+      "id": "ex-dumbbell-triceps-kickback",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-59fd4429-b3b6-41c9-aee8-34cf3cd12416.png",
+      "destination": "public/work-out/additions/dumbbell-triceps-kickback.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'DUMBBELL TRICEPS KICKBACK'. Target muscles: Triceps. Pose: side view one hand supporting on bench, torso hinged, opposite upper arm by torso and elbow extended holding dumbbell behind hip."
+    },
+    {
+      "id": "ex-concentration-curl",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-507d92ec-d46a-4a94-9c72-0efc8e87e053.png",
+      "destination": "public/work-out/additions/concentration-curl.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'CONCENTRATION CURL'. Target muscles: Biceps. Pose: seated leaning forward, one elbow braced on inner thigh, curling one dumbbell palm up."
+    },
+    {
+      "id": "ex-close-grip-bench-press",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-3d517e4d-575c-4226-a4bf-3297c7daabbf.png",
+      "destination": "public/work-out/additions/close-grip-bench-press.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'CLOSE-GRIP BENCH PRESS'. Target muscles: Triceps, Chest. Pose: side three-quarter view supine on bench, feet flat, barbell held just above chest with shoulder-width grip and elbows tucked."
+    },
+    {
+      "id": "ex-bench-dips",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-b9a2c4a4-ae90-4eb0-9708-7cb91d1b3eef.png",
+      "destination": "public/work-out/additions/bench-dips.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'BENCH DIPS'. Target muscles: Triceps. Pose: side view hands behind on bench edge, hips immediately in front, knees bent and feet planted, elbows slightly bent."
+    },
+    {
+      "id": "ex-conventional-deadlift",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-95aba4e7-946c-4b13-99a5-264a8d16f6d3.png",
+      "destination": "public/work-out/additions/conventional-deadlift.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'CONVENTIONAL DEADLIFT'. Target muscles: Glutes, Hamstrings, Back. Pose: three-quarter side view starting a floor deadlift, bar over midfoot, bent knees, neutral back, shoulders above bar, arms straight."
+    },
+    {
+      "id": "ex-dumbbell-lunges",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-b9506c9d-f245-46e5-a8e8-d26a466bdafc.png",
+      "destination": "public/work-out/additions/dumbbell-lunges.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'DUMBBELL LUNGES'. Target muscles: Quadriceps, Glutes. Pose: side three-quarter view split stance lunge, rear knee near ground, front knee bent, dumbbells hanging beside hips."
+    },
+    {
+      "id": "ex-seated-leg-curl",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-4fc175a7-8fa9-4d9a-bd1f-0a5e1c6f8205.png",
+      "destination": "public/work-out/additions/seated-leg-curl.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'SEATED LEG CURL'. Target muscles: Hamstrings. Pose: side view seated on leg curl machine with backrest, thighs under restraining pad, lower calves over movable roller, knees bent drawing heels beneath seat.",
+      "correction": "Correct this SEATED LEG CURL exercise illustration. Preserve square format, title, white background, grayscale athlete and blue hamstrings. Show a clear side view of the START position: athlete seated against backrest, thighs horizontal held down by lap restraint, knees nearly extended so lower legs point forward horizontally. The large movable resistance roller MUST be UNDER the lower calves just above the heels, not on top of shins. Feet are beyond roller. Machine knee pivot aligned to knees. This is a hamstring curl, not leg extension. Correct contact of pads and equipment. Keep style and no additional text."
+    },
+    {
+      "id": "ex-barbell-hip-thrust",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-c5891061-7581-4998-8bb8-cc90f699afd1.png",
+      "destination": "public/work-out/additions/barbell-hip-thrust.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'BARBELL HIP THRUST'. Target muscles: Glutes. Pose: side view upper back on bench, padded bar across hips, hips lifted, knees bent and feet flat, torso horizontal."
+    },
+    {
+      "id": "ex-stiff-leg-deadlift",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-f7b3ddbd-79c7-4723-b199-69f94bf78303.png",
+      "destination": "public/work-out/additions/stiff-leg-deadlift.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'STIFF-LEG DEADLIFT'. Target muscles: Hamstrings, Glutes. Pose: side view standing hip hinge with nearly straight but unlocked knees, barbell just below knees, back neutral."
+    },
+    {
+      "id": "ex-seated-barbell-calf-raise",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-fea5670c-e6dc-4135-91d8-cc465661221c.png",
+      "destination": "public/work-out/additions/seated-barbell-calf-raise.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'SEATED BARBELL CALF RAISE'. Target muscles: Calves. Pose: side three-quarter view seated on bench, padded barbell across thighs above knees, forefeet on low block, heels raised."
+    },
+    {
+      "id": "ex-box-jumps",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-78c2cbd0-3933-4b05-9458-db97b84275ae.png",
+      "destination": "public/work-out/additions/box-jumps.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'BOX JUMPS'. Target muscles: Quadriceps, Glutes, Calves. Pose: side three-quarter view athlete landing with both feet on top of low wide plyometric box, knees softly bent and arms forward."
+    },
+    {
+      "id": "ex-straight-arm-cable-pulldown",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-789cf245-3052-4249-adec-e4ffb49cf26d.png",
+      "destination": "public/work-out/additions/straight-arm-cable-pulldown.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'STRAIGHT-ARM CABLE PULLDOWN'. Target muscles: Latissimus Dorsi. Pose: side view standing slight hip hinge facing cable tower, straight arms pulling high-pulley bar down toward thighs."
+    },
+    {
+      "id": "ex-t-bar-row",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-156f7d9b-34ac-4e2b-8e3a-5abc30801f1a.png",
+      "destination": "public/work-out/additions/t-bar-row.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'T-BAR ROW'. Target muscles: Latissimus Dorsi, Upper Back. Pose: three-quarter rear side view straddling landmine bar, hinged torso neutral back, both hands on V handle pulling loaded end toward abdomen.",
+      "correction": "Correct the T-BAR ROW apparatus geometry. Keep the same title, white background, anatomical grayscale athlete and cyan-blue back muscles. Show a clear side three-quarter view of a conventional landmine T-bar row. The athlete straddles the bar and faces the loaded free end. The long shaft extends BACKWARD BETWEEN THE LEGS to an anchor on the floor BEHIND the athlete. Weight plates are at the free front end beyond the hands. Both hands pull a V grip immediately behind the plates toward the abdomen, elbows bent back, torso hinged and spine neutral. Do not put the anchor in front of the athlete or beyond the weights. Show both plates and rear floor pivot within frame. One continuous bar."
+    },
+    {
+      "id": "ex-bent-over-dumbbell-row",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-fef4bcc1-c684-4aef-bccb-eb75940692ff.png",
+      "destination": "public/work-out/additions/bent-over-dumbbell-row.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'BENT-OVER DUMBBELL ROW'. Target muscles: Latissimus Dorsi, Upper Back. Pose: rear side three-quarter view hip hinge torso nearly horizontal, both dumbbells drawn alongside lower ribs, elbows pointing behind."
+    },
+    {
+      "id": "ex-weighted-glute-bridge",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-e71c788f-66cb-428a-9727-93f6c045fd86.png",
+      "destination": "public/work-out/additions/weighted-glute-bridge.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'WEIGHTED GLUTE BRIDGE'. Target muscles: Glutes. Pose: side view lying supine on mat, shoulders on floor, knees bent feet flat, hips lifted with weight plate held across pelvis."
+    },
+    {
+      "id": "ex-cable-glute-kickback",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-439055ca-44d2-4355-82cf-31b91f0e31e5.png",
+      "destination": "public/work-out/additions/cable-glute-kickback.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'CABLE GLUTE KICKBACK'. Target muscles: Glutes. Pose: side view standing facing low cable tower, hands supporting upright, cuff on working ankle, working leg extended slightly behind with cable running to low pulley."
+    },
+    {
+      "id": "ex-weighted-donkey-kick",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-075d8176-fb48-4b74-9e6f-e8fa089c665f.png",
+      "destination": "public/work-out/additions/weighted-donkey-kick.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'WEIGHTED DONKEY KICK'. Target muscles: Glutes. Pose: side view on hands and one knee on mat, other knee bent ninety degrees and lifted behind, visible ankle weight, neutral spine."
+    },
+    {
+      "id": "ex-weighted-fire-hydrant",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-e2d168f9-40b7-4e1e-b3ee-d991d2983753.png",
+      "destination": "public/work-out/additions/weighted-fire-hydrant.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'WEIGHTED FIRE HYDRANT'. Target muscles: Gluteus Medius. Pose: rear three-quarter view quadruped on mat, one bent knee lifted laterally, ankle weight visible, level torso."
+    },
+    {
+      "id": "ex-running-sprinting",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-4d9e874f-a864-4b92-9271-570e7968c39a.png",
+      "destination": "public/work-out/additions/running-sprinting.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'RUNNING / SPRINTING'. Target muscles: Legs, Glutes. Pose: side view running stride outdoors implied only by subtle ground shadow, opposing bent arms and legs, no equipment."
+    },
+    {
+      "id": "ex-burpees",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-4431459a-4003-49bb-a90e-48530c10bfdf.png",
+      "destination": "public/work-out/additions/burpees.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'BURPEES'. Target muscles: Full Body. Pose: two clear side-view stages of same exercise: left crouch with palms on floor and feet near hands, right upright small jump with arms up; no connecting arrows."
+    },
+    {
+      "id": "ex-jumping-jacks",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-8f8cce43-f1dc-4a38-8ba1-777396b38124.png",
+      "destination": "public/work-out/additions/jumping-jacks.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'JUMPING JACKS'. Target muscles: Legs, Shoulders. Pose: front view feet apart and arms raised overhead at top of jumping jack."
+    },
+    {
+      "id": "ex-high-knees",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-60b39ab9-90ed-44af-ad34-625d227c353f.png",
+      "destination": "public/work-out/additions/high-knees.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'HIGH KNEES'. Target muscles: Hip Flexors, Legs. Pose: side three-quarter view running in place with one knee lifted toward waist and opposite bent arm forward."
+    },
+    {
+      "id": "ex-kettlebell-swing",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-68b2f2e2-99ac-4e09-a2fe-fa85cfb24090.png",
+      "destination": "public/work-out/additions/kettlebell-swing.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'KETTLEBELL SWING'. Target muscles: Glutes, Hamstrings. Pose: side three-quarter view at top of two-handed kettlebell swing, torso upright hips extended, arms straight bell at chest height, knees softly bent."
+    },
+    {
+      "id": "ex-neck-extension",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-fca17ffc-4931-49a0-bf4e-cf661822deb3.png",
+      "destination": "public/work-out/additions/neck-extension.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'NECK EXTENSION'. Target muscles: Neck Extensors. Pose: side view seated upright on bench, hands on thighs, head gently tipped upward a few degrees, no harness or external load."
+    },
+    {
+      "id": "ex-neck-lateral-flexion",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-c72d3ff8-7a08-4ded-9e52-5319155b3e05.png",
+      "destination": "public/work-out/additions/neck-lateral-flexion.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'NECK LATERAL FLEXION'. Target muscles: Lateral Neck Muscles. Pose: front view seated on bench hands on thighs, head gently tilted sideways, shoulders level, no harness or weights."
+    },
+    {
+      "id": "ex-barbell-shrug",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-08614cc7-bdd1-4820-99a0-a57ef4754175.png",
+      "destination": "public/work-out/additions/barbell-shrug.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'BARBELL SHRUG'. Target muscles: Upper Trapezius. Pose: front three-quarter view standing barbell held at thighs arms straight, shoulders elevated toward ears."
+    },
+    {
+      "id": "ex-dumbbell-shrug",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-c1182fcc-a878-468f-ae6a-255ad57b5d85.png",
+      "destination": "public/work-out/additions/dumbbell-shrug.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'DUMBBELL SHRUG'. Target muscles: Upper Trapezius. Pose: front three-quarter view standing two dumbbells at sides arms straight, shoulders elevated toward ears."
+    },
+    {
+      "id": "ex-barbell-wrist-curl",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-56df021c-bd16-40f4-8d56-352da90ddb24.png",
+      "destination": "public/work-out/additions/barbell-wrist-curl.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'BARBELL WRIST CURL'. Target muscles: Forearm Flexors. Pose: seated front three-quarter view forearms supported on thighs palms up, barbell across both hands just beyond knees, wrists curled upward."
+    },
+    {
+      "id": "ex-reverse-barbell-wrist-curl",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-2f99540d-b7e2-4289-af04-c095d2d8ef7c.png",
+      "destination": "public/work-out/additions/reverse-barbell-wrist-curl.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'REVERSE BARBELL WRIST CURL'. Target muscles: Forearm Extensors. Pose: seated front three-quarter view forearms supported on thighs palms down, barbell across hands just beyond knees, backs of hands lifting upward."
+    },
+    {
+      "id": "ex-behind-the-back-wrist-curl",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-3e2bfb30-6adb-4ae7-919d-cec8d69a8f91.png",
+      "destination": "public/work-out/additions/behind-the-back-wrist-curl.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'BEHIND-THE-BACK WRIST CURL'. Target muscles: Forearm Flexors. Pose: rear three-quarter view upright standing holding light barbell behind thighs, straight arms, wrists curling upward."
+    },
+    {
+      "id": "ex-plate-pinch-hold",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-a90d33ae-8d98-4a3d-a582-726582445aa3.png",
+      "destination": "public/work-out/additions/plate-pinch-hold.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'PLATE PINCH HOLD'. Target muscles: Grip, Forearms. Pose: front three-quarter view standing pinching rim of a small smooth weight plate in each hand at sides with thumbs opposed to fingers, no handles."
+    },
+    {
+      "id": "ex-hand-gripper",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-095dd064-8d42-45ae-a490-6fd9049b9049.png",
+      "destination": "public/work-out/additions/hand-gripper.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'HAND GRIPPER'. Target muscles: Grip, Forearms. Pose: close-up anatomical forearm and hand squeezing a standard metal spring hand gripper, fingers wrapped securely, cyan forearm flexor muscles."
+    },
+    {
+      "id": "ex-farmers-walk",
+      "path": "/Users/tso/.codex/generated_images/01a124a5-0421-7df3-81c2-f20bc4e6f9f4/exec-d668bd30-5f17-43e5-a7e5-0037031e8f8d.png",
+      "destination": "public/work-out/additions/farmers-walk.webp",
+      "prompt": "Use case: scientific-educational. Asset: one square gym exercise library illustration. White background, polished grayscale anatomical adult mannequin wearing dark charcoal training shorts, cyan-blue highlight only on target muscles. Clean fitness textbook 3D anatomy style. Full subject and all equipment inside frame with generous whitespace and subtle ground shadow. Light pale-blue header strip across top with exact navy uppercase exercise title. No other text, no logo, no watermark, no border, no arrows. Anatomically correct joints, limbs and equipment. Title: 'FARMER'S WALK'. Target muscles: Grip, Upper Back, Core. Pose: full-body three-quarter view walking carrying two heavy dumbbells by sides arms straight, upright torso, one foot stepping forward."
+    }
+  ]
+}
