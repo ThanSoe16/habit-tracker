@@ -10,6 +10,7 @@ import { create } from 'zustand';
 import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/date-utils';
 import habitsApiService from '@/features/habits/services/api';
 import { habitsService } from '@/features/habits/services/supabase';
+import { createHabitCompletion } from '@/features/habits/utils/completion';
 import type {
   Habit,
   HabitFrequency,
@@ -83,6 +84,7 @@ interface HabitStore {
     },
   ) => Promise<Habit>;
   reorderHabits: (habits: Habit[]) => void;
+  completeHabit: (id: string, date: string, notes: string) => Promise<void>;
   toggleHabit: (
     id: string,
     date: string,
@@ -308,6 +310,36 @@ export const useHabitStore = create<HabitStore>()((set, get) => ({
     }));
     set({ habits: reorderedHabits });
     reorderedHabits.forEach((habit) => habitsService.upsertHabit(habit));
+  },
+
+  completeHabit: async (id, date, notes) => {
+    const accountRevision = identityRevision();
+    const currentHabit = get().habits.find((habit) => habit.id === id);
+    if (!currentHabit) throw new Error('This habit is unavailable. Please refresh.');
+    const history = {
+      ...currentHabit.history,
+      [date]: createHabitCompletion(currentHabit, date, notes),
+    };
+    pendingWrites++;
+    writeRevision++;
+    try {
+      const saved = await habitsApiService.saveHabit({
+        ...currentHabit,
+        history,
+        streak: calculateStreak(currentHabit, history),
+      });
+      assertIdentityRevision(accountRevision);
+      // Confirm the save before changing filters or dismissing the completion sheet.
+      set((state) => ({
+        habits: state.habits.map((habit) => {
+          if (habit.id !== id || habit.history[date] !== currentHabit.history[date]) return habit;
+          const nextHistory = { ...habit.history, [date]: saved.history[date] };
+          return { ...habit, history: nextHistory, streak: calculateStreak(habit, nextHistory) };
+        }),
+      }));
+    } finally {
+      if (identityRevision() === accountRevision) pendingWrites--;
+    }
   },
 
   toggleHabit: (id, date, details) => {

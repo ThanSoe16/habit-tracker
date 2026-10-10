@@ -1,5 +1,9 @@
 import { reportSettingsSync } from '@/features/settings/sync-status';
-import { onIdentityChange } from '@/lib/supabase/identity-scope';
+import {
+  assertIdentityRevision,
+  identityRevision,
+  onIdentityChange,
+} from '@/lib/supabase/identity-scope';
 import { goalsService } from '../services/supabase';
 import type { Goal, GoalSettings } from '../types';
 
@@ -16,6 +20,7 @@ export function isGoalsSyncActive() {
 }
 
 export async function syncGoalsDelta(current: GoalsSnapshot, previous: GoalsSnapshot) {
+  const revision = identityRevision();
   const previousById = new Map(previous.goals.map((goal) => [goal.id, goal]));
   const currentIds = new Set(current.goals.map((goal) => goal.id));
 
@@ -23,13 +28,18 @@ export async function syncGoalsDelta(current: GoalsSnapshot, previous: GoalsSnap
     const old = previousById.get(goal.id);
     if (!old || JSON.stringify(old) !== JSON.stringify(goal)) {
       await goalsService.saveGoal(goal);
+      assertIdentityRevision(revision);
     }
   }
   for (const goal of previous.goals) {
-    if (!currentIds.has(goal.id)) await goalsService.deleteGoal(goal.id);
+    if (!currentIds.has(goal.id)) {
+      await goalsService.deleteGoal(goal.id);
+      assertIdentityRevision(revision);
+    }
   }
   if (current.settings.showCompletedOnHome !== previous.settings.showCompletedOnHome) {
     await goalsService.saveSettings(current.settings);
+    assertIdentityRevision(revision);
   }
 }
 

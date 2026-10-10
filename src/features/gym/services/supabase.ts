@@ -106,17 +106,21 @@ export const gymService = {
     return resolveMediaTree(supabase, result);
   },
 
-  async upsertWorkoutLog(dateKey: string, log: WorkoutLog): Promise<void> {
+  async upsertWorkoutLog(dateKey: string, log: WorkoutLog): Promise<WorkoutLog> {
     const { supabase } = await accountService.getClient();
     const payload = {
       date_key: dateKey,
       workout_data: log,
       updated_at: new Date().toISOString(),
     };
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('workout_logs')
-      .upsert(durableMediaTree(supabase, payload), { onConflict: 'user_id,date_key' });
-    if (error) console.warn('Error upserting workout log to Supabase:', error.message);
+      .upsert(durableMediaTree(supabase, payload), { onConflict: 'user_id,date_key' })
+      .select('workout_data')
+      .single();
+    if (error || !data)
+      throw new DataRequestError('Could not save workout. Please try again.', error);
+    return resolveMediaTree(supabase, data.workout_data);
   },
 
   async deleteWorkoutLog(dateKey: string): Promise<void> {

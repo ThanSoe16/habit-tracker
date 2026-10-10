@@ -51,6 +51,7 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   fetchFromSupabase: async () => {
     const accountRevision = identityRevision();
     const settingsRevision = gymSettingsQueue.revision;
+    const historyAtFetch = get().history;
     try {
       const remotePlans = await gymService.fetchGymPlans();
       assertIdentityRevision(accountRevision);
@@ -70,11 +71,23 @@ export const useGymStore = create<GymStore>()((set, get) => ({
         }
       }
 
+      // Preserve session changes made while this snapshot was loading.
+      const history = { ...remoteHistory };
+      const currentHistory = get().history;
+      for (const date of new Set([
+        ...Object.keys(historyAtFetch),
+        ...Object.keys(currentHistory),
+      ])) {
+        if (currentHistory[date] !== historyAtFetch[date]) {
+          if (currentHistory[date]) history[date] = currentHistory[date];
+          else delete history[date];
+        }
+      }
       applyRemoteGymState(() => {
         set({
           weeklyPlan: remotePlans.length > 0 ? remotePlans : DEFAULT_INITIAL_PLAN,
           customExercises: remoteCustomEx,
-          history: remoteHistory,
+          history,
           gymSettings: {
             ...DEFAULT_GYM_SETTINGS,
             ...(gymSettingsQueue.hasPending || settingsRevision !== gymSettingsQueue.revision
@@ -533,14 +546,27 @@ export const useGymStore = create<GymStore>()((set, get) => ({
     return initialLog;
   },
 
-  updateCompletedSet: (dateStr, planExerciseId, deltaSets) => {
-    if (!get().history[dateStr]) {
-      get().initializeWorkoutLogForDate(dateStr);
-    }
+  startWorkout: async (dateStr) => {
+    const revision = identityRevision();
+    const existing = get().history[dateStr];
+    if (existing?.startedAt || existing?.completed) return;
+    const log = get().getWorkoutLogForDate(dateStr);
+    if (!log?.exercises.length) return;
+    const saved = await saveWorkoutLog(dateStr, {
+      ...log,
+      id: existing?.id ?? crypto.randomUUID(),
+      startedAt: new Date().toISOString(),
+    });
+    assertIdentityRevision(revision);
+    applyRemoteGymState(() =>
+      set((state) => ({ history: { ...state.history, [dateStr]: saved } })),
+    );
+  },
 
+  updateCompletedSet: (dateStr, planExerciseId, deltaSets) => {
     set((state) => {
       const log = state.history[dateStr];
-      if (!log) return state;
+      if (!log?.startedAt || log.completed) return state;
 
       const updatedExercises = log.exercises.map((ex) => {
         if (ex.id !== planExerciseId) return ex;
@@ -553,20 +579,12 @@ export const useGymStore = create<GymStore>()((set, get) => ({
         };
       });
 
-      const allCompleted =
-        updatedExercises.length > 0 && updatedExercises.every((e) => e.completed);
-
       return {
         history: {
           ...state.history,
           [dateStr]: {
             ...log,
             exercises: updatedExercises,
-            completed: allCompleted && (state.gymSettings.autoFinishWorkout || log.completed),
-            completedAt:
-              allCompleted && (state.gymSettings.autoFinishWorkout || log.completed)
-                ? log.completedAt || new Date().toISOString()
-                : undefined,
           },
         },
       };
@@ -574,13 +592,9 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   },
 
   toggleExerciseDone: (dateStr, planExerciseId) => {
-    if (!get().history[dateStr]) {
-      get().initializeWorkoutLogForDate(dateStr);
-    }
-
     set((state) => {
       const log = state.history[dateStr];
-      if (!log) return state;
+      if (!log?.startedAt || log.completed) return state;
 
       const updatedExercises = log.exercises.map((ex) => {
         if (ex.id !== planExerciseId) return ex;
@@ -592,52 +606,32 @@ export const useGymStore = create<GymStore>()((set, get) => ({
         };
       });
 
-      const allCompleted =
-        updatedExercises.length > 0 && updatedExercises.every((e) => e.completed);
-
       return {
         history: {
           ...state.history,
           [dateStr]: {
             ...log,
             exercises: updatedExercises,
-            completed: allCompleted && (state.gymSettings.autoFinishWorkout || log.completed),
-            completedAt:
-              allCompleted && (state.gymSettings.autoFinishWorkout || log.completed)
-                ? log.completedAt || new Date().toISOString()
-                : undefined,
           },
         },
       };
     });
   },
 
-  finishWorkout: (dateStr, notes) => {
-    if (!get().history[dateStr]) {
-      get().initializeWorkoutLogForDate(dateStr);
-    }
-
-    set((state) => {
-      const log = state.history[dateStr];
-      if (!log) return state;
-
-      return {
-        history: {
-          ...state.history,
-          [dateStr]: {
-            ...log,
-            completed: true,
-            notes: notes !== undefined ? notes : log.notes,
-            completedAt: new Date().toISOString(),
-            exercises: log.exercises.map((ex) => ({
-              ...ex,
-              completed: true,
-              completedSets: ex.completedSets > 0 ? ex.completedSets : ex.targetSets,
-            })),
-          },
-        },
-      };
+  finishWorkout: async (dateStr, notes) => {
+    const revision = identityRevision();
+    const log = get().history[dateStr];
+    if (!log || (!log.startedAt && !log.completed)) return;
+    const saved = await saveWorkoutLog(dateStr, {
+      ...log,
+      completed: true,
+      notes: notes !== undefined ? notes : log.notes,
+      completedAt: log.completedAt ?? new Date().toISOString(),
     });
+    assertIdentityRevision(revision);
+    applyRemoteGymState(() =>
+      set((state) => ({ history: { ...state.history, [dateStr]: saved } })),
+    );
   },
 
   deleteWorkoutLog: (dateStr) => {
@@ -673,7 +667,9 @@ useGymStore.subscribe((state, previousState) => {
         !previousLog ||
         (log !== previousLog && JSON.stringify(log) !== JSON.stringify(previousLog))
       ) {
-        saveWorkoutLog(dateKey, log);
+        void saveWorkoutLog(dateKey, log).catch(() => {
+          console.warn('Could not sync workout progress.');
+        });
       }
     });
   }

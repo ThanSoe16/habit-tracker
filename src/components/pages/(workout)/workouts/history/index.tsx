@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { WorkoutSessionTimes } from '../_components/workout-session-times';
 import { Calendar, Trophy, Check, Trash2, Dumbbell, ChevronRight } from 'lucide-react';
 import { useGymStore, WorkoutLog } from '@/store/use-gym-store';
 
@@ -125,6 +126,8 @@ export function GymHistory() {
                 ✕
               </button>
             </div>
+
+            <WorkoutSessionTimes log={selectedLog} />
 
             {selectedLog.notes && (
               <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 text-xs text-amber-800 dark:text-amber-300">

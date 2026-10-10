@@ -1,12 +1,13 @@
 'use client';
 
-import Image from 'next/image';
-import { useState, useEffect, useCallback } from 'react';
-import { Check, Plus, Minus, Trophy, Calendar, Dumbbell, HelpCircle } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { useState, useRef, useCallback } from 'react';
+import { Play, Trophy, Calendar, Dumbbell } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
+import { Button } from '@/components/ui/button';
+import { WorkoutExercises } from './workout-exercises';
+import { WorkoutSessionTimes } from './workout-session-times';
 import { useGymStore } from '@/store/use-gym-store';
 import { getLocalDateString } from '@/utils/date-utils';
-import { getExerciseImage } from '@/utils/workout-images';
 import { ExerciseGuideModal } from './exercise-guide-modal';
 import { RestTimerCountdownModal } from './rest-timer-countdown-modal';
 import { toast } from 'sonner';
@@ -16,17 +17,41 @@ interface DailyWorkoutViewProps {
   onGoToPlanEditor?: () => void;
 }
 
-export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyWorkoutViewProps) {
+export function DailyWorkoutView({ date = new Date(), ...props }: DailyWorkoutViewProps) {
   const dateStr = getLocalDateString(date);
+  return <WorkoutSession key={dateStr} dateStr={dateStr} {...props} />;
+}
+
+function WorkoutSession({
+  dateStr,
+  onGoToPlanEditor,
+}: {
+  dateStr: string;
+  onGoToPlanEditor?: () => void;
+}) {
   const {
     getWorkoutLogForDate,
+    startWorkout,
     updateCompletedSet,
     toggleExerciseDone,
     finishWorkout,
     gymSettings,
-  } = useGymStore();
-
-  const [notes, setNotes] = useState('');
+  } = useGymStore(
+    useShallow((state) => ({
+      getWorkoutLogForDate: state.getWorkoutLogForDate,
+      startWorkout: state.startWorkout,
+      updateCompletedSet: state.updateCompletedSet,
+      toggleExerciseDone: state.toggleExerciseDone,
+      finishWorkout: state.finishWorkout,
+      gymSettings: state.gymSettings,
+      history: state.history[dateStr],
+      weeklyPlan: state.weeklyPlan,
+    })),
+  );
+  const [notesDraft, setNotesDraft] = useState<string>();
+  const [pending, setPending] = useState(false);
+  const saving = useRef(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [selectedGuideName, setSelectedGuideName] = useState<string | null>(null);
   const [activeRestTimerExercise, setActiveRestTimerExercise] = useState<{
@@ -37,16 +62,34 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
   // Purely fetch current log for date without setState in render
   const log = getWorkoutLogForDate(dateStr);
 
-  useEffect(() => {
-    if (log && log.notes) {
-      setNotes(log.notes);
+  const notes = notesDraft ?? log?.notes ?? '';
+  const canEdit = !!log?.startedAt && !log.completed && !pending;
+
+  const saveSession = async (action: 'start' | 'finish') => {
+    if (saving.current) return;
+    saving.current = true;
+    setPending(true);
+    setSaveError(null);
+    try {
+      if (action === 'start') {
+        await startWorkout(dateStr);
+      } else {
+        await finishWorkout(dateStr, notes);
+        if (!log?.completed) setShowCelebration(true);
+        else toast.success('Workout notes saved.');
+      }
+    } catch {
+      setSaveError('Could not save your workout. Please try again.');
+    } finally {
+      saving.current = false;
+      setPending(false);
     }
-  }, [log]);
+  };
 
   const handleRestComplete = useCallback(() => {
-    if (!activeRestTimerExercise) return;
+    if (!activeRestTimerExercise || !canEdit) return;
     updateCompletedSet(dateStr, activeRestTimerExercise.id, 1);
-  }, [activeRestTimerExercise, dateStr, updateCompletedSet]);
+  }, [activeRestTimerExercise, canEdit, dateStr, updateCompletedSet]);
 
   if (!log || log.exercises.length === 0) {
     return (
@@ -78,11 +121,6 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
   const totalSetsCompleted = log.exercises.reduce((acc, ex) => acc + ex.completedSets, 0);
   const progressPercent =
     totalSetsTarget > 0 ? Math.round((totalSetsCompleted / totalSetsTarget) * 100) : 0;
-
-  const handleFinish = () => {
-    finishWorkout(dateStr, notes);
-    setShowCelebration(true);
-  };
 
   const handleCelebrationContinue = () => {
     setShowCelebration(false);
@@ -131,6 +169,28 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
         )}
       </div>
 
+      <WorkoutSessionTimes log={log} />
+      {!log.startedAt && !log.completed && (
+        <div className="space-y-2">
+          <Button
+            type="button"
+            disabled={pending}
+            onClick={() => void saveSession('start')}
+            className="h-12 w-full rounded-2xl font-bold"
+          >
+            <Play className="size-4" /> {pending ? 'Starting…' : 'Start workout'}
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            Start your workout to unlock the exercises.
+          </p>
+        </div>
+      )}
+      {saveError && (
+        <p role="alert" className="text-sm text-destructive">
+          {saveError}
+        </p>
+      )}
+
       {/* Exercises Checklist */}
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-4 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-3">
         <div className="flex items-center justify-between px-1">
@@ -141,141 +201,54 @@ export function DailyWorkoutView({ date = new Date(), onGoToPlanEditor }: DailyW
           <span className="text-[10px] font-bold text-blue-500">Tap ℹ️ for How-To Guide</span>
         </div>
 
-        <div className="space-y-3">
-          {log.exercises.map((ex) => (
-            <div
-              key={ex.id}
-              className={cn(
-                'p-4 rounded-2xl border transition-all space-y-3',
-                ex.completed
-                  ? 'bg-green-50/60 dark:bg-green-950/20 border-green-200 dark:border-green-900/40'
-                  : 'bg-gray-50 dark:bg-zinc-800/40 border-gray-100 dark:border-zinc-800',
-              )}
-            >
-              {/* TOP ROW: Checkbox + Thumbnail + Title & Category Badges */}
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => toggleExerciseDone(dateStr, ex.id)}
-                  className={cn(
-                    'w-6 h-6 rounded-lg flex items-center justify-center transition-all border-2 shrink-0',
-                    ex.completed
-                      ? 'bg-green-600 border-green-600 text-white'
-                      : 'border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-transparent',
-                  )}
-                >
-                  <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                </button>
-
-                {/* Exercise Image Thumbnail */}
-                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-zinc-900 overflow-hidden shrink-0 border border-gray-200 dark:border-zinc-700 relative flex items-center justify-center shadow-xs p-0.5">
-                  {getExerciseImage(ex.name) ? (
-                    <Image
-                      src={getExerciseImage(ex.name)!}
-                      alt={ex.name}
-                      fill
-                      className="object-contain"
-                    />
-                  ) : (
-                    <Dumbbell className="w-5 h-5 text-blue-500" />
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedGuideName(ex.name)}
-                      className="text-left group inline-flex items-center gap-1 flex-wrap"
-                    >
-                      <span
-                        className={cn(
-                          'font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors leading-tight',
-                          ex.completed && 'line-through text-gray-400 dark:text-gray-500',
-                        )}
-                      >
-                        {ex.name}
-                      </span>
-                      <HelpCircle className="w-3.5 h-3.5 text-blue-500/80 group-hover:text-blue-600 shrink-0 transition-colors inline-block" />
-                    </button>
-
-                    {gymSettings?.showCategoryBadges && ex.category && (
-                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40 shrink-0">
-                        {ex.category}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* BOTTOM ROW (NEXT LINE ACTIONS): Target Info + Set Counter Actions */}
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-zinc-800/80">
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold">
-                  Target: {ex.targetSets} sets × {ex.targetReps} reps
-                  {ex.weight
-                    ? ` • ${ex.weight}${!ex.weight.includes('kg') && !ex.weight.includes('lbs') ? gymSettings?.weightUnit || 'kg' : ''}`
-                    : ''}
-                </span>
-
-                {/* Set counter buttons */}
-                <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 px-2 py-1 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => updateCompletedSet(dateStr, ex.id, -1)}
-                    disabled={ex.completedSets <= 0}
-                    className="w-7 h-7 rounded-xl bg-gray-100 dark:bg-zinc-700 flex items-center justify-center disabled:opacity-30 text-gray-700 dark:text-gray-200 font-bold text-sm hover:bg-gray-200 transition-colors"
-                  >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="text-xs font-black px-1 min-w-[24px] text-center text-gray-900 dark:text-white tabular-nums">
-                    {ex.completedSets}/{ex.targetSets}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (gymSettings?.restTimerSeconds) {
-                        setActiveRestTimerExercise({ id: ex.id, name: ex.name });
-                      } else {
-                        updateCompletedSet(dateStr, ex.id, 1);
-                      }
-                    }}
-                    className="w-7 h-7 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center font-bold text-sm shadow-xs transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <fieldset disabled={!canEdit} className="min-w-0 disabled:opacity-50">
+          <legend className="sr-only">Workout exercises</legend>
+          <WorkoutExercises
+            exercises={log.exercises}
+            gymSettings={gymSettings}
+            onToggle={(id) => toggleExerciseDone(dateStr, id)}
+            onGuide={setSelectedGuideName}
+            onRemoveSet={(id) => updateCompletedSet(dateStr, id, -1)}
+            onAddSet={(exercise) => {
+              if (gymSettings.restTimerSeconds) {
+                setActiveRestTimerExercise({ id: exercise.id, name: exercise.name });
+              } else {
+                updateCompletedSet(dateStr, exercise.id, 1);
+              }
+            }}
+          />
+        </fieldset>
 
         {/* Workout Notes */}
         <div className="pt-2">
-          <label className="block text-xs font-semibold text-gray-400 mb-1 px-1">
+          <label
+            htmlFor="workout-notes"
+            className="block text-xs font-semibold text-gray-400 mb-1 px-1"
+          >
             Workout Notes / Feelings (Optional)
           </label>
           <textarea
+            id="workout-notes"
+            disabled={pending || (!log.startedAt && !log.completed)}
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={(e) => setNotesDraft(e.target.value)}
             placeholder="e.g. Felt great on bench press, increased weight by 5kg!"
             rows={2}
             className="w-full px-3 py-2 text-xs rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
 
-        {/* Action Button */}
-        <button
-          onClick={handleFinish}
-          className={cn(
-            'w-full py-3.5 rounded-2xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2',
-            log.completed
-              ? 'bg-emerald-600 text-white shadow-emerald-500/20 hover:bg-emerald-700'
-              : 'bg-blue-600 text-white shadow-blue-500/20 hover:bg-blue-700',
-          )}
-        >
-          <Trophy className="w-4 h-4" />
-          {log.completed ? 'Workout Completed (Update Notes)' : 'Finish Workout'}
-        </button>
+        {(log.startedAt || log.completed) && (
+          <Button
+            type="button"
+            onClick={() => void saveSession('finish')}
+            disabled={pending || !!activeRestTimerExercise}
+            className="h-12 w-full rounded-2xl font-bold"
+          >
+            <Trophy className="size-4" />
+            {pending ? 'Saving…' : log.completed ? 'Update notes' : 'Complete workout'}
+          </Button>
+        )}
       </div>
 
       {/* Exercise Guide Modal */}

@@ -105,6 +105,40 @@ test('captured clients do not send requests with a replacement account token', a
   assert.equal(fetch.mock.callCount(), 0);
 });
 
+test('a pending completion cannot populate a different account after saving', async (t) => {
+  const { useHabitStore } = await import('../src/store/use-habit-store.ts');
+  const { default: habitsApi } = await import('../src/features/habits/services/api.ts');
+  const original = useHabitStore.getState();
+  t.after(() => useHabitStore.setState(original, true));
+  setIdentityScope('completion-a');
+  const habit = {
+    id: 'completion-habit',
+    name: 'Read',
+    color: 'primary',
+    frequency: 'daily',
+    repeatDays: [],
+    history: {},
+    streak: 0,
+    createdAt: '2026-10-10T00:00:00Z',
+  };
+  useHabitStore.setState({ habits: [habit] });
+  let finish;
+  t.mock.method(
+    habitsApi,
+    'saveHabit',
+    (saved) =>
+      new Promise((resolve) => {
+        finish = () => resolve(saved);
+      }),
+  );
+  const saving = useHabitStore.getState().completeHabit(habit.id, '2026-10-10', 'Private remarks');
+  setIdentityScope('completion-b');
+  useHabitStore.setState({ habits: [] });
+  finish();
+  await assert.rejects(saving, /session changed/);
+  assert.deepEqual(useHabitStore.getState().habits, []);
+});
+
 test('an old pending habit write does not prevent the next account from loading', async (t) => {
   const { useHabitStore } = await import('../src/store/use-habit-store.ts');
   const { default: habitsApi } = await import('../src/features/habits/services/api.ts');

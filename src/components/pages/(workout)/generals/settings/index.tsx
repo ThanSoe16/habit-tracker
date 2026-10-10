@@ -46,12 +46,6 @@ export default function GymSettingsPage() {
               Rest timer · {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
             </Button>
             <SettingsSwitch
-              label="Auto-finish workout"
-              description="Mark the workout complete after the final set is checked."
-              checked={settings.autoFinishWorkout}
-              onCheckedChange={(autoFinishWorkout) => update({ autoFinishWorkout })}
-            />
-            <SettingsSwitch
               label="Category badges"
               description="Show muscle-group labels on workout exercises."
               checked={settings.showCategoryBadges}

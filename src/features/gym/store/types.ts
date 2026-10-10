@@ -62,8 +62,9 @@ export interface GymStore {
   // Logging & Completion
   getWorkoutLogForDate: (dateStr: string) => WorkoutLog | null;
   initializeWorkoutLogForDate: (dateStr: string, dayIndex?: number) => WorkoutLog;
+  startWorkout: (dateStr: string) => Promise<void>;
   updateCompletedSet: (dateStr: string, planExerciseId: string, deltaSets: number) => void;
   toggleExerciseDone: (dateStr: string, planExerciseId: string) => void;
-  finishWorkout: (dateStr: string, notes?: string) => void;
+  finishWorkout: (dateStr: string, notes?: string) => Promise<void>;
   deleteWorkoutLog: (dateStr: string) => void;
 }

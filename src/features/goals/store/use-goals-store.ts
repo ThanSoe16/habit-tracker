@@ -1,15 +1,20 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
+import { z } from 'zod';
+import { isNativeApp } from '@/lib/native/runtime';
+import { nativeStorage } from '@/lib/native/sqlite-storage';
+import { useNativeStatus } from '@/lib/native/status';
 import { reportSettingsSync } from '@/features/settings/sync-status';
 import {
   assertIdentityRevision,
   identityRevision,
   isPartitioningStores,
 } from '@/lib/supabase/identity-scope';
-import { goalsService } from '../services/supabase';
-import { createGoalsSyncScheduler, isGoalsSyncActive } from './goals-sync';
+import { goalSchema, goalsService } from '../services/supabase';
+import { goalSettingsSchema } from '../types';
+import { createGoalsSyncScheduler, isGoalsSyncActive, type GoalsSnapshot } from './goals-sync';
 import type {
   CreateGoalValues,
   EditGoalValues,
@@ -27,6 +32,8 @@ type GoalsState = {
   goals: Goal[];
   settings: GoalSettings;
   ready: boolean;
+  cloudSnapshot: GoalsSnapshot | null;
+  lastSyncedAt: string | null;
 };
 
 type GoalsActions = {
@@ -45,8 +52,20 @@ type GoalsActions = {
 };
 
 function createInitialState(): GoalsState {
-  return { goals: [], settings: DEFAULT_GOAL_SETTINGS, ready: false };
+  return {
+    goals: [],
+    settings: DEFAULT_GOAL_SETTINGS,
+    ready: false,
+    cloudSnapshot: null,
+    lastSyncedAt: null,
+  };
 }
+
+const snapshotSchema = z.object({ goals: z.array(goalSchema), settings: goalSettingsSchema });
+const persistedGoalsSchema = snapshotSchema.extend({
+  cloudSnapshot: snapshotSchema.nullable().default(null),
+  lastSyncedAt: z.string().nullable().default(null),
+});
 
 function splitLines(value: string) {
   return value
@@ -94,6 +113,7 @@ export const useGoalsStore = create<GoalsState & GoalsActions>()(
     (set, get) => ({
       ...createInitialState(),
       fetchFromSupabase: async () => {
+        if (isNativeApp) return;
         const accountRevision = identityRevision();
         if (goalsSyncScheduler.hasPending) return;
         if (fetchingGoalsRevision === accountRevision) return;
@@ -324,23 +344,44 @@ export const useGoalsStore = create<GoalsState & GoalsActions>()(
     }),
     {
       name: 'goals-store',
+      storage: createJSONStorage(
+        (): StateStorage => (isNativeApp ? nativeStorage.storage : localStorage),
+      ),
       skipHydration: true,
-      version: 3,
+      onRehydrateStorage: () => {
+        if (!isNativeApp) return;
+        useNativeStatus.setState({ hydrationError: false });
+        return (_state, error) => {
+          if (error) useNativeStatus.setState({ hydrationError: true });
+        };
+      },
+      version: 4,
       migrate: (persisted) => {
         if (!persisted || typeof persisted !== 'object') return createInitialState();
         const state = persisted as Partial<GoalsState>;
         return {
+          ...createInitialState(),
           goals: Array.isArray(state.goals) ? state.goals.map((goal) => normalizeGoal(goal)) : [],
           settings: { ...DEFAULT_GOAL_SETTINGS, ...(state.settings ?? {}) },
           ready: false,
         };
       },
-      partialize: (state) => ({ goals: state.goals, settings: state.settings }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted === undefined ? {} : persistedGoalsSchema.parse(persisted)),
+      }),
+      partialize: (state) => ({
+        goals: state.goals,
+        settings: state.settings,
+        cloudSnapshot: state.cloudSnapshot,
+        lastSyncedAt: state.lastSyncedAt,
+      }),
     },
   ),
 );
 
 useGoalsStore.subscribe((state, previousState) => {
+  if (isNativeApp) return;
   if (isApplyingRemoteGoalsState || isPartitioningStores() || !isGoalsSyncActive()) return;
   goalsSyncScheduler.schedule(
     { goals: state.goals, settings: state.settings },

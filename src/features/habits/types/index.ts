@@ -24,6 +24,12 @@ const habitCompletionSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const habitCompletionRemarksSchema = z.object({
+  notes: z.string().trim(),
+});
+
+export type HabitCompletionRemarks = z.infer<typeof habitCompletionRemarksSchema>;
+
 export const habitRecordSchema = z.object({
   id: z.string().trim().min(1),
   name: z.string().trim().min(1),

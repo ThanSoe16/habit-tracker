@@ -288,6 +288,124 @@ test('habit optimistic CRUD rolls back rejected saves and retains failed deletio
   assert.deepEqual(useHabitStore.getState().habits, [habit]);
 });
 
+test('habit completion saves remarks and elapsed progress in Supabase history before updating the card', async (t) => {
+  const { useHabitStore } = await import('../src/store/use-habit-store.ts');
+  const original = useHabitStore.getState();
+  t.after(() => useHabitStore.setState(original, true));
+  const date = '2026-10-10';
+  const habit = {
+    id: 'completion-habit',
+    name: 'Meditation',
+    color: 'primary',
+    frequency: 'daily',
+    repeatDays: [0, 1, 2, 3, 4, 5, 6],
+    unitType: 'duration',
+    timerMode: 'down',
+    goalValue: 5,
+    history: {
+      [date]: { completed: false, timeTaken: '02:00', notes: 'Draft' },
+      '2026-10-09': { completed: true, notes: 'Yesterday' },
+    },
+    streak: 0,
+    createdAt: '2026-10-01T00:00:00Z',
+  };
+  useHabitStore.setState({ habits: [habit] });
+  let finish;
+  const pending = new Promise((resolve) => {
+    finish = resolve;
+  });
+  const calls = mockRequests(t, async (call) => {
+    await pending;
+    return { data: call.payload, error: null };
+  });
+  const save = useHabitStore
+    .getState()
+    .completeHabit(habit.id, date, '  Felt focused\nKept going  ');
+  assert.equal(useHabitStore.getState().habits[0], habit);
+  finish();
+  await save;
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].table, 'habits');
+  assert.equal(calls[0].operation, 'upsert');
+  assert.deepEqual(calls[0].payload.history[date], {
+    completed: true,
+    timeTaken: '02:00',
+    notes: 'Felt focused\nKept going',
+  });
+  assert.deepEqual(useHabitStore.getState().habits[0].history, calls[0].payload.history);
+  assert.deepEqual(calls[0].payload.history['2026-10-09'], habit.history['2026-10-09']);
+});
+
+test('failed completion preserves history and can retry the same remarks', async (t) => {
+  const { useHabitStore } = await import('../src/store/use-habit-store.ts');
+  const original = useHabitStore.getState();
+  t.after(() => useHabitStore.setState(original, true));
+  const habit = {
+    id: 'completion-habit',
+    name: 'Read',
+    color: 'primary',
+    frequency: 'daily',
+    repeatDays: [],
+    unitType: 'count',
+    goalValue: 1,
+    history: {},
+    streak: 0,
+    createdAt: '2026-10-10T00:00:00Z',
+  };
+  useHabitStore.setState({ habits: [habit] });
+  let fails = true;
+  mockRequests(t, (call) =>
+    fails
+      ? { data: null, error: { message: 'Internal failure' } }
+      : { data: call.payload, error: null },
+  );
+  await assert.rejects(
+    useHabitStore.getState().completeHabit(habit.id, '2026-10-10', 'Read chapter 1'),
+  );
+  assert.equal(useHabitStore.getState().habits[0], habit);
+  fails = false;
+  await useHabitStore.getState().completeHabit(habit.id, '2026-10-10', 'Read chapter 1');
+  assert.deepEqual(useHabitStore.getState().habits[0].history['2026-10-10'], {
+    completed: true,
+    count: '1',
+    notes: 'Read chapter 1',
+  });
+});
+
+test('completion supports simple habits, counts, and timed goals without replacing recorded progress', async () => {
+  const { createHabitCompletion } = await import('../src/features/habits/utils/completion.ts');
+  const habit = { history: {} };
+  assert.deepEqual(createHabitCompletion(habit, '2026-10-10', ''), { completed: true, notes: '' });
+  assert.equal(
+    createHabitCompletion(
+      { ...habit, unitType: 'time', timeUnit: 'hr', goalValue: 1 },
+      '2026-10-10',
+      'Done',
+    ).timeTaken,
+    '01:00:00',
+  );
+  assert.equal(
+    createHabitCompletion(
+      { ...habit, unitType: 'duration', timeUnit: 'sec', goalValue: 30 },
+      '2026-10-10',
+      'Done',
+    ).timeTaken,
+    '00:30',
+  );
+  assert.equal(
+    createHabitCompletion(
+      {
+        unitType: 'count',
+        goalValue: 2,
+        history: { '2026-10-10': { completed: false, count: '3' } },
+      },
+      '2026-10-10',
+      'Done',
+    ).count,
+    '3',
+  );
+});
+
 test('mood and workout read failures cannot become successful empty snapshots', async (t) => {
   const { moodService } = await import('../src/features/mood/services/supabase.ts');
   const { gymService } = await import('../src/features/gym/services/supabase.ts');
@@ -421,4 +539,33 @@ beforeEach((t) => {
     supabase,
     userId: '11111111-1111-4111-8111-111111111111',
   }));
+});
+
+test('workout timestamps round-trip through the saved Supabase record', async (t) => {
+  const { gymService } = await import('../src/features/gym/services/supabase.ts');
+  const log = {
+    id: 'session',
+    date: '2026-10-05',
+    startedAt: '2026-10-05T05:00:00.000Z',
+    completedAt: '2026-10-05T06:00:00.000Z',
+    completed: true,
+    exercises: [],
+  };
+  const calls = mockRequests(t, ({ payload }) => ({
+    data: { workout_data: payload.workout_data },
+    error: null,
+  }));
+  assert.deepEqual(await gymService.upsertWorkoutLog(log.date, log), log);
+  assert.equal(calls[0].payload.workout_data.startedAt, log.startedAt);
+  assert.equal(calls[0].payload.workout_data.completedAt, log.completedAt);
+  assert.equal(calls[0].single, true);
+});
+
+test('workout save rejects backend errors and missing persisted rows', async (t) => {
+  const { gymService } = await import('../src/features/gym/services/supabase.ts');
+  let result = { data: null, error: { code: '42501' } };
+  mockRequests(t, () => result);
+  await assert.rejects(gymService.upsertWorkoutLog('2026-10-05', {}), /Could not save workout/);
+  result = { data: null, error: null };
+  await assert.rejects(gymService.upsertWorkoutLog('2026-10-05', {}), /Could not save workout/);
 });

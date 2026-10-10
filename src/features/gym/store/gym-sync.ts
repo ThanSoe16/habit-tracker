@@ -1,12 +1,13 @@
 import {
   identityRevision,
   isIdentityRevisionCurrent,
+  assertIdentityRevision,
   onIdentityChange,
 } from '@/lib/supabase/identity-scope';
 import { gymService } from '@/features/gym/services/supabase';
 import type { PlanDay, WorkoutLog } from './model';
 
-const workoutLogSaveQueues = new Map<string, Promise<void>>();
+const workoutLogSaveQueues = new Map<string, Promise<WorkoutLog>>();
 const gymPlanSaveTimers = new Map<number, ReturnType<typeof setTimeout>>();
 let isApplyingRemoteState = false;
 onIdentityChange(() => {
@@ -33,16 +34,16 @@ export function saveWorkoutLog(dateStr: string, log: WorkoutLog) {
   const previousSave = workoutLogSaveQueues.get(dateStr) ?? Promise.resolve();
   const nextSave = previousSave
     .catch(() => undefined)
-    .then(() =>
-      isIdentityRevisionCurrent(revision) ? gymService.upsertWorkoutLog(dateStr, log) : undefined,
-    );
-
+    .then(() => {
+      assertIdentityRevision(revision);
+      return gymService.upsertWorkoutLog(dateStr, log);
+    });
   workoutLogSaveQueues.set(dateStr, nextSave);
-  void nextSave.finally(() => {
-    if (workoutLogSaveQueues.get(dateStr) === nextSave) {
-      workoutLogSaveQueues.delete(dateStr);
-    }
-  });
+  const cleanup = () => {
+    if (workoutLogSaveQueues.get(dateStr) === nextSave) workoutLogSaveQueues.delete(dateStr);
+  };
+  void nextSave.then(cleanup, cleanup);
+  return nextSave;
 }
 
 export function scheduleGymPlanSave(plan: PlanDay, delayMs = 250) {

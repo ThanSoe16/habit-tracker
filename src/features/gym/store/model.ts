@@ -67,6 +67,7 @@ export const workoutLogSchema = z.object({
   completed: z.boolean(),
   notes: z.string().optional(),
   exercises: z.array(completedExerciseLogSchema),
+  startedAt: z.string().optional(),
   completedAt: z.string().optional(),
 });
 

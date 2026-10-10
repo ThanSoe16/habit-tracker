@@ -23,7 +23,7 @@ const savingSchema = z.object({
   savedAt: z.string(),
   createdAt: z.string(),
 });
-const goalSchema = z.object({
+export const goalSchema = z.object({
   id: uuid,
   title: z.string().trim().min(1).max(120),
   why: z.string().max(500),

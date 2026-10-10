@@ -8,6 +8,8 @@ import { useSettingsSync } from '@/features/settings/sync-status';
 import { useGoalsStore } from '@/features/goals/store/use-goals-store';
 import { cn } from '@/utils/cn';
 import { GoalsAppSidebar } from './goals-sidebar';
+import { isNativeApp } from '@/lib/native/runtime';
+import { NativeSyncControl } from './native-sync-control';
 
 function getHeader(pathname: string) {
   if (pathname.startsWith('/goals/manage')) {
@@ -25,7 +27,13 @@ function getHeader(pathname: string) {
   return { title: 'Wishes', description: '' };
 }
 
-export function GoalsShell({ children }: { children: React.ReactNode }) {
+export function GoalsShell({
+  children,
+  sidebar,
+}: {
+  children: React.ReactNode;
+  sidebar?: React.ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const goalsSync = useSettingsSync((state) => state.goals);
@@ -39,7 +47,7 @@ export function GoalsShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full bg-background text-foreground">
-        <GoalsAppSidebar />
+        {sidebar ?? <GoalsAppSidebar />}
         <main className="w-full flex-1 overflow-x-hidden">
           <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col gap-3 px-4 pb-32 pt-4">
             {!hasPageHeader && (
@@ -83,7 +91,8 @@ export function GoalsShell({ children }: { children: React.ReactNode }) {
               </header>
             )}
 
-            {goalsSync.status === 'error' && (
+            {isNativeApp && <NativeSyncControl />}
+            {!isNativeApp && goalsSync.status === 'error' && (
               <div
                 role="alert"
                 className="flex items-center justify-between gap-3 rounded-md border border-destructive/30 px-3 py-2 text-sm text-destructive"
