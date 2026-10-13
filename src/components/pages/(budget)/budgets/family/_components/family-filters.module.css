@@ -1,0 +1,51 @@
+.filterRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: calc(var(--spacing) * 3);
+  width: 100%;
+}
+
+.filterControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--spacing) * 2);
+  width: 100%;
+  height: calc(var(--spacing) * 12);
+  min-width: 0;
+  padding-inline: calc(var(--spacing) * 3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.controlValue {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.controlValue > svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.yearNavigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: calc(var(--spacing) * 2);
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(var(--spacing) * 2);
+}
