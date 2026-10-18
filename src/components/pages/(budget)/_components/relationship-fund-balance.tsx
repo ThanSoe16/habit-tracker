@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/features/budget/store/model';
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { FundTransaction } from '@/features/relationship-funds/types';
+import type { getFundSummary } from '@/features/relationship-funds/types';
 
 export function RelationshipFundBalance({
   fund,
   remaining,
 }: {
-  fund: UseQueryResult<FundTransaction[]>;
+  fund: UseQueryResult<ReturnType<typeof getFundSummary>>;
   remaining: number | null;
 }) {
   return (

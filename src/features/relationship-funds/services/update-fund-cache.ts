@@ -1,4 +1,5 @@
-import type { QueryClient } from '@tanstack/react-query';
+import type { QueryClient, InfiniteData } from '@tanstack/react-query';
+import type { ListPage } from '@/lib/supabase/pagination';
 import type { FundTransaction } from '../types';
 import { fundKeys } from './query-keys';
 
@@ -25,5 +26,18 @@ export async function updateFundCache(
     next.sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
     client.setQueryData(key, next);
   }
+  client.setQueriesData<InfiniteData<ListPage<FundTransaction>>>(
+    { queryKey: [...fundKeys.scope(userId), 'infinite'] },
+    (data) =>
+      data && {
+        ...data,
+        pages: data.pages.map((page) => ({
+          ...page,
+          rows: page.rows.flatMap((existing) =>
+            existing.id === row.id ? (deleted ? [] : [row]) : [existing],
+          ),
+        })),
+      },
+  );
   await client.invalidateQueries({ queryKey: fundKeys.scope(userId) });
 }

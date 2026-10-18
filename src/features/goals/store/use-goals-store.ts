@@ -105,7 +105,8 @@ function normalizeGoal(goal: Goal): Goal {
 let isApplyingRemoteGoalsState = false;
 let fetchingGoalsRevision: number | null = null;
 const goalsSyncScheduler = createGoalsSyncScheduler(() => {
-  void useGoalsStore.getState().fetchFromSupabase();
+  if (typeof window !== 'undefined')
+    window.dispatchEvent(new CustomEvent('server-data-change', { detail: 'goals' }));
 });
 
 export const useGoalsStore = create<GoalsState & GoalsActions>()(
@@ -388,3 +389,73 @@ useGoalsStore.subscribe((state, previousState) => {
     { goals: previousState.goals, settings: previousState.settings },
   );
 });
+
+/** Query orchestrates paged reads; the existing store remains the sole owner of
+ * mutable goals so its persisted drafts and delta save queue remain intact. */
+export async function prepareGoalsForPage() {
+  if (isNativeApp) return;
+  const revision = identityRevision();
+  const remote = await goalsService.settings();
+  assertIdentityRevision(revision);
+  const migrationKey = `goals-cloud-migrated:${remote.userId}`;
+  if (!localStorage.getItem(migrationKey) && useGoalsStore.getState().goals.length) {
+    await useGoalsStore.getState().fetchFromSupabase();
+    return;
+  }
+  if (!goalsSyncScheduler.hasPending) {
+    isApplyingRemoteGoalsState = true;
+    try {
+      useGoalsStore.setState({ settings: remote.settings, ready: true });
+    } finally {
+      isApplyingRemoteGoalsState = false;
+    }
+  }
+  localStorage.setItem(migrationKey, '1');
+}
+
+export async function fetchGoalPage(page: number, completed: boolean, signal: AbortSignal) {
+  const revision = identityRevision();
+  const writeRevision = goalsSyncScheduler.revision;
+  const result = await goalsService.list(page, completed, signal);
+  assertIdentityRevision(revision);
+  signal.throwIfAborted();
+  if (goalsSyncScheduler.hasPending || writeRevision !== goalsSyncScheduler.revision)
+    throw new Error('Goals changed while loading. Please retry.');
+  {
+    isApplyingRemoteGoalsState = true;
+    try {
+      useGoalsStore.setState((state) => ({
+        goals: [
+          ...state.goals.filter((goal) => !result.rows.some((row) => row.id === goal.id)),
+          ...result.rows,
+        ],
+      }));
+    } finally {
+      isApplyingRemoteGoalsState = false;
+    }
+  }
+  return {
+    ids: result.rows.map((goal) => goal.id),
+    total: result.total,
+    nextPage: result.nextPage,
+  };
+}
+
+export async function fetchGoalDetail(id: string, signal: AbortSignal) {
+  const revision = identityRevision();
+  const writeRevision = goalsSyncScheduler.revision;
+  const goal = await goalsService.detail(id, signal);
+  assertIdentityRevision(revision);
+  signal.throwIfAborted();
+  if (goalsSyncScheduler.hasPending || writeRevision !== goalsSyncScheduler.revision)
+    throw new Error('Goals changed while loading. Please retry.');
+  isApplyingRemoteGoalsState = true;
+  try {
+    useGoalsStore.setState((state) => ({
+      goals: [...state.goals.filter((row) => row.id !== id), ...(goal ? [goal] : [])],
+    }));
+  } finally {
+    isApplyingRemoteGoalsState = false;
+  }
+  return goal?.id ?? null;
+}

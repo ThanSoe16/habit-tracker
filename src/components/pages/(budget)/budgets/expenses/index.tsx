@@ -1,15 +1,9 @@
 'use client';
+import { useBudgetList } from '@/features/budget/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useState } from 'react';
-import {
-  Plus,
-  TrendingDown,
-  Trash2,
-  X,
-  Check,
-  Pencil,
-  Calendar,
-} from 'lucide-react';
+import { Plus, TrendingDown, Trash2, X, Check, Pencil, Calendar } from 'lucide-react';
 import {
   useBudgetStore,
   BUDGET_CATEGORIES,
@@ -108,21 +102,11 @@ export default function ExpensesPage() {
     return found ? found.icon : '💸';
   };
 
-  const expenseEntriesOnly = budgetEntries.filter(
-    (e) => e.type === 'expense' && e.category !== 'Family',
-  );
-
-  const totalExpensePerCurrency = expenseEntriesOnly.reduce(
-    (acc, entry) => {
-      acc[entry.currency] = (acc[entry.currency] || 0) + entry.amount;
-      return acc;
-    },
-    { USDT: 0, THB: 0, MMK: 0, SGD: 0 } as Record<CurrencyCode, number>,
-  );
+  const query = useBudgetList('expenses', { currency: filterCurrency, excludeFamily: 'true' });
 
   const filteredEntries = budgetEntries
     .filter((entry) => {
-      if (entry.type !== 'expense') return false;
+      if (!query.ids.has(entry.id) || entry.type !== 'expense') return false;
       if (entry.category === 'Family') return false;
       if (filterCurrency !== 'ALL' && entry.currency !== filterCurrency) return false;
       return true;
@@ -134,7 +118,9 @@ export default function ExpensesPage() {
       {/* 1. HERO BALANCE CARD (MATCHING MAIN DASHBOARD HEADER STYLE WITHOUT 4 NAV BUTTONS) */}
       <div className="bg-white dark:bg-black text-slate-950 dark:text-white rounded-[32px] p-6 shadow-xl border border-gray-200/80 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">Current Balance</span>
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">
+            Current Balance
+          </span>
           <button
             type="button"
             onClick={() => setIsExpenseDrawerOpen(true)}
@@ -164,7 +150,11 @@ export default function ExpensesPage() {
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-zinc-900 text-slate-950 dark:text-white border border-gray-200 dark:border-zinc-800 rounded-2xl z-[100]">
                 {Object.values(CURRENCIES).map((c) => (
-                  <SelectItem key={c.code} value={c.code} className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                  <SelectItem
+                    key={c.code}
+                    value={c.code}
+                    className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                  >
                     <span className="text-base mr-1">{c.flag}</span> {c.code}
                   </SelectItem>
                 ))}
@@ -312,14 +302,20 @@ export default function ExpensesPage() {
           </div>
 
           {/* Current Balance Info */}
-          <div className={cn(
-            'flex items-center justify-between px-4 py-2.5 rounded-2xl border text-xs font-bold',
-            isOverBudget
-              ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400'
-              : 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400'
-          )}>
-            <span>{CURRENCIES[expCurrency].flag} {expCurrency} Balance</span>
-            <span className="font-black text-sm">{formatCurrency(currentBalance, expCurrency)}</span>
+          <div
+            className={cn(
+              'flex items-center justify-between px-4 py-2.5 rounded-2xl border text-xs font-bold',
+              isOverBudget
+                ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400'
+                : 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400',
+            )}
+          >
+            <span>
+              {CURRENCIES[expCurrency].flag} {expCurrency} Balance
+            </span>
+            <span className="font-black text-sm">
+              {formatCurrency(currentBalance, expCurrency)}
+            </span>
           </div>
 
           <form onSubmit={handleExpenseSubmit} className="space-y-4">
@@ -382,7 +378,11 @@ export default function ExpensesPage() {
                 </SelectTrigger>
                 <SelectContent className="z-[95]">
                   {BUDGET_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.name} value={cat.name} className="text-sm font-semibold py-2.5">
+                    <SelectItem
+                      key={cat.name}
+                      value={cat.name}
+                      className="text-sm font-semibold py-2.5"
+                    >
                       <span className="text-base mr-1">{cat.icon}</span> {cat.name}
                     </SelectItem>
                   ))}
@@ -399,7 +399,8 @@ export default function ExpensesPage() {
 
             {isOverBudget && parsedExpAmount > 0 && (
               <p className="text-[11px] font-bold text-red-500 text-center">
-                ⚠️ Amount exceeds your {expCurrency} balance of {formatCurrency(currentBalance, expCurrency)}
+                ⚠️ Amount exceeds your {expCurrency} balance of{' '}
+                {formatCurrency(currentBalance, expCurrency)}
               </p>
             )}
 
@@ -410,7 +411,7 @@ export default function ExpensesPage() {
                 'w-full py-3.5 font-extrabold rounded-2xl shadow-lg transition-all text-xs flex items-center justify-center gap-2 mt-2',
                 isOverBudget && parsedExpAmount > 0
                   ? 'bg-gray-300 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400 cursor-not-allowed shadow-none'
-                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/25'
+                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/25',
               )}
             >
               <Check className="w-4 h-4" /> Save Expense
@@ -452,6 +453,7 @@ export default function ExpensesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

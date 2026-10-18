@@ -1,12 +1,10 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
+import { useBudgetList, useBudgetExport } from '@/features/budget/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useState } from 'react';
-import {
-  ArrowRightLeft,
-  Trash2,
-  Calendar,
-  Pencil,
-} from 'lucide-react';
+import { ArrowRightLeft, Trash2, Calendar, Pencil } from 'lucide-react';
 import {
   useBudgetStore,
   CurrencyCode,
@@ -23,12 +21,8 @@ export default function CurrencyExchangePage() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const {
-    walletBalances,
-    budgetEntries,
-    executeCurrencyExchange,
-    deleteBudgetEntry,
-  } = useBudgetStore();
+  const { walletBalances, budgetEntries, executeCurrencyExchange, deleteBudgetEntry } =
+    useBudgetStore();
 
   // Exchange Form State
   const [fromCurrency, setFromCurrency] = useState<CurrencyCode>('USDT');
@@ -103,7 +97,10 @@ export default function CurrencyExchangePage() {
     setTimeout(() => setSuccessMsg(null), 4000);
   };
 
+  const query = useBudgetList('exchange', { currency: filterCurrency });
+  const statement = useBudgetExport('exchange', isExportModalOpen);
   const exchangeEntries = budgetEntries
+    .filter((entry) => query.ids.has(entry.id))
     .filter(
       (e) =>
         e.type === 'exchange' &&
@@ -143,7 +140,16 @@ export default function CurrencyExchangePage() {
         setIsDrawerOpen={setIsDrawerOpen}
         handleExecuteExchange={handleExecuteExchange}
         handleSwap={handleSwap}
-        fields={{ fromCurrency, setFromCurrency, toCurrency, setToCurrency, fromAmount, setFromAmount, customRate, setCustomRate }}
+        fields={{
+          fromCurrency,
+          setFromCurrency,
+          toCurrency,
+          setToCurrency,
+          fromAmount,
+          setFromAmount,
+          customRate,
+          setCustomRate,
+        }}
         availableBalance={availableBalance}
         defaultRate={defaultRate}
         calculatedToAmount={calculatedToAmount}
@@ -263,7 +269,8 @@ export default function CurrencyExchangePage() {
               No Exchange History
             </h3>
             <p className="text-[11px] font-bold text-gray-400 max-w-xs mx-auto">
-              Use the instant converter above to perform currency conversions and track your exchange logs.
+              Use the instant converter above to perform currency conversions and track your
+              exchange logs.
             </p>
           </div>
         )}
@@ -271,19 +278,28 @@ export default function CurrencyExchangePage() {
 
       {/* EXPORT TABLE MODAL */}
       <ExportTableModal
-        isOpen={isExportModalOpen}
+        isOpen={isExportModalOpen && Boolean(statement.data)}
         onClose={() => setIsExportModalOpen(false)}
         title="Currency Exchange History Statement"
         subtitle="Executed Currency Exchanges & Conversion Records"
-        rows={exchangeEntries.map((e) => ({
-          date: e.date,
-          from: e.title,
-          categoryOrType: `Swap (${e.fromCurrency} ➔ ${e.toCurrency})`,
-          amount: e.fromAmount || e.amount,
-          currency: e.fromCurrency || e.currency,
-          isPositive: false,
-        }))}
+        rows={(statement.data?.budgetEntries ?? [])
+          .filter(
+            (entry) =>
+              filterCurrency === 'ALL' ||
+              entry.fromCurrency === filterCurrency ||
+              entry.toCurrency === filterCurrency,
+          )
+          .map((e) => ({
+            date: e.date,
+            from: e.title,
+            categoryOrType: `Swap (${e.fromCurrency} ➔ ${e.toCurrency})`,
+            amount: e.fromAmount || e.amount,
+            currency: e.fromCurrency || e.currency,
+            isPositive: false,
+          }))}
       />
+      <InfiniteListEnd query={query} />
+      <QueryFeedback query={statement} label="statement" />
     </div>
   );
 }

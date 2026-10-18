@@ -1,4 +1,5 @@
 'use client';
+import { useWorkoutLog } from '@/features/gym/services/queries';
 
 import { useState, useRef } from 'react';
 import { Play, Trophy, Calendar, Dumbbell } from 'lucide-react';
@@ -21,6 +22,14 @@ interface DailyWorkoutViewProps {
 
 export function DailyWorkoutView({ date = new Date(), ...props }: DailyWorkoutViewProps) {
   const dateStr = getLocalDateString(date);
+  const query = useWorkoutLog(dateStr);
+  if (query.isPending) return <p role="status">Loading workout...</p>;
+  if (query.isError)
+    return (
+      <Button variant="outline" onClick={() => void query.refetch()}>
+        Retry loading workout
+      </Button>
+    );
   return <WorkoutSession key={dateStr} dateStr={dateStr} {...props} />;
 }
 

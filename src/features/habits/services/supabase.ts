@@ -1,3 +1,5 @@
+import { z } from 'zod';
+import { listPage, pageRange } from '@/lib/supabase/pagination';
 import { accountService } from '@/lib/supabase/account-client';
 import { readCompleteList, requireResult, textIdSchema } from '@/lib/supabase/request';
 import { habitRecordSchema, type Habit } from '../types';
@@ -8,6 +10,90 @@ const columns =
   'id, name, color, emoji, frequency, repeat_days, type, habit_kind, start_date, end_date, time_of_day, reminder_time, reminder_snooze_minutes, end_habit_date, end_habit_days, specific_dates, unit_type, unit, goal_value, timer_mode, time_unit, history, streak, sort_order, created_at';
 
 export const habitsService = {
+  async list(page: number, signal: AbortSignal, type?: 'habit' | 'task') {
+    const range = pageRange(page);
+    const { supabase } = await accountService.getClient();
+    let request = supabase.from('habits').select(columns, { count: 'exact' });
+    if (type === 'task') request = request.eq('type', 'task');
+    if (type === 'habit') request = request.or('type.eq.habit,type.is.null');
+    const result = listPage(
+      await request
+        .order('sort_order')
+        .order('id')
+        .range(...range)
+        .abortSignal(signal),
+      page,
+    );
+    return { ...result, rows: result.rows.map(mapHabitRow) };
+  },
+
+  async listSelected(ids: string[], page: number, signal: AbortSignal) {
+    const [from, to] = pageRange(page);
+    const selectedIds = ids.slice(from, to + 1);
+    if (!selectedIds.length) return { rows: [], total: ids.length, nextPage: undefined };
+    const { supabase } = await accountService.getClient();
+    const result = await supabase
+      .from('habits')
+      .select(columns)
+      .in('id', selectedIds)
+      .order('sort_order')
+      .order('id')
+      .range(0, 9)
+      .abortSignal(signal);
+    const rows = requireResult(result).map(mapHabitRow);
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    return {
+      rows: selectedIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : [])),
+      total: ids.length,
+      nextPage: to + 1 < ids.length ? page + 1 : undefined,
+    };
+  },
+
+  async detail(id: string, signal?: AbortSignal): Promise<Habit | null> {
+    const { supabase } = await accountService.getClient();
+    let request = supabase.from('habits').select(columns).eq('id', textIdSchema.parse(id));
+    if (signal) request = request.abortSignal(signal);
+    const result = await request.maybeSingle();
+    if (result.error) throw new Error('Could not load the habit. Please try again.');
+    return result.data ? mapHabitRow(result.data) : null;
+  },
+
+  /** Calendar/reminder projections omit the unbounded history JSON. */
+  async summary(dates: string[], remindersOnly: boolean, signal: AbortSignal) {
+    dates.forEach((date) => z.string().date().parse(date));
+    const { supabase } = await accountService.getClient();
+    const selected = [
+      columns.replace('history, ', ''),
+      ...dates.map((date, i) => `day${i}:history->${date}`),
+    ].join(',');
+    let request = supabase
+      .from('habits')
+      .select(selected, { count: 'exact' })
+      .order('sort_order')
+      .order('id')
+      .abortSignal(signal);
+    if (remindersOnly) request = request.not('reminder_time', 'is', null).neq('reminder_time', '');
+    const { data } = await readCompleteList(request);
+    return data.map((value: unknown) => {
+      const row = z.record(z.unknown()).parse(value);
+      const history = Object.fromEntries(
+        dates.flatMap((date, i) => (row[`day${i}`] == null ? [] : [[date, row[`day${i}`]]])),
+      );
+      return mapHabitRow({ ...row, history });
+    });
+  },
+
+  async nextSortOrder() {
+    const { supabase } = await accountService.getClient();
+    const result = await supabase
+      .from('habits')
+      .select('sort_order')
+      .order('sort_order', { ascending: false, nullsFirst: false })
+      .limit(1);
+    const rows = requireResult(result);
+    return (rows[0]?.sort_order ?? -1) + 1;
+  },
+
   // Legacy background-sync adapter: null retains the last valid snapshot.
   async fetchHabits(): Promise<Habit[] | null> {
     const { supabase } = await accountService.getClient();

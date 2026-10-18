@@ -11,6 +11,8 @@ import { mediaEntrySchema, type MediaEntry } from '../types';
 import { mediaItemRowSchema, type MediaItemRow } from '../types/media-row';
 export { mediaItemRowSchema, type MediaItemRow } from '../types/media-row';
 
+import { listPage, pageRange } from '@/lib/supabase/pagination';
+
 const columns =
   'id, type, title, data_url, thumbnail_url, file_size, duration, mime_type, created_at';
 
@@ -42,6 +44,55 @@ function mapWrite(entry: Partial<MediaEntry>): Partial<MediaItemRow> {
 }
 
 export const mediaItemsService = {
+  async list(page: number, filter: 'all' | 'gallery' | 'voice', signal: AbortSignal) {
+    const range = pageRange(page);
+    const { supabase, userId } = await accountService.getClient();
+    let request = supabase
+      .from('media_items')
+      .select(columns, { count: 'exact' })
+      .eq('user_id', userId);
+    if (filter === 'voice') request = request.eq('type', 'voice');
+    if (filter === 'gallery') request = request.in('type', ['photo', 'video']);
+    const result = listPage(
+      await request
+        .order('created_at', { ascending: false })
+        .order('id')
+        .range(...range)
+        .abortSignal(signal),
+      page,
+    );
+    const rows = await Promise.all(
+      result.rows.map(async (row) => {
+        const entry = mapEntry(row);
+        return {
+          ...entry,
+          dataUrl: await resolveMediaUrl(supabase, entry.dataUrl),
+          thumbnailUrl: entry.thumbnailUrl
+            ? await resolveMediaUrl(supabase, entry.thumbnailUrl)
+            : undefined,
+        };
+      }),
+    );
+    return { ...result, rows };
+  },
+
+  async counts(signal: AbortSignal) {
+    const { supabase, userId } = await accountService.getClient();
+    const counts = { voice: 0, photo: 0, video: 0 };
+    for (const type of ['voice', 'photo', 'video'] as const) {
+      const result = await supabase
+        .from('media_items')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('type', type)
+        .abortSignal(signal);
+      if (result.error || result.count === null)
+        throw new DataRequestError('Could not load media counts.');
+      counts[type] = result.count;
+    }
+    return counts;
+  },
+
   // Legacy sync adapter retains its previous snapshot on null.
   async fetchMediaEntries(): Promise<MediaEntry[] | null> {
     const { supabase, userId } = await accountService.getClient();

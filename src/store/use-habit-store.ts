@@ -7,7 +7,7 @@ import {
 } from '@/lib/supabase/identity-scope';
 
 import { create } from 'zustand';
-import { getLocalDateString, isHabitRequiredOnDate } from '@/utils/date-utils';
+import { calculateStreak } from '@/features/habits/utils/streak';
 import habitsApiService from '@/features/habits/services/api';
 import { habitsService } from '@/features/habits/services/supabase';
 import { createHabitCompletion } from '@/features/habits/utils/completion';
@@ -25,7 +25,7 @@ export type {
   ReminderSnoozeMinutes,
 } from '@/features/habits/types';
 
-interface HabitStore {
+export interface HabitStore {
   habits: Habit[];
   customUnits: string[];
   isLoaded: boolean;
@@ -92,37 +92,6 @@ interface HabitStore {
   ) => void;
   removeCompletion: (id: string, date: string) => void;
 }
-
-const calculateStreak = (habit: Habit, history: Habit['history']): number => {
-  let streak = 0;
-  const todayStr = getLocalDateString();
-  const currentDate = new Date();
-
-  while (true) {
-    const dateStr = getLocalDateString(currentDate);
-    const entry = history[dateStr];
-    const isDone = typeof entry === 'boolean' ? entry : entry?.completed;
-    const isRequired = isHabitRequiredOnDate(habit, currentDate);
-
-    if (isRequired) {
-      if (isDone) {
-        streak++;
-      } else {
-        if (dateStr === todayStr) {
-          // Keep going to check yesterday
-        } else {
-          break;
-        }
-      }
-    }
-
-    currentDate.setDate(currentDate.getDate() - 1);
-    if (streak > 366) break;
-    if (currentDate.getFullYear() < 2024) break;
-  }
-
-  return streak;
-};
 
 let pendingWrites = 0;
 let writeRevision = 0;

@@ -1,3 +1,4 @@
+import { listPage, pageRange } from '@/lib/supabase/pagination';
 import { readCompleteList, requireResult, DataRequestError } from '@/lib/supabase/request';
 import { moodEntrySchema, moodRowSchema } from '../types';
 import { z } from 'zod';
@@ -24,12 +25,47 @@ function parseMoodRow(value: unknown) {
 }
 
 export const moodService = {
-  async fetchMoods(): Promise<Record<string, MoodEntry>> {
+  async list(page: number, signal: AbortSignal) {
+    const range = pageRange(page);
     const { supabase } = await accountService.getClient();
     const columns = await getMoodColumns(supabase);
-    const { data } = await readCompleteList(
-      supabase.from('mood_entries').select(columns, { count: 'exact' }).order('date_key'),
+    const result = listPage(
+      await supabase
+        .from('mood_entries')
+        .select(columns, { count: 'exact' })
+        .order('date_key', { ascending: false })
+        .range(...range)
+        .abortSignal(signal),
+      page,
     );
+    return { ...result, rows: result.rows.map(parseMoodRow) };
+  },
+  async dates(signal: AbortSignal) {
+    const { supabase } = await accountService.getClient();
+    const result = await readCompleteList(
+      supabase
+        .from('mood_entries')
+        .select('date_key', { count: 'exact' })
+        .order('date_key')
+        .abortSignal(signal),
+    );
+    return result.data.map((row) => row.date_key as string);
+  },
+  async fetchMoods(
+    from?: string,
+    to?: string,
+    signal?: AbortSignal,
+  ): Promise<Record<string, MoodEntry>> {
+    const { supabase } = await accountService.getClient();
+    const columns = await getMoodColumns(supabase);
+    let request = supabase
+      .from('mood_entries')
+      .select(columns, { count: 'exact' })
+      .order('date_key');
+    if (from) request = request.gte('date_key', z.string().date().parse(from));
+    if (to) request = request.lte('date_key', z.string().date().parse(to));
+    if (signal) request = request.abortSignal(signal);
+    const { data } = await readCompleteList(request);
     const result: Record<string, MoodEntry> = {};
     if (data) {
       for (const value of data) {

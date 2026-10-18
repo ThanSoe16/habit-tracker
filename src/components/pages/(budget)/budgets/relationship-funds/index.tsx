@@ -1,4 +1,6 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { cn } from '@/utils/cn';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
@@ -11,7 +13,11 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ConfirmationDialog } from '@/components/shared/dialog/confirmation-dialog';
 import { useQueryIdentity } from '@/components/providers/query-provider';
 import { useSubmissionScope } from '@/features/base/hooks/use-submission-scope';
-import { useFundMonth } from '@/features/relationship-funds/services/queries';
+import {
+  useFundMonth,
+  useFundList,
+  useFundSummary,
+} from '@/features/relationship-funds/services/queries';
 import { useDeleteFundTransaction } from '@/features/relationship-funds/services/mutations';
 import { type FundTransaction } from '@/features/relationship-funds/types';
 import { FundTransactionDrawer } from './_components/fund-transaction-drawer';
@@ -36,8 +42,12 @@ export default function RelationshipFundsPage() {
     fundPage: parseAsInteger.withDefault(1),
   });
   const person = filters.person === 'TSO' || filters.person === 'Nway' ? filters.person : 'ALL';
-  const query = useFundMonth(null, person);
+  const query = useFundList(person, Math.max(1, Math.min(100000, filters.fundPage)));
+  const summary = useFundSummary(person);
+  const rows = query.data?.pages.flatMap((page) => page.rows) ?? [];
+  const total = query.data?.pages[0]?.total ?? 0;
   const [exporting, setExporting] = useState(false);
+  const exportQuery = useFundMonth(null, person, exporting);
   const deletion = useDeleteFundTransaction();
   const [action, setAction] = useState<{
     transaction?: FundTransaction;
@@ -45,7 +55,7 @@ export default function RelationshipFundsPage() {
   } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FundTransaction | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const lastPage = Math.max(1, Math.ceil((query.data?.length ?? 0) / PAGE_SIZE));
+  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const page = Math.max(1, Math.min(filters.fundPage, lastPage));
   useEffect(() => {
     if (query.data && filters.fundPage !== page) void setFilters({ fundPage: page });
@@ -70,7 +80,7 @@ export default function RelationshipFundsPage() {
   return (
     <Flex direction="column" gap="5" className={cn('flex flex-col gap-5', styles.theme)}>
       <FundSummaryCard
-        query={query}
+        query={summary}
         disabled={!userId}
         person={person}
         onPersonChange={(person) => void setFilters({ person, fundPage: 1 })}
@@ -99,7 +109,7 @@ export default function RelationshipFundsPage() {
               size="sm"
               variant="secondary"
               className="rounded-full px-3"
-              disabled={!query.data?.length}
+              disabled={!total}
               onClick={() => setExporting(true)}
             >
               <Download data-icon="inline-start" /> Export Statement
@@ -111,12 +121,12 @@ export default function RelationshipFundsPage() {
             {query.isPending && <Skeleton className="h-48 rounded-2xl" />}
             {query.data && (
               <Flex className="flex flex-col gap-3" direction="column" gap="3">
-                {query.data.length === 0 && (
+                {total === 0 && (
                   <p className="py-8 text-center text-xs leading-relaxed text-muted-foreground">
                     No fund records found. Use Record Money to add savings or spending.
                   </p>
                 )}
-                {query.data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((transaction) => (
+                {rows.map((transaction) => (
                   <FundTransactionRow
                     key={transaction.id}
                     transaction={transaction}
@@ -162,6 +172,7 @@ export default function RelationshipFundsPage() {
           </Flex>
         </CardContent>
       </Card>
+      <InfiniteListEnd query={query} />
       {action && (
         <FundTransactionDrawer
           key={`${userId}:${action.transaction?.id ?? 'new'}`}
@@ -171,13 +182,13 @@ export default function RelationshipFundsPage() {
           onClose={() => setAction(null)}
         />
       )}
-      {exporting && (
+      {exporting && exportQuery.data && (
         <ExportTableModal
           isOpen
           onClose={() => setExporting(false)}
           title="Relationship Fund Statement"
           subtitle={`${person === 'ALL' ? 'TSO & Nway' : person} · Savings & spending (MMK)`}
-          rows={(query.data ?? []).map((transaction) => ({
+          rows={(exportQuery.data ?? []).map((transaction) => ({
             date: transaction.date,
             from: `${transaction.person ?? 'Unassigned'} · ${transaction.title}`,
             categoryOrType: transaction.kind === 'save' ? 'Saved' : 'Spent',
@@ -196,6 +207,7 @@ export default function RelationshipFundsPage() {
         error={deleteError}
         onPress={() => void remove()}
       />
+      <QueryFeedback query={exportQuery} label="statement" />
     </Flex>
   );
 }

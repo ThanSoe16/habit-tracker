@@ -6,7 +6,6 @@ import { cn } from '@/utils/cn';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { MoodAppSidebar } from '@/components/pages/(mood)/_components/mood-sidebar';
 import { Smile } from 'lucide-react';
-import { MoodDataBoundary } from '@/components/pages/(mood)/_components/mood-data-boundary';
 
 export default function MoodLayout({ children }: { children: React.ReactNode }) {
   const isSettings = usePathname().endsWith('/settings');
@@ -32,7 +31,7 @@ export default function MoodLayout({ children }: { children: React.ReactNode }) 
 
               <div className="w-10 h-10" />
             </header>
-            {isSettings ? children : <MoodDataBoundary>{children}</MoodDataBoundary>}
+            {children}
           </div>
         </main>
       </div>

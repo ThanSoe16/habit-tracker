@@ -1,4 +1,11 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
+import {
+  useBudgetList,
+  useFamilySummary,
+  useBudgetExport,
+} from '@/features/budget/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
@@ -123,13 +130,21 @@ export default function FamilyBudgetPage() {
     setIsDrawerOpen(false);
   };
 
+  const query = useBudgetList('family', filters);
+  const summary = useFamilySummary();
+  const statement = useBudgetExport('family', isExportModalOpen);
+  const summaryTransactions = summary.data ?? [];
+  const filteredSummary = filterFamilyTransactions(summaryTransactions, filters);
   // Filtered transactions
-  const filteredTxs = filterFamilyTransactions(familyTransactions, filters);
+  const filteredTxs = filterFamilyTransactions(
+    familyTransactions.filter((tx) => query.ids.has(tx.id)),
+    filters,
+  );
 
   // Calculate Net Holding Summary in MMK per Person
   const personSummary: Record<string, number> = {};
 
-  familyTransactions.forEach((tx) => {
+  summaryTransactions.forEach((tx) => {
     if (personSummary[tx.person] === undefined) {
       personSummary[tx.person] = 0;
     }
@@ -140,11 +155,11 @@ export default function FamilyBudgetPage() {
     }
   });
 
-  const totalReceived = filteredTxs
+  const totalReceived = filteredSummary
     .filter((t) => t.type === 'received')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalGivenBack = filteredTxs
+  const totalGivenBack = filteredSummary
     .filter((t) => t.type === 'given')
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -153,7 +168,7 @@ export default function FamilyBudgetPage() {
   const allPeopleList = Array.from(
     new Set([
       ...Object.keys(personSummary),
-      ...familyTransactions.map((t) => t.person),
+      ...summaryTransactions.map((t) => t.person),
       FAMILY_NEEDS,
     ]),
   );
@@ -245,19 +260,24 @@ export default function FamilyBudgetPage() {
 
       {/* Export Table Image Modal */}
       <ExportTableModal
-        isOpen={isExportModalOpen}
+        isOpen={isExportModalOpen && Boolean(statement.data)}
         onClose={() => setIsExportModalOpen(false)}
         title="Family Money Transfer Statement"
         subtitle={`${filterPerson === 'ALL' ? 'All Family Members' : filterPerson} | ${filters.familyMonth || 'All months'} (MMK)`}
-        rows={filteredTxs.map((t) => ({
-          date: t.date,
-          from: t.person,
-          categoryOrType: t.type === 'received' ? 'Received from Family' : 'Given to Family',
-          amount: t.amount,
-          currency: 'MMK',
-          isPositive: t.type === 'received',
-        }))}
+        rows={filterFamilyTransactions(statement.data?.familyTransactions ?? [], filters).map(
+          (t) => ({
+            date: t.date,
+            from: t.person,
+            categoryOrType: t.type === 'received' ? 'Received from Family' : 'Given to Family',
+            amount: t.amount,
+            currency: 'MMK',
+            isPositive: t.type === 'received',
+          }),
+        )}
       />
+      <InfiniteListEnd query={query} />
+      <QueryFeedback query={summary} label="family totals" />
+      <QueryFeedback query={statement} label="statement" />
     </div>
   );
 }

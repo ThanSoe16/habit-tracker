@@ -1,4 +1,7 @@
 'use client';
+import { useGoalDetail, useGoalList } from '@/features/goals/services/queries';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import Link from 'next/link';
 import { ChevronRight, CircleDot, Flag, MapPin, PiggyBank, Plus } from 'lucide-react';
@@ -6,7 +9,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { formatCurrency } from '@/features/budget/store/model';
-import { useGoalsStore } from '@/features/goals/store/use-goals-store';
 import type { Goal, GoalStatus } from '@/features/goals/types';
 import { cn } from '@/utils/cn';
 import { GoalDetailDrawer } from './_components/goal-detail-drawer';
@@ -28,9 +30,11 @@ function sortActiveGoals(goals: Goal[]) {
 export default function GoalsManagePage() {
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const handledHash = useRef(false);
-  const goals = useGoalsStore((state) => state.goals);
+  const query = useGoalList(false);
+  const goals = query.goals;
   const activeGoals = sortActiveGoals(goals);
-  const selectedGoal = goals.find((goal) => goal.id === selectedGoalId) ?? null;
+  const detail = useGoalDetail(selectedGoalId);
+  const selectedGoal = detail.goal ?? null;
 
   useEffect(() => {
     if (handledHash.current) return;
@@ -40,7 +44,6 @@ export default function GoalsManagePage() {
       return;
     }
     const goalId = targetId.slice(5);
-    if (!goals.some((goal) => goal.id === goalId)) return;
 
     const frame = requestAnimationFrame(() => {
       handledHash.current = true;
@@ -57,6 +60,7 @@ export default function GoalsManagePage() {
         <span className="size-10" aria-hidden="true" />
       </header>
 
+      {selectedGoalId && <QueryFeedback query={detail} />}
       <section className="flex flex-col gap-3" aria-label="Active goals">
         {activeGoals.length > 0 ? (
           activeGoals.map((goal, index) => {
@@ -143,6 +147,7 @@ export default function GoalsManagePage() {
           if (!open) setSelectedGoalId(null);
         }}
       />
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

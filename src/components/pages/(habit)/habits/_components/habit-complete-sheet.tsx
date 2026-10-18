@@ -23,7 +23,7 @@ import {
   type HabitCompletionRemarks,
 } from '@/features/habits/types';
 import { assertIdentityRevision, identityRevision } from '@/lib/supabase/identity-scope';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitActions } from '@/features/habits/services/actions';
 
 type HabitCompleteSheetProps = {
   habit: Habit;
@@ -32,7 +32,7 @@ type HabitCompleteSheetProps = {
 };
 
 export function HabitCompleteSheet({ habit, dateString, onClose }: HabitCompleteSheetProps) {
-  const completeHabit = useHabitStore((state) => state.completeHabit);
+  const { completeHabit } = useHabitActions();
   const [accountRevision] = useState(identityRevision);
   const submitting = useRef(false);
   const entry = habit.history[dateString];

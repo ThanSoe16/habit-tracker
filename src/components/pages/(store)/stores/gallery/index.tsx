@@ -2,13 +2,17 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Camera, Image as ImageIcon, Video, Upload, X, Check, SwitchCamera } from 'lucide-react';
-import { useMediaStore, MediaEntry } from '@/store/use-media-store';
+import type { MediaEntry } from '@/features/media/types';
+import { useMediaList, useMediaActions } from '@/features/media/services/queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { uploadMediaToStorage } from '@/features/media/services/supabase';
 import { MediaCard } from '../../_components/media-card';
 import { cn } from '@/utils/cn';
 
 export default function StoreGalleryPage() {
-  const { mediaEntries, addMediaEntry, deleteMediaEntry } = useMediaStore();
+  const query = useMediaList('gallery');
+  const { mediaEntries } = query;
+  const { addMediaEntry, deleteMediaEntry } = useMediaActions();
 
   // Camera state
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -458,8 +462,7 @@ export default function StoreGalleryPage() {
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
           <h2 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-blue-600" /> Saved Photos & Videos (
-            {galleryEntries.length})
+            <ImageIcon className="w-4 h-4 text-blue-600" /> Saved Photos & Videos ({query.total})
           </h2>
         </div>
 
@@ -475,6 +478,7 @@ export default function StoreGalleryPage() {
           </p>
         )}
       </div>
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

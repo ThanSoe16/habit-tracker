@@ -1,3 +1,5 @@
+import { listPage, pageRange } from '@/lib/supabase/pagination';
+import { getFundSummary } from '../types';
 import { z } from 'zod';
 import { accountService } from '@/lib/supabase/account-client';
 import { DataRequestError, readCompleteList, requireResult } from '@/lib/supabase/request';
@@ -20,6 +22,43 @@ export function createRelationshipFundService(getClient = accountService.getClie
     return result.data;
   }
   return {
+    async list(userId: string, page: number, person: 'ALL' | 'TSO' | 'Nway', signal: AbortSignal) {
+      const range = pageRange(page);
+      z.enum(['ALL', 'TSO', 'Nway']).parse(person);
+      const client = await clientFor(userId);
+      let request = client
+        .from('relationship_fund_transactions')
+        .select(columns, { count: 'exact' })
+        .eq('user_id', userId);
+      if (person !== 'ALL') request = request.eq('person', person);
+      const result = listPage(
+        await request
+          .order('date', { ascending: false })
+          .order('id')
+          .range(...range)
+          .abortSignal(signal),
+        page,
+      );
+      return { ...result, rows: parse(z.array(fundTransactionSchema), result.rows) };
+    },
+    async summary(userId: string, person: 'ALL' | 'TSO' | 'Nway', signal: AbortSignal) {
+      z.enum(['ALL', 'TSO', 'Nway']).parse(person);
+      const client = await clientFor(userId);
+      let request = client
+        .from('relationship_fund_transactions')
+        .select('id,amount,kind,person', { count: 'exact' })
+        .eq('user_id', userId)
+        .order('id')
+        .abortSignal(signal);
+      if (person !== 'ALL') request = request.eq('person', person);
+      const result = await readCompleteList(request);
+      return getFundSummary(
+        parse(
+          z.array(fundTransactionSchema.pick({ amount: true, kind: true, person: true })),
+          result.data,
+        ),
+      );
+    },
     async month(
       userId: string,
       month: string | null,

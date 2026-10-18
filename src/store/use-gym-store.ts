@@ -48,20 +48,30 @@ export const useGymStore = create<GymStore>()((set, get) => ({
   bodyMetricLogs: [],
   isLoaded: false,
 
-  fetchFromSupabase: async () => {
+  fetchFromSupabase: async (scope) => {
     const accountRevision = identityRevision();
     const settingsRevision = gymSettingsQueue.revision;
     const historyAtFetch = get().history;
     try {
-      const remotePlans = await gymService.fetchGymPlans();
+      const remotePlans =
+        !scope || scope === 'session' || scope === 'plans'
+          ? await gymService.fetchGymPlans()
+          : get().weeklyPlan;
       assertIdentityRevision(accountRevision);
-      const remoteCustomEx = await gymService.fetchCustomExercises();
+      const remoteCustomEx =
+        !scope || scope === 'plans'
+          ? await gymService.fetchCustomExercises()
+          : get().customExercises;
       assertIdentityRevision(accountRevision);
-      const remoteHistory = await gymService.fetchWorkoutLogs();
+      const remoteHistory = !scope ? await gymService.fetchWorkoutLogs() : get().history;
       assertIdentityRevision(accountRevision);
       const remoteSettings = await gymService.fetchGymSettings();
       assertIdentityRevision(accountRevision);
-      const remoteMetrics = await gymBodyMetricsService.fetchLogs();
+      const remoteMetrics = !scope
+        ? await gymBodyMetricsService.fetchLogs()
+        : scope === 'profile'
+          ? await gymBodyMetricsService.latest()
+          : get().bodyMetricLogs;
       assertIdentityRevision(accountRevision);
 
       if (remotePlans.length === 0) {
@@ -94,7 +104,15 @@ export const useGymStore = create<GymStore>()((set, get) => ({
               ? get().gymSettings
               : remoteSettings || {}),
           },
-          bodyMetricLogs: remoteMetrics,
+          bodyMetricLogs:
+            scope === 'profile'
+              ? [
+                  ...get().bodyMetricLogs.filter(
+                    (row) => !remoteMetrics.some((item) => item.id === row.id),
+                  ),
+                  ...remoteMetrics,
+                ].sort((a, b) => a.logged_at.localeCompare(b.logged_at))
+              : remoteMetrics,
           isLoaded: true,
         });
       });

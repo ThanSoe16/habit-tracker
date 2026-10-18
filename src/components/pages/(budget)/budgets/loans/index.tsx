@@ -1,4 +1,6 @@
 'use client';
+import { useBudgetList } from '@/features/budget/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useState } from 'react';
 import { Plus, X, HandCoins, Receipt, CheckCircle2 } from 'lucide-react';
@@ -98,7 +100,13 @@ export default function LoansPage() {
     setRepayAmount('');
   };
 
+  const query = useBudgetList('loans', {
+    currency: filterCurrency,
+    type: filterType,
+    status: filterStatus,
+  });
   const filteredLoans = loans
+    .filter((loan) => query.ids.has(loan.id))
     .filter((l) => {
       if (filterType !== 'ALL' && l.type !== filterType) return false;
       if (filterStatus === 'pending' && l.status === 'repaid') return false;
@@ -163,11 +171,7 @@ export default function LoansPage() {
                   : 'text-gray-400 hover:text-gray-900 dark:hover:text-white',
               )}
             >
-              {t === 'ALL'
-                ? 'All Types'
-                : t === 'lend'
-                  ? 'Lent (Out)'
-                  : 'Borrowed (In)'}
+              {t === 'ALL' ? 'All Types' : t === 'lend' ? 'Lent (Out)' : 'Borrowed (In)'}
             </button>
           ))}
         </div>
@@ -527,6 +531,7 @@ export default function LoansPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

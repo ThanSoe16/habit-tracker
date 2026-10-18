@@ -135,9 +135,9 @@ export default function Home({ initialViewMode = 'today' }: HomePageProps) {
               <HabitList selectedDate={selectedDate} filter={filter} />
             </>
           ) : viewMode === 'weekly' ? (
-            <WeeklyHabitList limit={5} />
+            <WeeklyHabitList />
           ) : viewMode === 'overall' ? (
-            <OverallHabitList limit={5} />
+            <OverallHabitList />
           ) : (
             <div className="text-center py-10 text-muted-foreground">Coming soon...</div>
           )}

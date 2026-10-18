@@ -165,7 +165,11 @@ export function createBudgetSyncScheduler(
       }
     }
     running = false;
-    if (!pending) reportSettingsSync('budget', 'saved', retry);
+    if (!pending) {
+      reportSettingsSync('budget', 'saved', retry);
+      if (typeof window !== 'undefined')
+        window.dispatchEvent(new CustomEvent('server-data-change', { detail: 'budget' }));
+    }
   };
   function retry() {
     void flush();

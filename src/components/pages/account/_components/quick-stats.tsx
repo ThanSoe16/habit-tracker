@@ -1,10 +1,10 @@
 'use client';
 
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitReport } from '@/features/habits/services/list-queries';
 import { Target, Flame, CheckCircle2 } from 'lucide-react';
 
 export function QuickStats() {
-  const { habits } = useHabitStore();
+  const { habits } = useHabitReport();
 
   const totalHabits = habits.length;
 

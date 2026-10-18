@@ -2,13 +2,17 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Mic, MicOff, Square, Play, Pause, Save, Trash2 } from 'lucide-react';
-import { useMediaStore, MediaEntry } from '@/store/use-media-store';
+import type { MediaEntry } from '@/features/media/types';
+import { useMediaList, useMediaActions } from '@/features/media/services/queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { uploadMediaToStorage } from '@/features/media/services/supabase';
 import { MediaCard } from '../../_components/media-card';
 import { cn } from '@/utils/cn';
 
 export default function StoreVoicePage() {
-  const { mediaEntries, addMediaEntry, deleteMediaEntry } = useMediaStore();
+  const query = useMediaList('voice');
+  const { mediaEntries } = query;
+  const { addMediaEntry, deleteMediaEntry } = useMediaActions();
 
   // Recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -313,7 +317,7 @@ export default function StoreVoicePage() {
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
           <h2 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
-            <Mic className="w-4 h-4 text-emerald-600" /> Saved Voice Memos ({voiceEntries.length})
+            <Mic className="w-4 h-4 text-emerald-600" /> Saved Voice Memos ({query.total})
           </h2>
         </div>
 
@@ -334,6 +338,7 @@ export default function StoreVoicePage() {
           </p>
         )}
       </div>
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

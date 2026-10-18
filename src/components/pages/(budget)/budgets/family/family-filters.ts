@@ -28,10 +28,9 @@ type FamilyFilters = {
   familyMonth: string;
 };
 
-export function filterFamilyTransactions(
-  transactions: FamilyTransaction[],
-  { familyPerson, familyMonth }: FamilyFilters,
-) {
+export function filterFamilyTransactions<
+  T extends Pick<FamilyTransaction, 'id' | 'person' | 'date'>,
+>(transactions: T[], { familyPerson, familyMonth }: FamilyFilters) {
   // Match the stored year and month without timezone conversion.
   return transactions
     .filter(

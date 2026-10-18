@@ -1,19 +1,18 @@
 'use client';
 
 import React from 'react';
-import { useMoodStore } from '@/store/use-mood-store';
+import { useMoodList } from '@/features/mood/services/queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 
 export default function MoodHistoryPageComponent() {
   const router = useRouter();
-  const { history } = useMoodStore();
-
-  // Convert history entries to a sorted array (descending)
-  const entries = Object.entries(history)
-    .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
-    .map(([date, entry]) => ({ date, ...entry }));
+  const query = useMoodList();
+  const entries =
+    query.data?.pages.flatMap((page) => page.rows.map((row) => ({ ...row, date: row.date_key }))) ??
+    [];
 
   return (
     <div className="space-y-5">
@@ -21,7 +20,8 @@ export default function MoodHistoryPageComponent() {
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
           <h2 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-indigo-600" /> Logged Mood Entries ({entries.length})
+            <Calendar className="w-4 h-4 text-indigo-600" /> Logged Mood Entries (
+            {query.data?.pages[0]?.total ?? 0})
           </h2>
         </div>
 
@@ -47,7 +47,7 @@ export default function MoodHistoryPageComponent() {
                     )}
                   </div>
                   <p className="text-xs text-gray-400 font-medium mt-1">
-                    {format(parseISO(entry.timestamp), 'eeee, MMM d, yyyy • hh:mm a')}
+                    {format(parseISO(entry.timestamp ?? entry.date), 'eeee, MMM d, yyyy • hh:mm a')}
                   </p>
                 </div>
               </div>
@@ -59,7 +59,9 @@ export default function MoodHistoryPageComponent() {
               😶‍🌫️
             </div>
             <div>
-              <p className="text-gray-700 dark:text-gray-300 font-extrabold text-sm">No mood history yet</p>
+              <p className="text-gray-700 dark:text-gray-300 font-extrabold text-sm">
+                No mood history yet
+              </p>
               <p className="text-gray-400 text-xs mt-1">
                 Start tracking how you feel each day on the Mood Calendar
               </p>
@@ -74,6 +76,7 @@ export default function MoodHistoryPageComponent() {
           </div>
         )}
       </div>
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

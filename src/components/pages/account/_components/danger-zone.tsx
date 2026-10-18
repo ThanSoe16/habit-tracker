@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useHabitStore } from '@/store/use-habit-store';
-import { useMoodStore } from '@/store/use-mood-store';
+import { useHabitActions } from '@/features/habits/services/actions';
+import { habitsService } from '@/features/habits/services/supabase';
+import { useMoodActions } from '@/features/mood/services/queries';
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/shared/dialog/confirmation-dialog';
 import { Trash2 } from 'lucide-react';
 
 export function DangerZone() {
+  const { clearHistory } = useMoodActions();
+  const { removeHabit } = useHabitActions();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,10 +19,10 @@ export function DangerZone() {
     setPending(true);
     setError(null);
     try {
-      for (const habit of useHabitStore.getState().habits) {
-        await useHabitStore.getState().removeHabit(habit.id);
-      }
-      await useMoodStore.getState().clearHistory();
+      const habits = await habitsService.fetchHabits();
+      if (!habits) throw new Error('Could not load habits to reset.');
+      for (const habit of habits) await removeHabit(habit.id);
+      await clearHistory();
       setOpen(false);
     } catch {
       setError(

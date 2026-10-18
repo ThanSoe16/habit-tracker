@@ -1,4 +1,11 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
+import {
+  useMetricHistory,
+  useMetricSummary,
+  useMetricActions,
+} from '@/features/gym/services/queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import { useState, useMemo } from 'react';
 import {
@@ -16,7 +23,8 @@ import { toast } from 'sonner';
 import { cn } from '@/utils/cn';
 
 export default function GymBodyMetricsHistoryPage() {
-  const { bodyMetricLogs, deleteBodyMetricLog, gymSettings, addBodyMetricLog } = useGymStore();
+  const gymSettings = useGymStore((state) => state.gymSettings);
+  const { deleteBodyMetricLog, addBodyMetricLog } = useMetricActions();
 
   const isLbs = gymSettings.weightUnit === 'lbs';
   const weightUnitLabel = isLbs ? 'lbs' : 'kg';
@@ -25,6 +33,9 @@ export default function GymBodyMetricsHistoryPage() {
   // Group logs by Month (YYYY-MM)
   const currentMonthKey = new Date().toISOString().slice(0, 7); // "YYYY-MM"
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey);
+  const query = useMetricHistory(selectedMonth);
+  const summary = useMetricSummary(selectedMonth);
+  const monthlyLogs = query.data?.pages.flatMap((page) => page.rows) ?? [];
 
   // Quick log dialog
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
@@ -39,16 +50,10 @@ export default function GymBodyMetricsHistoryPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Filter logs for the selected month
-  const monthlyLogs = useMemo(() => {
-    return bodyMetricLogs
-      .filter((log) => log.logged_at && log.logged_at.startsWith(selectedMonth))
-      .sort((a, b) => (b.logged_at > a.logged_at ? 1 : -1));
-  }, [bodyMetricLogs, selectedMonth]);
-
   // Monthly statistics
   const monthlyStats = useMemo(() => {
-    if (monthlyLogs.length === 0) {
+    const summaryLogs = [...(summary.data ?? [])].reverse();
+    if (summaryLogs.length === 0) {
       return {
         count: 0,
         startWeight: 0,
@@ -60,15 +65,15 @@ export default function GymBodyMetricsHistoryPage() {
     }
 
     // Earliest and latest in this month
-    const chronological = [...monthlyLogs].reverse();
+    const chronological = [...summaryLogs].reverse();
     const startWeight = chronological[0].weight_kg;
     const endWeight = chronological[chronological.length - 1].weight_kg;
     const diff = Math.round((endWeight - startWeight) * 10) / 10;
 
-    const totalWeight = monthlyLogs.reduce((acc, l) => acc + l.weight_kg, 0);
-    const avgWeight = Math.round((totalWeight / monthlyLogs.length) * 10) / 10;
+    const totalWeight = summaryLogs.reduce((acc, l) => acc + l.weight_kg, 0);
+    const avgWeight = Math.round((totalWeight / summaryLogs.length) * 10) / 10;
 
-    const fatLogs = monthlyLogs.filter((l) => l.body_fat_pct);
+    const fatLogs = summaryLogs.filter((l) => l.body_fat_pct);
     const avgFat =
       fatLogs.length > 0
         ? Math.round(
@@ -77,14 +82,14 @@ export default function GymBodyMetricsHistoryPage() {
         : 0;
 
     return {
-      count: monthlyLogs.length,
+      count: summaryLogs.length,
       startWeight,
       endWeight,
       diff,
       avgWeight,
       avgFat,
     };
-  }, [monthlyLogs]);
+  }, [summary.data]);
 
   // Month navigation helpers
   const handlePrevMonth = () => {
@@ -422,6 +427,8 @@ export default function GymBodyMetricsHistoryPage() {
         confirmText="Delete Entry"
         onPress={handleConfirmDelete}
       />
+      <InfiniteListEnd query={query} />
+      <QueryFeedback query={summary} label="monthly statistics" />
     </div>
   );
 }

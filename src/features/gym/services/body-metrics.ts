@@ -1,3 +1,4 @@
+import { listPage, pageRange } from '@/lib/supabase/pagination';
 import {
   readCompleteList,
   requireResult,
@@ -39,16 +40,64 @@ function parseMetric(row: unknown): BodyMetricRow {
 }
 
 export const gymBodyMetricsService = {
-  async fetchLogs(): Promise<BodyMetricRow[]> {
+  async latest(): Promise<BodyMetricRow[]> {
     const { supabase, userId } = await accountService.getClient();
-    const { data } = await readCompleteList(
-      supabase
+    const result = await supabase
+      .from('gym_body_metrics')
+      .select(columns)
+      .eq('user_id', userId)
+      .order('logged_at', { ascending: false })
+      .order('id')
+      .limit(1);
+    return requireResult(result, 'Could not load body metrics.').map(parseMetric);
+  },
+  async list(page: number, month: string, signal: AbortSignal) {
+    z.string()
+      .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+      .parse(month);
+    const { supabase, userId } = await accountService.getClient();
+    const nextMonth = new Date(
+      Number(month.slice(0, 4)),
+      Number(month.slice(5)),
+      1,
+    ).toLocaleDateString('en-CA');
+    const result = listPage(
+      await supabase
         .from('gym_body_metrics')
         .select(columns, { count: 'exact' })
         .eq('user_id', userId)
-        .order('logged_at')
-        .order('id'),
+        .gte('logged_at', `${month}-01`)
+        .lt('logged_at', nextMonth)
+        .order('logged_at', { ascending: false })
+        .order('id')
+        .range(...pageRange(page))
+        .abortSignal(signal),
+      page,
     );
+    return { ...result, rows: result.rows.map(parseMetric) };
+  },
+
+  async fetchLogs(month?: string, summary = false, signal?: AbortSignal): Promise<BodyMetricRow[]> {
+    const { supabase, userId } = await accountService.getClient();
+    let request = supabase
+      .from('gym_body_metrics')
+      .select(summary ? 'id,logged_at,weight_kg,body_fat_pct' : columns, { count: 'exact' })
+      .eq('user_id', userId)
+      .order('logged_at')
+      .order('id');
+    if (month) {
+      z.string()
+        .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+        .parse(month);
+      const nextMonth = new Date(
+        Number(month.slice(0, 4)),
+        Number(month.slice(5)),
+        1,
+      ).toLocaleDateString('en-CA');
+      request = request.gte('logged_at', `${month}-01`).lt('logged_at', nextMonth);
+    }
+    if (signal) request = request.abortSignal(signal);
+    const { data } = await readCompleteList(request);
     return data.map(parseMetric);
   },
 

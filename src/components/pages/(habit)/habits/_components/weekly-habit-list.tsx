@@ -1,22 +1,26 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitList } from '@/features/habits/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { WeeklyHabitCard } from './weekly-habit-card';
 import { startOfWeek, addDays } from 'date-fns';
 
-export function WeeklyHabitList({ limit }: { limit?: number }) {
-  const { habits, isLoaded } = useHabitStore();
+export function WeeklyHabitList() {
+  const query = useHabitList();
+  const { habits, isLoaded } = query;
 
   const displayedHabits = useMemo(() => {
-    return limit ? habits.slice(0, limit) : habits;
-  }, [habits, limit]);
+    return habits;
+  }, [habits]);
 
   const weekDates = useMemo(() => {
     // startOfWeek(date, { weekStartsOn: 1 }) sets Monday as the first day of the week
     const monday = startOfWeek(new Date(), { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
   }, []);
+
+  if (query.isError) return <InfiniteListEnd query={query} />;
 
   if (!isLoaded) {
     return <div className="p-8 text-center text-muted-foreground">Loading habits...</div>;
@@ -35,6 +39,7 @@ export function WeeklyHabitList({ limit }: { limit?: number }) {
       {displayedHabits.map((habit) => (
         <WeeklyHabitCard key={habit.id} habit={habit} weekDates={weekDates} />
       ))}
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

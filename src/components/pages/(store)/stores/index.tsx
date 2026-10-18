@@ -1,22 +1,22 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Mic, Camera, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useMediaStore } from '@/store/use-media-store';
+import { useMediaList, useMediaActions, useMediaCounts } from '@/features/media/services/queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { MediaCard } from '../_components/media-card';
 
 export default function StoreAllPage() {
   const router = useRouter();
-  const { mediaEntries, deleteMediaEntry, fetchFromSupabase } = useMediaStore();
-
-  useEffect(() => {
-    fetchFromSupabase();
-  }, [fetchFromSupabase]);
-
-  const voiceCount = mediaEntries.filter((e) => e.type === 'voice').length;
-  const photoCount = mediaEntries.filter((e) => e.type === 'photo').length;
-  const videoCount = mediaEntries.filter((e) => e.type === 'video').length;
+  const query = useMediaList();
+  const { mediaEntries } = query;
+  const { deleteMediaEntry } = useMediaActions();
+  const counts = useMediaCounts();
+  const voiceCount = counts.data?.voice ?? 0;
+  const photoCount = counts.data?.photo ?? 0;
+  const videoCount = counts.data?.video ?? 0;
 
   const sortedEntries = [...mediaEntries].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -67,18 +67,14 @@ export default function StoreAllPage() {
       <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 shadow-xs border border-gray-100 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
           <h2 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-violet-600" /> Recent Media ({mediaEntries.length})
+            <Sparkles className="w-4 h-4 text-violet-600" /> Recent Media ({query.total})
           </h2>
         </div>
 
         {sortedEntries.length > 0 ? (
           <div className="space-y-3">
             {sortedEntries.map((entry) => (
-              <MediaCard
-                key={entry.id}
-                entry={entry}
-                onDelete={deleteMediaEntry}
-              />
+              <MediaCard key={entry.id} entry={entry} onDelete={deleteMediaEntry} />
             ))}
           </div>
         ) : (
@@ -113,6 +109,8 @@ export default function StoreAllPage() {
           </div>
         )}
       </div>
+      <InfiniteListEnd query={query} />
+      <QueryFeedback query={counts} label="media counts" />
     </div>
   );
 }

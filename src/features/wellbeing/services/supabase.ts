@@ -1,3 +1,5 @@
+import { accountService } from '@/lib/supabase/account-client';
+import { listPage, pageRange } from '@/lib/supabase/pagination';
 import { z } from 'zod';
 import {
   appLimitSchema,
@@ -66,10 +68,74 @@ export interface WellbeingDashboardRows {
 }
 
 export const digitalWellbeingService = {
-  async fetchDashboard(): Promise<WellbeingDashboardRows> {
+  async focusPage(page: number, signal: AbortSignal) {
+    const { supabase: client, userId } = await accountService.getClient();
+    const result = listPage(
+      await client
+        .from('digital_wellbeing_focus_sessions')
+        .select('id,started_at,completed_duration_seconds,status', { count: 'exact' })
+        .eq('user_id', userId)
+        .order('started_at', { ascending: false })
+        .order('id')
+        .range(...pageRange(page))
+        .abortSignal(signal),
+      page,
+    );
+    const sessions = z
+      .array(
+        z.object({
+          id: z.string(),
+          started_at: z.string(),
+          completed_duration_seconds: z.number(),
+          status: z.enum(['ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED']),
+        }),
+      )
+      .parse(result.rows);
+    const apps = sessions.length
+      ? await readCompleteList(
+          client
+            .from('digital_wellbeing_focus_session_apps')
+            .select('id,focus_session_id,app_name', { count: 'exact' })
+            .in(
+              'focus_session_id',
+              sessions.map((row) => row.id),
+            )
+            .order('id')
+            .abortSignal(signal),
+        )
+      : { data: [] };
+    return {
+      ...result,
+      rows: sessions.map((row) => ({
+        id: row.id,
+        startedAt: row.started_at,
+        durationSeconds: row.completed_duration_seconds,
+        status: row.status,
+        apps: apps.data
+          .filter((app) => app.focus_session_id === row.id)
+          .map((app) => String(app.app_name)),
+      })),
+    };
+  },
+
+  async fetchDashboard(
+    days = 30,
+    sections?: (keyof WellbeingDashboardRows)[],
+    signal?: AbortSignal,
+  ): Promise<WellbeingDashboardRows> {
     const userId = await requireUserId();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - Math.max(0, days - 1));
+    const from = cutoff.toLocaleDateString('en-CA');
+    const has = (section: keyof WellbeingDashboardRows) => !sections || sections.includes(section);
+    const read = <T>(
+      section: keyof WellbeingDashboardRows,
+      query: Parameters<typeof readCompleteList<T>>[0],
+    ) =>
+      has(section) ? readCompleteList(query) : Promise.resolve({ data: [] as T[], error: null });
     const results = await Promise.all([
-      readCompleteList(
+      read(
+        'dailyUsage',
         supabase
           .from('digital_wellbeing_daily_usage')
           .select(
@@ -77,10 +143,13 @@ export const digitalWellbeingService = {
             { count: 'exact' },
           )
           .eq('user_id', userId)
+          .gte('usage_date', from)
           .order('usage_date')
-          .order('id'),
+          .order('id')
+          .abortSignal(signal ?? new AbortController().signal),
       ),
-      readCompleteList(
+      read(
+        'appUsage',
         supabase
           .from('digital_wellbeing_app_usage')
           .select(
@@ -88,10 +157,13 @@ export const digitalWellbeingService = {
             { count: 'exact' },
           )
           .eq('user_id', userId)
+          .gte('usage_date', from)
           .order('usage_date')
-          .order('id'),
+          .order('id')
+          .abortSignal(signal ?? new AbortController().signal),
       ),
-      readCompleteList(
+      read(
+        'appLimits',
         supabase
           .from('digital_wellbeing_app_limits')
           .select(
@@ -100,9 +172,11 @@ export const digitalWellbeingService = {
           )
           .eq('user_id', userId)
           .order('created_at')
-          .order('id'),
+          .order('id')
+          .abortSignal(signal ?? new AbortController().signal),
       ),
-      readCompleteList(
+      read(
+        'focusSessions',
         supabase
           .from('digital_wellbeing_focus_sessions')
           .select(
@@ -111,15 +185,19 @@ export const digitalWellbeingService = {
           )
           .eq('user_id', userId)
           .order('started_at', { ascending: false })
-          .order('id'),
+          .order('id')
+          .abortSignal(signal ?? new AbortController().signal),
       ),
-      readCompleteList(
+      read(
+        'focusSessionApps',
         supabase
           .from('digital_wellbeing_focus_session_apps')
           .select('id, focus_session_id, app_identifier, app_name, created_at', { count: 'exact' })
-          .order('id'),
+          .order('id')
+          .abortSignal(signal ?? new AbortController().signal),
       ),
-      readCompleteList(
+      read(
+        'challenges',
         supabase
           .from('digital_wellbeing_challenges')
           .select(
@@ -128,9 +206,11 @@ export const digitalWellbeingService = {
           )
           .eq('is_active', true)
           .order('created_at')
-          .order('id'),
+          .order('id')
+          .abortSignal(signal ?? new AbortController().signal),
       ),
-      readCompleteList(
+      read(
+        'userChallenges',
         supabase
           .from('digital_wellbeing_user_challenges')
           .select(
@@ -139,23 +219,29 @@ export const digitalWellbeingService = {
           )
           .eq('user_id', userId)
           .order('started_at', { ascending: false })
-          .order('id'),
+          .order('id')
+          .abortSignal(signal ?? new AbortController().signal),
       ),
-      supabase
-        .from('digital_wellbeing_settings')
-        .select(
-          'id, user_id, daily_screen_time_goal_seconds, daily_focus_goal_seconds, daily_pickup_goal, screen_time_warning_enabled, excessive_usage_warning_enabled, app_limit_warning_enabled, default_focus_duration_seconds, focus_notifications_enabled, allow_emergency_focus_break, daily_summary_enabled, weekly_report_enabled, monthly_report_enabled, data_retention_days, created_at, updated_at',
-        )
-        .eq('user_id', userId)
-        .maybeSingle(),
-      supabase
-        .from('digital_wellbeing_bedtime_settings')
-        .select(
-          'id, user_id, bedtime, wake_time, active_days, bedtime_reminder_enabled, reduce_notifications, reduce_distracting_apps, grayscale_enabled, created_at, updated_at',
-        )
-        .eq('user_id', userId)
-        .maybeSingle(),
-      readCompleteList(
+      has('settings')
+        ? supabase
+            .from('digital_wellbeing_settings')
+            .select(
+              'id, user_id, daily_screen_time_goal_seconds, daily_focus_goal_seconds, daily_pickup_goal, screen_time_warning_enabled, excessive_usage_warning_enabled, app_limit_warning_enabled, default_focus_duration_seconds, focus_notifications_enabled, allow_emergency_focus_break, daily_summary_enabled, weekly_report_enabled, monthly_report_enabled, data_retention_days, created_at, updated_at',
+            )
+            .eq('user_id', userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      has('bedtime')
+        ? supabase
+            .from('digital_wellbeing_bedtime_settings')
+            .select(
+              'id, user_id, bedtime, wake_time, active_days, bedtime_reminder_enabled, reduce_notifications, reduce_distracting_apps, grayscale_enabled, created_at, updated_at',
+            )
+            .eq('user_id', userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      read(
+        'insights',
         supabase
           .from('digital_wellbeing_insights')
           .select(
@@ -163,8 +249,10 @@ export const digitalWellbeingService = {
             { count: 'exact' },
           )
           .eq('user_id', userId)
+          .gte('insight_date', from)
           .order('insight_date', { ascending: false })
-          .order('id'),
+          .order('id')
+          .abortSignal(signal ?? new AbortController().signal),
       ),
     ]);
     results.forEach(({ error }) => throwIfError(error));

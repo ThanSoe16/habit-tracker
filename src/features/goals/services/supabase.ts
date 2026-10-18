@@ -1,3 +1,4 @@
+import { listPage, pageRange } from '@/lib/supabase/pagination';
 import { z } from 'zod';
 import { accountService } from '@/lib/supabase/account-client';
 import { DataRequestError, readCompleteList, requireResult } from '@/lib/supabase/request';
@@ -106,6 +107,50 @@ function goalPayload(value: Goal) {
 }
 
 export const goalsService = {
+  async detail(id: string, signal: AbortSignal): Promise<Goal | null> {
+    const goalId = uuid.parse(id);
+    const { supabase, userId } = await accountService.getClient();
+    const result = await supabase
+      .from('goals')
+      .select(columns)
+      .eq('user_id', userId)
+      .eq('id', goalId)
+      .abortSignal(signal)
+      .maybeSingle();
+    if (result.error) throw new DataRequestError('Could not load this goal.', result.error);
+    return result.data ? mapGoal(result.data) : null;
+  },
+  async list(page: number, completed: boolean, signal: AbortSignal) {
+    const range = pageRange(page);
+    const { supabase, userId } = await accountService.getClient();
+    let request = supabase.from('goals').select(columns, { count: 'exact' }).eq('user_id', userId);
+    request = completed ? request.eq('status', 'completed') : request.neq('status', 'completed');
+    const result = listPage(
+      await request
+        .order(completed ? 'completed_at' : 'updated_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range(...range)
+        .abortSignal(signal),
+      page,
+    );
+    return { ...result, rows: result.rows.map(mapGoal) };
+  },
+  async settings() {
+    const { supabase, userId } = await accountService.getClient();
+    const result = await supabase
+      .from('goal_settings')
+      .select('show_completed_on_home')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (result.error) throw new DataRequestError('Could not load goal settings.', result.error);
+    return {
+      userId,
+      settings: goalSettingsSchema.parse({
+        showCompletedOnHome: result.data?.show_completed_on_home ?? true,
+      }),
+    };
+  },
+
   async fetchSnapshot(): Promise<{ userId: string; goals: Goal[]; settings: GoalSettings }> {
     const { supabase, userId } = await accountService.getClient();
     const { data } = await readCompleteList(

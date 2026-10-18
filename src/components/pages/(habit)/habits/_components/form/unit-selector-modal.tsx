@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronLeft, Search, Check, Edit2, Plus, Trash2, X } from 'lucide-react';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitUnits } from '@/features/habits/services/units';
 import { MOST_POPULAR_UNITS, CATEGORIZED_UNITS } from '@/features/habits/units/data';
 import { cn } from '@/utils/cn';
 
@@ -21,7 +21,7 @@ export function UnitSelectorModal({
   selectedUnit,
   onSelectUnit,
 }: UnitSelectorModalProps) {
-  const { customUnits, addCustomUnit, updateCustomUnit, deleteCustomUnit } = useHabitStore();
+  const { customUnits, addCustomUnit, updateCustomUnit, deleteCustomUnit } = useHabitUnits();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingCustom, setIsAddingCustom] = useState(false);
@@ -81,7 +81,9 @@ export function UnitSelectorModal({
           >
             <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
-          <DrawerTitle className="text-lg font-bold text-gray-900 dark:text-white">Unit</DrawerTitle>
+          <DrawerTitle className="text-lg font-bold text-gray-900 dark:text-white">
+            Unit
+          </DrawerTitle>
           <div className="w-9" />
         </div>
 
@@ -171,7 +173,7 @@ export function UnitSelectorModal({
                       'flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-colors',
                       isSelected
                         ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold'
-                        : 'hover:bg-white dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300 font-medium'
+                        : 'hover:bg-white dark:hover:bg-zinc-800 text-gray-700 dark:text-gray-300 font-medium',
                     )}
                   >
                     <span>{cUnit}</span>
@@ -221,7 +223,7 @@ export function UnitSelectorModal({
                         'w-full flex items-center justify-between px-4 py-3.5 text-sm font-medium transition-colors text-left',
                         isSelected
                           ? 'bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold'
-                          : 'hover:bg-white dark:hover:bg-zinc-800 text-gray-800 dark:text-gray-200'
+                          : 'hover:bg-white dark:hover:bg-zinc-800 text-gray-800 dark:text-gray-200',
                       )}
                     >
                       <span>{unit}</span>
@@ -258,7 +260,7 @@ export function UnitSelectorModal({
                           'w-full flex items-center justify-between px-4 py-3.5 text-sm font-medium transition-colors text-left',
                           isSelected
                             ? 'bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold'
-                            : 'hover:bg-white dark:hover:bg-zinc-800 text-gray-800 dark:text-gray-200'
+                            : 'hover:bg-white dark:hover:bg-zinc-800 text-gray-800 dark:text-gray-200',
                         )}
                       >
                         <span>{unit}</span>

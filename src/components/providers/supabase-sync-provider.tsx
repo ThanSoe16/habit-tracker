@@ -1,10 +1,11 @@
 'use client';
+import { ReactQueryProvider } from './query-provider';
 
 import { useFocusSessionStore } from '@/features/wellbeing/store/use-focus-session-store';
 import { partitionStore } from '@/lib/supabase/partition-store';
 import { useSettingsSync } from '@/features/settings/sync-status';
 import { partitionIdentityStores, setIdentityScope } from '@/lib/supabase/identity-scope';
-import { useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useHabitStore } from '@/store/use-habit-store';
 import { useUserStore } from '@/store/use-user-store';
@@ -14,7 +15,6 @@ import { useBudgetStore } from '@/store/use-budget-store';
 import { useMediaStore } from '@/store/use-media-store';
 import { useDigitalWellbeingStore } from '@/store/use-digital-wellbeing-store';
 import { useGoalsStore } from '@/features/goals/store/use-goals-store';
-import { activateGoalsSync, isGoalsSyncActive } from '@/features/goals/store/goals-sync';
 
 type SyncTarget =
   | 'habits'
@@ -25,7 +25,9 @@ type SyncTarget =
   | 'budget'
   | 'wellbeing-store'
   | 'wellbeing-event'
-  | 'goals';
+  | 'goals'
+  | 'savings'
+  | 'relationship-funds';
 
 type RealtimeTarget = {
   table: string;
@@ -34,6 +36,9 @@ type RealtimeTarget = {
 };
 
 const REALTIME_TARGETS: RealtimeTarget[] = [
+  { table: 'relationship_fund_transactions', sync: 'relationship-funds', userScoped: true },
+  { table: 'savings_goals', sync: 'savings', userScoped: true },
+  { table: 'savings_transactions', sync: 'savings', userScoped: true },
   { table: 'habits', sync: 'habits', userScoped: true },
   { table: 'custom_units', sync: 'habits', userScoped: true },
   { table: 'user_profiles', sync: 'user', userScoped: true },
@@ -69,17 +74,11 @@ const REALTIME_TARGETS: RealtimeTarget[] = [
   { table: 'digital_wellbeing_insights', sync: 'wellbeing-event', userScoped: true },
 ];
 
-const INITIAL_SYNCS = [
-  ['habits', () => useHabitStore.getState().fetchFromSupabase()],
-  ['user', () => useUserStore.getState().fetchFromSupabase()],
-  ['mood', () => useMoodStore.getState().fetchFromSupabase()],
-  ['gym', () => useGymStore.getState().fetchFromSupabase()],
-  ['budget', () => useBudgetStore.getState().fetchFromSupabase()],
-  ['media', () => useMediaStore.getState().fetchFromSupabase()],
-  ['wellbeing', () => useDigitalWellbeingStore.getState().fetchFromSupabase()],
-] as const;
+const SyncIdentity = createContext<string | null>(null);
+export const useSyncIdentity = () => useContext(SyncIdentity);
 
 export function SupabaseSyncProvider({ children }: { children: React.ReactNode }) {
+  const [readyUserId, setReadyUserId] = useState<string | null>(null);
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development' || !('serviceWorker' in navigator)) return;
 
@@ -100,45 +99,17 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     let authObserved = false;
     const refreshTimers = new Map<SyncTarget, number>();
 
-    const syncActions: Record<SyncTarget, () => void | Promise<void>> = {
-      habits: () => useHabitStore.getState().fetchFromSupabase(),
-      user: () => useUserStore.getState().fetchFromSupabase(),
-      mood: () => useMoodStore.getState().fetchFromSupabase(),
-      media: () => useMediaStore.getState().fetchFromSupabase(),
-      gym: () => useGymStore.getState().fetchFromSupabase(),
-      budget: () => useBudgetStore.getState().fetchFromSupabase(),
-      goals: () => {
-        if (isGoalsSyncActive()) return useGoalsStore.getState().fetchFromSupabase();
-      },
-      'wellbeing-store': () => useDigitalWellbeingStore.getState().fetchFromSupabase(),
-      'wellbeing-event': () => {
-        window.dispatchEvent(new Event('digital-wellbeing-change'));
-      },
-    };
-
     function scheduleSync(target: SyncTarget) {
       const currentTimer = refreshTimers.get(target);
       if (currentTimer) window.clearTimeout(currentTimer);
 
       const timer = window.setTimeout(() => {
         refreshTimers.delete(target);
-        Promise.resolve(syncActions[target]()).catch((error) => {
-          console.warn(`Unable to refresh ${target} after realtime change:`, error);
-        });
+        window.dispatchEvent(new CustomEvent('server-data-change', { detail: target }));
+        if (target === 'wellbeing-event')
+          window.dispatchEvent(new Event('digital-wellbeing-change'));
       }, 250);
       refreshTimers.set(target, timer);
-    }
-
-    async function syncAllStores() {
-      await Promise.all(
-        INITIAL_SYNCS.map(async ([name, sync]) => {
-          try {
-            await sync();
-          } catch (error) {
-            console.warn(`Unable to perform initial ${name} sync:`, error);
-          }
-        }),
-      );
     }
 
     function startRealtimeSync(userId: string) {
@@ -165,7 +136,8 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     }
 
     function partitionAccounts(userId: string | null) {
-      let goalsHydration: void | Promise<void> = undefined;
+      const hydrations: Array<void | Promise<void>> = [];
+      setReadyUserId(null);
       setIdentityScope(userId);
       if ('serviceWorker' in navigator) {
         void navigator.serviceWorker.ready
@@ -181,42 +153,45 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
         useMoodStore.setState(useMoodStore.getInitialState(), true);
         useGymStore.setState(useGymStore.getInitialState(), true);
         useSettingsSync.setState(useSettingsSync.getInitialState(), true);
-        goalsHydration = partitionStore(
-          useGoalsStore,
-          `goals:${userId ?? 'signed-out'}`,
-          Boolean(userId),
+        hydrations.push(
+          partitionStore(useGoalsStore, `goals:${userId ?? 'signed-out'}`, Boolean(userId)),
         );
-        void partitionStore(useBudgetStore, `budget:${userId ?? 'signed-out'}`, Boolean(userId));
-        void partitionStore(useMediaStore, `media:${userId ?? 'signed-out'}`, Boolean(userId));
+        hydrations.push(
+          partitionStore(useBudgetStore, `budget:${userId ?? 'signed-out'}`, Boolean(userId)),
+        );
+        hydrations.push(
+          partitionStore(useMediaStore, `media:${userId ?? 'signed-out'}`, Boolean(userId)),
+        );
       });
       // Preserve old/unassigned storage. Never import another account's pending data.
-      void partitionStore(
-        useDigitalWellbeingStore,
-        `digital-wellbeing:${userId ?? 'signed-out'}`,
-        Boolean(userId),
+      hydrations.push(
+        partitionStore(
+          useDigitalWellbeingStore,
+          `digital-wellbeing:${userId ?? 'signed-out'}`,
+          Boolean(userId),
+        ),
       );
-      void partitionStore(
-        useFocusSessionStore,
-        `focus-session:${userId ?? 'signed-out'}`,
-        Boolean(userId),
+      hydrations.push(
+        partitionStore(
+          useFocusSessionStore,
+          `focus-session:${userId ?? 'signed-out'}`,
+          Boolean(userId),
+        ),
       );
-      return Promise.resolve(goalsHydration);
+      return Promise.all(hydrations);
     }
 
     function syncForUser(userId: string) {
       if (syncedUserId === userId) return;
       clearUserSync();
-      const goalsHydration = partitionAccounts(userId);
+      const hydration = partitionAccounts(userId);
       syncedUserId = userId;
       startRealtimeSync(userId);
-      void syncAllStores();
-      void goalsHydration
-        .then(async () => {
-          if (syncedUserId !== userId) return;
-          activateGoalsSync();
-          await useGoalsStore.getState().fetchFromSupabase();
+      void hydration
+        .then(() => {
+          if (!cancelled && syncedUserId === userId) setReadyUserId(userId);
         })
-        .catch((error) => console.warn('Unable to sync goals:', error));
+        .catch((error) => console.warn('Unable to open account data:', error));
     }
 
     function clearUserSync() {
@@ -244,17 +219,6 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     }
 
     void checkAuthStatus();
-    const mediaRefresh = window.setInterval(
-      () => {
-        if (syncedUserId) {
-          scheduleSync('media');
-          scheduleSync('gym');
-          scheduleSync('user');
-        }
-      },
-      30 * 60 * 1000,
-    );
-
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       authObserved = true;
       const user = session?.user || null;
@@ -268,11 +232,16 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
 
     return () => {
       cancelled = true;
-      window.clearInterval(mediaRefresh);
       clearUserSync();
       authListener.subscription.unsubscribe();
     };
   }, []);
 
-  return <>{children}</>;
+  return (
+    <SyncIdentity.Provider value={readyUserId}>
+      <ReactQueryProvider key={readyUserId ?? 'signed-out'} userId={readyUserId}>
+        {children}
+      </ReactQueryProvider>
+    </SyncIdentity.Provider>
+  );
 }

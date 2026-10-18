@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { PieChart, Mic, Image as ImageIcon, Video, HardDrive, Sparkles } from 'lucide-react';
-import { useMediaStore } from '@/store/use-media-store';
+import { useMediaReport } from '@/features/media/services/queries';
 
 export default function StoreGeneralsReportPage() {
-  const { mediaEntries } = useMediaStore();
+  const { mediaEntries } = useMediaReport();
 
   const totalFiles = mediaEntries.length;
   const totalSizeBytes = mediaEntries.reduce((acc, curr) => acc + (curr.fileSize || 0), 0);
@@ -93,13 +93,19 @@ export default function StoreGeneralsReportPage() {
                 <Mic className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-extrabold text-gray-900 dark:text-white">Voice Memos</h4>
+                <h4 className="text-sm font-extrabold text-gray-900 dark:text-white">
+                  Voice Memos
+                </h4>
                 <p className="text-xs text-gray-400 font-medium">{voiceEntries.length} files</p>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-sm font-extrabold text-gray-900 dark:text-white">{formatSize(voiceSize)}</span>
-              <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{getPct(voiceSize)}%</p>
+              <span className="text-sm font-extrabold text-gray-900 dark:text-white">
+                {formatSize(voiceSize)}
+              </span>
+              <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                {getPct(voiceSize)}%
+              </p>
             </div>
           </div>
 
@@ -115,8 +121,12 @@ export default function StoreGeneralsReportPage() {
               </div>
             </div>
             <div className="text-right">
-              <span className="text-sm font-extrabold text-gray-900 dark:text-white">{formatSize(photoSize)}</span>
-              <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400">{getPct(photoSize)}%</p>
+              <span className="text-sm font-extrabold text-gray-900 dark:text-white">
+                {formatSize(photoSize)}
+              </span>
+              <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                {getPct(photoSize)}%
+              </p>
             </div>
           </div>
 
@@ -132,8 +142,12 @@ export default function StoreGeneralsReportPage() {
               </div>
             </div>
             <div className="text-right">
-              <span className="text-sm font-extrabold text-gray-900 dark:text-white">{formatSize(videoSize)}</span>
-              <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400">{getPct(videoSize)}%</p>
+              <span className="text-sm font-extrabold text-gray-900 dark:text-white">
+                {formatSize(videoSize)}
+              </span>
+              <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400">
+                {getPct(videoSize)}%
+              </p>
             </div>
           </div>
         </div>

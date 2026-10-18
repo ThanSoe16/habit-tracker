@@ -1,4 +1,6 @@
 'use client';
+import { useGoalList } from '@/features/goals/services/queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import { Clock3 } from 'lucide-react';
 import { useGoalsStore } from '@/features/goals/store/use-goals-store';
@@ -16,7 +18,8 @@ function sortCompletedGoals(goals: Goal[]) {
 }
 
 export default function GoalsHistoryPage() {
-  const goals = useGoalsStore((state) => state.goals);
+  const query = useGoalList(true);
+  const goals = query.goals;
   const addSaving = useGoalsStore((state) => state.addSaving);
   const addSubIdea = useGoalsStore((state) => state.addSubIdea);
   const toggleSubIdea = useGoalsStore((state) => state.toggleSubIdea);
@@ -30,9 +33,7 @@ export default function GoalsHistoryPage() {
   return (
     <section className="flex flex-col gap-3">
       <div className="px-1">
-        <p className="text-sm font-bold text-muted-foreground">
-          {completedGoals.length} completed goals
-        </p>
+        <p className="text-sm font-bold text-muted-foreground">{query.total} completed goals</p>
       </div>
 
       {completedGoals.length > 0 ? (
@@ -63,6 +64,7 @@ export default function GoalsHistoryPage() {
           </div>
         </div>
       )}
+      <InfiniteListEnd query={query} />
     </section>
   );
 }

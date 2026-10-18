@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
-import { ReactQueryProvider } from './query-provider';
+import { RouteSyncProvider } from './route-sync-provider';
 import { supabase } from '@/lib/supabase/client';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -73,9 +73,5 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return (
-    <ReactQueryProvider key={userId} userId={userId}>
-      {children}
-    </ReactQueryProvider>
-  );
+  return <RouteSyncProvider key={userId}>{children}</RouteSyncProvider>;
 }

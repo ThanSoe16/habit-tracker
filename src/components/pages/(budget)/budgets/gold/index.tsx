@@ -1,4 +1,7 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
+import { useBudgetList, useGoldSummary } from '@/features/budget/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useMemo, useState } from 'react';
 import { Calendar, Gem, Plus, Scale, TrendingDown, TrendingUp, Trash2, X } from 'lucide-react';
@@ -67,20 +70,24 @@ export default function GoldPage() {
   const [sellPrice, setSellPrice] = useState('');
   const [soldDate, setSoldDate] = useState(today());
 
+  const query = useBudgetList('gold', { status: filter });
+  const summary = useGoldSummary();
   const filteredHoldings = useMemo(
     () =>
       goldHoldings
-        .filter((holding) => filter === 'all' || holding.status === filter)
+        .filter(
+          (holding) => query.ids.has(holding.id) && (filter === 'all' || holding.status === filter),
+        )
         .sort((a, b) => new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()),
-    [filter, goldHoldings],
+    [filter, goldHoldings, query.ids],
   );
 
-  const activeHoldings = goldHoldings.filter((holding) => holding.status === 'holding');
+  const activeHoldings = (summary.data ?? []).filter((holding) => holding.status === 'holding');
   const activeYway = activeHoldings.reduce(
     (sum, holding) => sum + holding.kyat * 128 + holding.pae * 8 + holding.yway,
     0,
   );
-  const realizedProfit = goldHoldings
+  const realizedProfit = (summary.data ?? [])
     .filter((holding) => holding.status === 'sold' && holding.currency === 'MMK')
     .reduce((sum, holding) => sum + (holding.sellPrice || 0) - holding.buyPrice, 0);
 
@@ -494,6 +501,8 @@ export default function GoldPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <InfiniteListEnd query={query} />
+      <QueryFeedback query={summary} label="gold totals" />
     </div>
   );
 }

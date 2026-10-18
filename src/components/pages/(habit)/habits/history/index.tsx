@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { type Habit, useHabitStore } from '@/store/use-habit-store';
+import type { Habit } from '@/features/habits/types';
+import { useHabitReport } from '@/features/habits/services/list-queries';
 import { cn } from '@/utils/cn';
 
 type HabitHistoryItem = {
@@ -42,9 +43,10 @@ function getProgressText(item: HabitHistoryItem) {
 
   if ((habit.unitType === 'time' || habit.unitType === 'duration') && timeTaken) {
     const unitLabel = habit.timeUnit || 'min';
-    const timerLabel = habit.unitType === 'duration' && habit.timerMode
-      ? ` (${habit.timerMode === 'down' ? 'Count Down' : 'Count Up'})`
-      : '';
+    const timerLabel =
+      habit.unitType === 'duration' && habit.timerMode
+        ? ` (${habit.timerMode === 'down' ? 'Count Down' : 'Count Up'})`
+        : '';
 
     return `${timeTaken} / ${habit.goalValue || 1} ${unitLabel}${timerLabel}`;
   }
@@ -70,7 +72,7 @@ function buildHistoryItems(habits: Habit[]) {
 
 export default function HabitHistoryPage() {
   const router = useRouter();
-  const { habits, isLoaded, loadError } = useHabitStore();
+  const { habits, isLoaded, loadError } = useHabitReport();
   const [monthFilter, setMonthFilter] = useState('all');
 
   const historyItems = useMemo(() => buildHistoryItems(habits), [habits]);
@@ -189,7 +191,11 @@ export default function HabitHistoryPage() {
             <p className="mt-2 text-sm font-medium text-muted-foreground">
               Complete a habit and it will appear here.
             </p>
-            <Button type="button" className="mt-5 rounded-full" onClick={() => router.push('/habits/today')}>
+            <Button
+              type="button"
+              className="mt-5 rounded-full"
+              onClick={() => router.push('/habits/today')}
+            >
               Go to Today
             </Button>
           </div>

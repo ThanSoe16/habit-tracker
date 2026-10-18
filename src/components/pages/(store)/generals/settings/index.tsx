@@ -4,10 +4,10 @@ import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FieldDescription } from '@/components/ui/field';
 import { AppSettingsLink, SettingsSection } from '@/components/settings/settings-controls';
-import { useMediaStore } from '@/store/use-media-store';
+import { useMediaReport } from '@/features/media/services/queries';
 
 export default function StoreGeneralsSettingsPage() {
-  const { mediaEntries, lastSyncedAt, syncError, fetchFromSupabase } = useMediaStore();
+  const { mediaEntries, lastSyncedAt, syncError, fetchFromSupabase } = useMediaReport();
   const [refreshing, setRefreshing] = useState(false);
   const refresh = async () => {
     setRefreshing(true);

@@ -19,9 +19,7 @@ const habitsApiService = {
 
   getHabitById: async (id: string): Promise<Habit | null> => {
     const recordId = habitRecordSchema.shape.id.parse(id);
-    const habits = await habitsService.fetchHabits();
-    if (!habits) throw new Error('Could not load the habit. Please try again.');
-    return habits.find((h) => h.id === recordId) ?? null;
+    return habitsService.detail(recordId);
   },
 
   saveHabit: async (habit: Habit): Promise<Habit> => {

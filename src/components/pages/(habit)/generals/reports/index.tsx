@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitReport } from '@/features/habits/services/list-queries';
 import { Calendar, BarChart3, TrendingUp, CheckCircle, Award } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import {
@@ -22,7 +22,7 @@ import {
 type TimeRange = 'weekly' | 'monthly' | 'yearly';
 
 export default function ReportsPage() {
-  const { habits } = useHabitStore();
+  const { habits } = useHabitReport();
   const [timeRange, setTimeRange] = useState<TimeRange>('weekly');
 
   const today = new Date();
@@ -69,8 +69,12 @@ export default function ReportsPage() {
   const yearlyData = yearMonths.map((month) => {
     const monthPrefix = format(month, 'yyyy-MM');
     const count = habits.reduce((acc, h) => {
-      const monthEntries = Object.entries(h.history).filter(([date]) => date.startsWith(monthPrefix));
-      const doneInMonth = monthEntries.filter(([, entry]) => typeof entry === 'boolean' ? entry : !!entry?.completed).length;
+      const monthEntries = Object.entries(h.history).filter(([date]) =>
+        date.startsWith(monthPrefix),
+      );
+      const doneInMonth = monthEntries.filter(([, entry]) =>
+        typeof entry === 'boolean' ? entry : !!entry?.completed,
+      ).length;
       return acc + doneInMonth;
     }, 0);
     return {
@@ -80,7 +84,8 @@ export default function ReportsPage() {
     };
   });
 
-  const activeChartData = timeRange === 'weekly' ? weeklyData : timeRange === 'monthly' ? monthlyData : yearlyData;
+  const activeChartData =
+    timeRange === 'weekly' ? weeklyData : timeRange === 'monthly' ? monthlyData : yearlyData;
   const maxCount = Math.max(5, ...activeChartData.map((d) => d.count));
   const totalCompleted = activeChartData.reduce((acc, d) => acc + d.count, 0);
 
@@ -128,7 +133,9 @@ export default function ReportsPage() {
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-extrabold text-sm text-white capitalize">{timeRange} Summary</h3>
+                <h3 className="font-extrabold text-sm text-white capitalize">
+                  {timeRange} Summary
+                </h3>
                 <p className="text-indigo-100 text-xs font-medium">Performance Overview</p>
               </div>
             </div>
@@ -137,15 +144,21 @@ export default function ReportsPage() {
 
           <div className="grid grid-cols-3 gap-2 border-t border-white/10 pt-3 text-center">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">Total Habits</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">
+                Total Habits
+              </p>
               <p className="text-lg font-black text-white">{habits.length}</p>
             </div>
             <div className="border-x border-white/10">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">Completed</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">
+                Completed
+              </p>
               <p className="text-lg font-black text-white">{totalCompleted}</p>
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">Avg / Period</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">
+                Avg / Period
+              </p>
               <p className="text-lg font-black text-white">
                 {Math.round(totalCompleted / (activeChartData.length || 1))}
               </p>
@@ -160,7 +173,11 @@ export default function ReportsPage() {
               Habits Completed ({timeRange})
             </h2>
             <span className="text-xs font-bold text-gray-400">
-              {timeRange === 'weekly' ? 'This Week' : timeRange === 'monthly' ? format(today, 'MMMM yyyy') : format(today, 'yyyy')}
+              {timeRange === 'weekly'
+                ? 'This Week'
+                : timeRange === 'monthly'
+                  ? format(today, 'MMMM yyyy')
+                  : format(today, 'yyyy')}
             </span>
           </div>
 
@@ -196,7 +213,9 @@ export default function ReportsPage() {
         {/* HABIT COMPLETION RATE LINE CHART */}
         <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-6 border border-gray-100 dark:border-zinc-800 shadow-sm space-y-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-base font-bold text-gray-900 dark:text-white">Completion Rate Trend</h2>
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">
+              Completion Rate Trend
+            </h2>
             <span className="text-xs font-bold text-gray-400">Last 6 Months</span>
           </div>
 
@@ -211,7 +230,11 @@ export default function ReportsPage() {
 
               {/* Line Curve Chart SVG Overlay */}
               <div className="absolute inset-0 left-10 flex items-end">
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 300 120" preserveAspectRatio="none">
+                <svg
+                  className="w-full h-full overflow-visible"
+                  viewBox="0 0 300 120"
+                  preserveAspectRatio="none"
+                >
                   <defs>
                     <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />

@@ -14,7 +14,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/features/budget/store/model';
-import { getFundSummary, type FundTransaction } from '@/features/relationship-funds/types';
+import { getFundSummary } from '@/features/relationship-funds/types';
 import { cn } from '@/utils/cn';
 import styles from '../relationship-funds.module.css';
 
@@ -25,13 +25,13 @@ export function FundSummaryCard({
   onPersonChange,
   onRecord,
 }: {
-  query: UseQueryResult<FundTransaction[]>;
+  query: UseQueryResult<ReturnType<typeof getFundSummary>>;
   disabled: boolean;
   person: 'ALL' | 'TSO' | 'Nway';
   onPersonChange: (person: 'ALL' | 'TSO' | 'Nway') => void;
   onRecord: () => void;
 }) {
-  const summary = query.data ? getFundSummary(query.data) : null;
+  const summary = query.data ?? null;
   return (
     <Card className="gap-4 rounded-4xl border border-border py-6 shadow-xl ring-0">
       <CardHeader className="px-6">

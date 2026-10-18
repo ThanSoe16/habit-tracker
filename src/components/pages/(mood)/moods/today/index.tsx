@@ -1,20 +1,22 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
 
 import React, { useState } from 'react';
 import { MonthNavigator } from '../../_components/month-navigator';
 import { MoodCalendar } from '../../_components/mood-calendar';
 import { MoodEntryDrawer } from '../../_components/mood-entry-drawer';
 import { useUserStore } from '@/store/use-user-store';
-import { useMoodStore } from '@/store/use-mood-store';
+import { useMoodDates } from '@/features/mood/services/queries';
 import { addMonths, subMonths, subDays, format } from 'date-fns';
 
 export default function MoodTodayPage() {
   const showStreak = useUserStore((state) => state.moodSettings.showStreak);
-  const history = useMoodStore((state) => state.history);
+  const dates = useMoodDates();
+  const history = new Set(dates.data ?? []);
   let streak = 0;
   let cursor = new Date();
-  if (!history[format(cursor, 'yyyy-MM-dd')]) cursor = subDays(cursor, 1);
-  while (history[format(cursor, 'yyyy-MM-dd')]) {
+  if (!history.has(format(cursor, 'yyyy-MM-dd'))) cursor = subDays(cursor, 1);
+  while (history.has(format(cursor, 'yyyy-MM-dd'))) {
     streak++;
     cursor = subDays(cursor, 1);
   }
@@ -52,6 +54,7 @@ export default function MoodTodayPage() {
         onClose={() => setIsDrawerOpen(false)}
         selectedDate={selectedDate}
       />
+      <QueryFeedback query={dates} label="mood streak" />
     </div>
   );
 }

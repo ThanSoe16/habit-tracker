@@ -14,6 +14,27 @@ function mockRequests(t, respond) {
     const call = { table, operation: 'read' };
     calls.push(call);
     const query = {
+      match() {
+        return query;
+      },
+      gte() {
+        return query;
+      },
+      lte() {
+        return query;
+      },
+      in() {
+        return query;
+      },
+      or() {
+        return query;
+      },
+      not() {
+        return query;
+      },
+      abortSignal() {
+        return query;
+      },
       order() {
         return query;
       },
@@ -113,7 +134,7 @@ test('failed budget refresh preserves the store snapshot', async (t) => {
   mockRequests(t, () => ({ data: null, error: { message: 'Offline' } }));
   const { useBudgetStore } = await import('../src/store/use-budget-store.ts');
   const before = useBudgetStore.getState();
-  await before.fetchFromSupabase();
+  await assert.rejects(before.fetchFromSupabase(), /Could not load the budget/);
   assert.equal(useBudgetStore.getState(), before);
 });
 
@@ -164,6 +185,10 @@ test('empty record IDs are rejected before issuing requests', async (t) => {
 test('habit read errors differ from a missing record or empty list', async (t) => {
   let result = null;
   t.mock.method(habitsService, 'fetchHabits', async () => result);
+  t.mock.method(habitsService, 'detail', async () => {
+    if (result === null) throw new Error('Could not load the habit');
+    return null;
+  });
   await assert.rejects(habitsApiService.getHabits(), /Could not load your habits/);
   await assert.rejects(habitsApiService.getHabitById('missing'), /Could not load the habit/);
   result = [];
@@ -568,4 +593,83 @@ test('workout save rejects backend errors and missing persisted rows', async (t)
   await assert.rejects(gymService.upsertWorkoutLog('2026-10-05', {}), /Could not save workout/);
   result = { data: null, error: null };
   await assert.rejects(gymService.upsertWorkoutLog('2026-10-05', {}), /Could not save workout/);
+});
+
+test('scoped budget pagination executes only the selected table with ten-row bounds', async (t) => {
+  const executed = [];
+  mockRequests(t, (call) => {
+    executed.push({ ...call });
+    return {
+      data: Array.from({ length: 10 }, (_, i) => ({
+        id: String(i),
+        title: 'Expense',
+        amount: 1,
+        currency: 'THB',
+        date: '2026-10-18',
+      })),
+      count: 25,
+      error: null,
+    };
+  });
+  const result = await budgetReadService.fetchBudgetData(['expenses'], 2, {
+    currency: 'THB',
+    excludeFamily: 'true',
+  });
+  assert.deepEqual(
+    executed.map((call) => [call.table, call.range]),
+    [['expenses', [10, 19]]],
+  );
+  assert.equal(result.budgetEntries.length, 10);
+  assert.equal(result.pageTotal, 25);
+  assert.equal(result.walletBalances, undefined);
+  assert.equal(result.loans, undefined);
+  assert.deepEqual(result.entryTypes, ['expense']);
+});
+
+test('wallet hydration does not trigger transaction or other module reads', async (t) => {
+  const executed = [];
+  mockRequests(t, (call) => {
+    executed.push(call.table);
+    return emptyResult(call);
+  });
+  const result = await budgetReadService.fetchBudgetData(['wallets', 'settings']);
+  assert.deepEqual(executed.sort(), ['budget_settings', 'current_budget']);
+  assert.equal(result.budgetEntries, undefined);
+});
+
+test('a truncated budget page rejects instead of merging an incomplete success', async (t) => {
+  mockRequests(t, () => ({ data: [], count: 25, error: null }));
+  assert.equal(await budgetReadService.fetchBudgetData(['income'], 1), null);
+});
+
+test('paged budget reads merge into the store without clearing unrelated rows or scheduling saves', async (t) => {
+  const { budgetService } = await import('../src/features/budget/services/supabase.ts');
+  const { fetchBudgetPage, useBudgetStore, assertBudgetReadyForTransfer } =
+    await import('../src/store/use-budget-store.ts');
+  const { partitionIdentityStores, setIdentityScope } =
+    await import('../src/lib/supabase/identity-scope.ts');
+  setIdentityScope('pagination-test');
+  const old = {
+    id: 'old',
+    type: 'income',
+    title: 'Existing',
+    amount: 1,
+    currency: 'THB',
+    date: '2026-10-01',
+  };
+  partitionIdentityStores(() => useBudgetStore.setState({ budgetEntries: [old] }));
+  t.mock.method(budgetService, 'fetchBudgetData', async () => ({
+    budgetEntries: [{ ...old, id: 'new', type: 'expense' }],
+    pageTotal: 1,
+    entryTypes: ['expense'],
+  }));
+  const page = await fetchBudgetPage('expenses', 1);
+  assert.deepEqual(page.ids, ['new']);
+  assert.deepEqual(
+    useBudgetStore.getState().budgetEntries.map((row) => row.id),
+    ['old', 'new'],
+  );
+  assert.doesNotThrow(assertBudgetReadyForTransfer);
+  partitionIdentityStores(() => useBudgetStore.setState(useBudgetStore.getInitialState(), true));
+  setIdentityScope(null);
 });

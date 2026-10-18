@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useHabitStore, type Habit } from '@/store/use-habit-store';
+import type { Habit } from '@/features/habits/types';
+import { useTodayHabits } from '@/features/habits/services/list-queries';
+import { useHabitActions } from '@/features/habits/services/actions';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { useUserStore } from '@/store/use-user-store';
 import { HabitCard } from './habit-card';
 import { HabitCompletionDrawer } from './habit-completion-drawer';
 import { HabitCompleteSheet } from './habit-complete-sheet';
 import { HabitTimerModal } from './habit-timer-modal';
-import { isHabitRequiredOnDate } from '@/utils/date-utils';
 import { parseTimeTakenToSeconds, formatTimeTakenDisplay } from '@/utils/time-utils';
 import { parseHabitCount } from '@/features/habits/utils/progress';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -18,12 +20,15 @@ interface HabitListProps {
 }
 
 export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitListProps) {
-  const habits = useHabitStore((state) => state.habits);
-  const toggleHabit = useHabitStore((state) => state.toggleHabit);
-  const removeCompletion = useHabitStore((state) => state.removeCompletion);
-  const isLoaded = useHabitStore((state) => state.isLoaded);
   const homeSettings = useUserStore((state) => state.homeSettings);
-
+  const query = useTodayHabits({
+    date: selectedDate.toLocaleDateString('en-CA'),
+    status: filter,
+    hideCompleted: homeSettings.hideCompleted,
+    sortBy: homeSettings.sortBy,
+  });
+  const { habits, isLoaded } = query;
+  const { toggleHabit, removeCompletion } = useHabitActions();
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
   const [timerHabitId, setTimerHabitId] = useState<string | null>(null);
   const [completionHabitId, setCompletionHabitId] = useState<string | null>(null);
@@ -36,63 +41,22 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
   const timerHabit = timerHabitId ? habits.find((h) => h.id === timerHabitId) || null : null;
   const completionHabit = habits.find((habit) => habit.id === completionHabitId);
 
+  if (query.isError && !habits.length) return <InfiniteListEnd query={query} />;
+
   if (!isLoaded) {
     return <div className="p-8 text-center text-muted-foreground">Loading habits...</div>;
   }
 
-  // Filter habits based on selected date
-  const filteredHabits = habits.filter((habit) => {
-    const selectedDateStr = selectedDate.toLocaleDateString('en-CA');
-    if (habit.startDate && selectedDateStr < habit.startDate) return false;
-    if (habit.endDate && selectedDateStr > habit.endDate) return false;
-    return isHabitRequiredOnDate(habit, selectedDate);
-  });
-
   const dateString = selectedDate.toLocaleDateString('en-CA');
-
-  // Apply filter & hide completed setting
-  const finalFilteredHabits = filteredHabits.filter((habit) => {
-    const entry = habit.history[dateString];
-    const isDone = typeof entry === 'boolean' ? entry : !!entry?.completed;
-
-    if (homeSettings.hideCompleted && isDone) return false;
-    if (filter === 'pending') return !isDone;
-    if (filter === 'completed') return isDone;
-    return true;
-  });
-
-  // Apply sorting preference
-  const sortedHabits = [...finalFilteredHabits].sort((a, b) => {
-    const aEntry = a.history[dateString];
-    const bEntry = b.history[dateString];
-    const aDone = typeof aEntry === 'boolean' ? aEntry : !!aEntry?.completed;
-    const bDone = typeof bEntry === 'boolean' ? bEntry : !!bEntry?.completed;
-
-    if (homeSettings.sortBy === 'alphabetical') {
-      return a.name.localeCompare(b.name);
-    }
-    if (homeSettings.sortBy === 'streak') {
-      return (b.streak || 0) - (a.streak || 0);
-    }
-    if (homeSettings.sortBy === 'status') {
-      if (aDone !== bDone) return aDone ? 1 : -1;
-    }
-    if (homeSettings.sortBy === 'timeOfDay') {
-      const order: Record<string, number> = { morning: 1, afternoon: 2, evening: 3 };
-      const aVal = order[a.timeOfDay || 'morning'] || 4;
-      const bVal = order[b.timeOfDay || 'morning'] || 4;
-      if (aVal !== bVal) return aVal - bVal;
-    }
-
-    // Default / manual order (incomplete first)
-    if (aDone === bDone) return 0;
-    return aDone ? 1 : -1;
-  });
+  const sortedHabits = habits;
 
   if (sortedHabits.length === 0) {
     return (
       <div className="text-center p-10 mt-4 bg-white dark:bg-zinc-900 rounded-[2rem] border border-dashed border-gray-200 dark:border-zinc-800">
-        <p className="text-muted-foreground text-sm font-semibold">No habits for this day.</p>
+        <p className="text-muted-foreground text-sm font-semibold">
+          {query.hasNextPage ? 'Loading habits...' : 'No habits for this day.'}
+        </p>
+        <InfiniteListEnd query={query} />
       </div>
     );
   }
@@ -250,6 +214,8 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
           </div>
         )}
       </div>
+
+      <InfiniteListEnd query={query} />
 
       {completionHabit && (
         <HabitCompleteSheet

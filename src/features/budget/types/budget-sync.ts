@@ -8,6 +8,8 @@ import type {
 } from '@/features/budget/store/model';
 
 export type BudgetData = {
+  pageTotal?: number;
+  entryTypes?: Array<'income' | 'expense' | 'exchange'>;
   walletBalances?: WalletBalances;
   monthlySalaries?: MonthlySalary[];
   budgetEntries?: BudgetEntry[];

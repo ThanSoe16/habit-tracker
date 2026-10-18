@@ -1,4 +1,5 @@
 'use client';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { useEffect, useState } from 'react';
 import { parseAsInteger, useQueryState } from 'nuqs';
 import { Flex } from '@radix-ui/themes';
@@ -8,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQueryIdentity } from '@/components/providers/query-provider';
 import { useBudgetStore } from '@/store/use-budget-store';
-import { useSavings } from '@/features/savings/services/queries';
+import { useInfiniteSavings } from '@/features/savings/services/queries';
 import { SAVINGS_PAGE_SIZE } from '@/features/savings/services/savings-service';
 import type { SavingsGoal } from '@/features/savings/types';
 import { SavingsCard } from './_components/savings-card';
@@ -21,7 +22,16 @@ export default function SavingsPage() {
   const currency = useBudgetStore((state) => state.currency);
   const [requestedPage, setPage] = useQueryState('savingsPage', parseAsInteger.withDefault(1));
   const page = Math.max(1, Math.min(100000, requestedPage));
-  const query = useSavings(page);
+  const infinite = useInfiniteSavings(page);
+  const query = {
+    ...infinite,
+    data: infinite.data
+      ? {
+          rows: infinite.data.pages.flatMap((page) => page.rows),
+          total: infinite.data.pages[0].total,
+        }
+      : undefined,
+  };
   const [creating, setCreating] = useState(false);
   const [action, setAction] = useState<{
     goal: SavingsGoal;
@@ -64,8 +74,8 @@ export default function SavingsPage() {
                 Savings are separate from Available
               </CardTitle>
               <CardDescription className="text-xs leading-relaxed">
-                Adding money here increases In savings and your total Current Balance.
-                Withdrawing reduces both. Your Available amount stays unchanged.
+                Adding money here increases In savings and your total Current Balance. Withdrawing
+                reduces both. Your Available amount stays unchanged.
               </CardDescription>
             </Flex>
           </Flex>
@@ -147,6 +157,7 @@ export default function SavingsPage() {
           }}
         />
       )}
+      <InfiniteListEnd query={infinite} />
       {action?.kind === 'history' && (
         <SavingsHistoryDialog
           key={`${userId}:${action.goal.id}`}

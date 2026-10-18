@@ -34,15 +34,20 @@ export function assertBudgetReadyForTransfer() {
 export async function refreshBudgetAfterTransfer(): Promise<boolean> {
   const accountRevision = identityRevision();
   const revision = budgetSyncScheduler.revision;
-  const remote = await budgetService.fetchBudgetData();
+  const remote = await budgetService.fetchBudgetData(['wallets']);
   assertIdentityRevision(accountRevision);
-  if (!remote || budgetSyncScheduler.hasPending || revision !== budgetSyncScheduler.revision) return false;
+  if (!remote || budgetSyncScheduler.hasPending || revision !== budgetSyncScheduler.revision)
+    return false;
   isApplyingRemoteBudgetState = true;
   try {
-    useBudgetStore.setState({ walletBalances: remote.walletBalances, budgetEntries: remote.budgetEntries });
+    useBudgetStore.setState({
+      walletBalances: remote.walletBalances,
+    });
   } finally {
     isApplyingRemoteBudgetState = false;
   }
+  if (typeof window !== 'undefined')
+    window.dispatchEvent(new CustomEvent('server-data-change', { detail: 'budget' }));
   return true;
 }
 
@@ -594,24 +599,35 @@ export const useBudgetStore = create<BudgetStoreState>()(
           currency: data.currency || state.currency,
         })),
 
-      fetchFromSupabase: async () => {
+      fetchFromSupabase: async (groups) => {
         const accountRevision = identityRevision();
         if (budgetSyncScheduler.hasPending) return;
         const revision = budgetSyncScheduler.revision;
-        const remoteData = await budgetService.fetchBudgetData();
+        const remoteData = await budgetService.fetchBudgetData(groups);
         assertIdentityRevision(accountRevision);
         if (budgetSyncScheduler.hasPending || revision !== budgetSyncScheduler.revision) return;
+        if (!remoteData) throw new Error('Could not load the budget. Please retry.');
         if (remoteData) {
           isApplyingRemoteBudgetState = true;
           try {
             set((state) => ({
               walletBalances: remoteData.walletBalances || state.walletBalances,
               monthlySalaries: remoteData.monthlySalaries || state.monthlySalaries,
-              budgetEntries: remoteData.budgetEntries || state.budgetEntries,
+              budgetEntries: remoteData.budgetEntries
+                ? [
+                    ...state.budgetEntries.filter(
+                      (entry) =>
+                        !(remoteData.entryTypes ?? ['income', 'expense', 'exchange']).includes(
+                          entry.type,
+                        ),
+                    ),
+                    ...remoteData.budgetEntries,
+                  ]
+                : state.budgetEntries,
               familyTransactions: remoteData.familyTransactions || state.familyTransactions,
-              loans: remoteData.loans || [],
-              goldHoldings: remoteData.goldHoldings || [],
-              lastProcessedMonth: remoteData.lastProcessedMonth || '',
+              loans: remoteData.loans ?? state.loans,
+              goldHoldings: remoteData.goldHoldings ?? state.goldHoldings,
+              lastProcessedMonth: remoteData.lastProcessedMonth ?? state.lastProcessedMonth,
               currency: (remoteData.currency as CurrencyCode) || state.currency,
             }));
           } finally {
@@ -631,3 +647,54 @@ useBudgetStore.subscribe((state, previousState) => {
   if (isApplyingRemoteBudgetState || isPartitioningStores()) return;
   budgetSyncScheduler.schedule(selectBudgetSnapshot(state), selectBudgetSnapshot(previousState));
 });
+
+/** Paged legacy read adapter: only the store owns records and the delta queue.
+ * Query caches page membership and freshness; remote merges never enqueue writes. */
+export async function fetchBudgetPage(
+  group: import('@/features/budget/services/budget-read-service').BudgetReadGroup,
+  page: number,
+  filters: Record<string, string> = {},
+  signal?: AbortSignal,
+) {
+  const accountRevision = identityRevision();
+  const revision = budgetSyncScheduler.revision;
+  const remote = await budgetService.fetchBudgetData([group], page, filters, signal);
+  assertIdentityRevision(accountRevision);
+  if (!remote) throw new Error('Could not load records. Please retry.');
+  if (budgetSyncScheduler.hasPending || revision !== budgetSyncScheduler.revision)
+    throw new Error('Your changes are still saving. Please retry.');
+  signal?.throwIfAborted();
+  const rows =
+    remote.budgetEntries ??
+    remote.familyTransactions ??
+    remote.loans ??
+    remote.goldHoldings ??
+    remote.monthlySalaries ??
+    [];
+  const ids = rows.map((row) => row.id);
+  if (group === 'family') {
+    remote.budgetEntries = await budgetService.familyEntries(remote.familyTransactions ?? []);
+    assertIdentityRevision(accountRevision);
+    if (budgetSyncScheduler.hasPending || revision !== budgetSyncScheduler.revision)
+      throw new Error('Your changes are still saving. Please retry.');
+  }
+  function merge<T extends { id: string }>(current: T[], next?: T[]) {
+    return next
+      ? [...current.filter((row) => !next.some((item) => item.id === row.id)), ...next]
+      : current;
+  }
+  isApplyingRemoteBudgetState = true;
+  try {
+    useBudgetStore.setState((state) => ({
+      budgetEntries: merge(state.budgetEntries, remote.budgetEntries),
+      familyTransactions: merge(state.familyTransactions, remote.familyTransactions),
+      monthlySalaries: merge(state.monthlySalaries, remote.monthlySalaries),
+      loans: merge(state.loans, remote.loans),
+      goldHoldings: merge(state.goldHoldings, remote.goldHoldings),
+    }));
+  } finally {
+    isApplyingRemoteBudgetState = false;
+  }
+  const total = remote.pageTotal ?? 0;
+  return { ids, total, nextPage: page * 10 < total ? page + 1 : undefined };
+}

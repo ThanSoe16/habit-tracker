@@ -1,4 +1,6 @@
 'use client';
+import { useGoalList } from '@/features/goals/services/queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import Link from 'next/link';
 import { useState } from 'react';
@@ -101,11 +103,14 @@ function WishCard({
 
 export default function GoalsHomePage() {
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
-  const goals = useGoalsStore((state) => state.goals);
+  const query = useGoalList(false);
+  const goals = query.goals;
   const showCompletedOnHome = useGoalsStore((state) => state.settings.showCompletedOnHome);
   const activeGoals = goals.filter((goal) => goal.status !== 'completed');
-  const latestCompleted = goals.find((goal) => goal.status === 'completed');
-  const selectedGoal = goals.find((goal) => goal.id === selectedGoalId) ?? null;
+  const completed = useGoalList(true, showCompletedOnHome);
+  const latestCompleted = completed.goals[0];
+  const selectedGoal =
+    [...goals, ...completed.goals].find((goal) => goal.id === selectedGoalId) ?? null;
 
   return (
     <div className="flex flex-col gap-4 pt-2">
@@ -175,6 +180,7 @@ export default function GoalsHomePage() {
           if (!open) setSelectedGoalId(null);
         }}
       />
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

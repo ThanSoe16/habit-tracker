@@ -10,7 +10,8 @@ import {
 } from '@/components/ui/drawer';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { MOODS, useMoodStore } from '@/store/use-mood-store';
+import { MOODS } from '@/store/use-mood-store';
+import { useMoodRange, useMoodActions } from '@/features/mood/services/queries';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { Field, FieldLabel } from '@/components/ui/field';
@@ -94,8 +95,10 @@ const TAG_GROUPS: Record<string, string[]> = {
 };
 
 export function MoodEntryDrawer({ isOpen, onClose, selectedDate }: MoodEntryDrawerProps) {
-  const setMood = useMoodStore((state) => state.setMood);
-  const getMood = useMoodStore((state) => state.getMood);
+  const { setMood } = useMoodActions();
+  const dateKey = selectedDate?.toLocaleDateString('en-CA');
+  const { history } = useMoodRange(dateKey, dateKey, Boolean(isOpen && dateKey));
+  const getMood = (date: Date) => history[date.toLocaleDateString('en-CA')];
   const enableNotes = useUserStore((state) => state.moodSettings.enableNotes);
   const [note, setNote] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

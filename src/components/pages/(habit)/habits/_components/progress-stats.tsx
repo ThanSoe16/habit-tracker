@@ -1,6 +1,6 @@
 'use client';
 
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitReport } from '@/features/habits/services/list-queries';
 import { ArrowLeft, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -10,7 +10,7 @@ interface ProgressStatsProps {
 
 export function ProgressStats({ onBack }: ProgressStatsProps) {
   const router = useRouter();
-  const { habits } = useHabitStore();
+  const { habits } = useHabitReport();
 
   const todayStr = new Date().toLocaleDateString('en-CA');
 
@@ -79,7 +79,9 @@ export function ProgressStats({ onBack }: ProgressStatsProps) {
       <div className="bg-background dark:bg-background rounded-[2rem] p-5 space-y-5 border border-gray-100 dark:border-white/5 shadow-inner">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="font-extrabold text-base text-gray-900 dark:text-white">Points Earned</h2>
+            <h2 className="font-extrabold text-base text-gray-900 dark:text-white">
+              Points Earned
+            </h2>
             <p className="text-gray-500 dark:text-gray-400 text-xs font-medium">For this week</p>
           </div>
           <span className="text-xl font-black text-orange-600">842 Points</span>
@@ -87,15 +89,21 @@ export function ProgressStats({ onBack }: ProgressStatsProps) {
 
         <div className="grid grid-cols-3 gap-2 border-t border-gray-200 dark:border-white/10 pt-4 text-center">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">Habits</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">
+              Habits
+            </p>
             <p className="text-lg font-black text-gray-900 dark:text-white">{habits.length || 4}</p>
           </div>
           <div className="border-x border-gray-200 dark:border-white/10">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">Finished</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">
+              Finished
+            </p>
             <p className="text-lg font-black text-gray-900 dark:text-white">{finishedCount || 4}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">Streak</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-400 mb-1">
+              Streak
+            </p>
             <p className="text-lg font-black text-gray-900 dark:text-white">{maxStreak || 6}</p>
           </div>
         </div>

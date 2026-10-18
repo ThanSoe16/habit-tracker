@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useEffect, useRef, useState } from 'react';
+import { useHabitSummary } from '../services/list-queries';
 import { useUserStore } from '@/store/use-user-store';
 import { isHabitRequiredOnDate, getLocalDateString } from '@/utils/date-utils';
 import { normalize24HourTime } from '@/utils/time-utils';
@@ -20,7 +20,12 @@ export { playAlarmSound } from '../utils/alarm-sound';
  * Fires a browser notification & plays an alarm ringtone if due.
  */
 export function useHabitReminders() {
-  const { habits } = useHabitStore();
+  const [today, setToday] = useState(() => getLocalDateString());
+  const { habits } = useHabitSummary([today], true);
+  useEffect(() => {
+    const timer = setInterval(() => setToday(getLocalDateString()), 15000);
+    return () => clearInterval(timer);
+  }, []);
   const { remindersEnabled, setRemindersEnabled } = useUserStore();
   const notifiedRef = useRef<Set<string>>(new Set());
 

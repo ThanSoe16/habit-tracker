@@ -1,7 +1,7 @@
 'use client';
 
 import React, { RefObject } from 'react';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitSummary } from '@/features/habits/services/list-queries';
 import { isHabitRequiredOnDate } from '@/utils/date-utils';
 import { parseTimeTakenToSeconds } from '@/utils/time-utils';
 import { parseHabitCount } from '@/features/habits/utils/progress';
@@ -20,7 +20,7 @@ interface CalendarStripProps {
 }
 
 export function CalendarStrip({ weekDays, onSelectDate, scrollContainerRef }: CalendarStripProps) {
-  const { habits } = useHabitStore();
+  const { habits } = useHabitSummary(weekDays.map((day) => day.date.toLocaleDateString('en-CA')));
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -85,9 +85,7 @@ export function CalendarStrip({ weekDays, onSelectDate, scrollContainerRef }: Ca
               >
                 <span
                   className={`text-[11px] font-extrabold tracking-tight mb-1 ${
-                    d.isSelected
-                      ? 'text-white/95'
-                      : 'text-gray-400 dark:text-gray-500'
+                    d.isSelected ? 'text-white/95' : 'text-gray-400 dark:text-gray-500'
                   }`}
                 >
                   {d.weekday}

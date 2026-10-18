@@ -1,16 +1,18 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitList } from '@/features/habits/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { OverallHabitCard } from './overall-habit-card';
 import { startOfMonth, endOfMonth, eachWeekOfInterval, addDays } from 'date-fns';
 
-export function OverallHabitList({ limit }: { limit?: number }) {
-  const { habits, isLoaded } = useHabitStore();
+export function OverallHabitList() {
+  const query = useHabitList();
+  const { habits, isLoaded } = query;
 
   const displayedHabits = useMemo(() => {
-    return limit ? habits.slice(0, limit) : habits;
-  }, [habits, limit]);
+    return habits;
+  }, [habits]);
 
   const { gridDates, currentMonth, currentYear } = useMemo(() => {
     const today = new Date();
@@ -29,6 +31,8 @@ export function OverallHabitList({ limit }: { limit?: number }) {
 
     return { gridDates: fullGrid, currentMonth, currentYear };
   }, []);
+
+  if (query.isError) return <InfiniteListEnd query={query} />;
 
   if (!isLoaded) {
     return <div className="p-8 text-center text-muted-foreground">Loading habits...</div>;
@@ -53,6 +57,7 @@ export function OverallHabitList({ limit }: { limit?: number }) {
           currentYear={currentYear}
         />
       ))}
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

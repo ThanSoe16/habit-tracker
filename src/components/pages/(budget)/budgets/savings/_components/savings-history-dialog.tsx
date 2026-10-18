@@ -1,4 +1,5 @@
 'use client';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { useState } from 'react';
 import { Flex } from '@radix-ui/themes';
 import {
@@ -10,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSavingsHistory } from '@/features/savings/services/queries';
+import { useInfiniteSavingsHistory } from '@/features/savings/services/queries';
 import { SAVINGS_PAGE_SIZE } from '@/features/savings/services/savings-service';
 import type { SavingsGoal } from '@/features/savings/types';
 import { formatCurrency } from '@/features/budget/store/model';
@@ -23,7 +24,16 @@ export function SavingsHistoryDialog({
   onClose: () => void;
 }) {
   const [page, setPage] = useState(1);
-  const query = useSavingsHistory(goal.id, page);
+  const infinite = useInfiniteSavingsHistory(goal.id, page);
+  const query = {
+    ...infinite,
+    data: infinite.data
+      ? {
+          rows: infinite.data.pages.flatMap((page) => page.rows),
+          total: infinite.data.pages[0].total,
+        }
+      : undefined,
+  };
   return (
     <Dialog
       open
@@ -107,6 +117,7 @@ export function SavingsHistoryDialog({
             </Flex>
           </Flex>
         )}
+        <InfiniteListEnd query={infinite} />
       </DialogContent>
     </Dialog>
   );

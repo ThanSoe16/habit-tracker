@@ -6,8 +6,7 @@ import { useSavingsBalances } from '@/features/savings/services/queries';
 import { getSavingsBalance } from '@/features/savings/types';
 import { formatCurrency, type CurrencyCode } from '@/features/budget/store/model';
 import { getCurrentBalance } from '@/features/budget/utils/current-balance';
-import { useFundMonth } from '@/features/relationship-funds/services/queries';
-import { getFundSummary } from '@/features/relationship-funds/types';
+import { useFundSummary } from '@/features/relationship-funds/services/queries';
 import { RelationshipFundBalance } from './relationship-fund-balance';
 
 export function CurrentBudgetBalance({
@@ -18,9 +17,9 @@ export function CurrentBudgetBalance({
   spendable: number;
 }) {
   const savings = useSavingsBalances();
-  const fund = useFundMonth(null);
+  const fund = useFundSummary();
   const reserved = savings.data ? getSavingsBalance(savings.data, currency) : null;
-  const relationshipFunds = fund.data ? getFundSummary(fund.data).remaining : null;
+  const relationshipFunds = fund.data ? fund.data.remaining : null;
   const total = getCurrentBalance(spendable, reserved, relationshipFunds, currency);
   return (
     <Flex className="flex flex-col items-center gap-2" aria-live="polite">

@@ -1,16 +1,12 @@
 'use client';
 
 import React from 'react';
-import {
-  Smile,
-  Heart,
-  Tag,
-} from 'lucide-react';
-import { useMoodStore } from '@/store/use-mood-store';
+import { Smile, Heart, Tag } from 'lucide-react';
+import { useMoodRange } from '@/features/mood/services/queries';
 import { cn } from '@/utils/cn';
 
 export default function MoodGeneralsReportsPage() {
-  const { history } = useMoodStore();
+  const { history } = useMoodRange();
 
   const entries = Object.values(history);
   const totalEntries = entries.length;
@@ -159,7 +155,8 @@ export default function MoodGeneralsReportsPage() {
           </div>
         ) : (
           <p className="text-xs text-gray-400 font-bold text-center py-4">
-            Add tags (e.g. #Work, #Workout, #Family) when logging moods to see trigger analytics here!
+            Add tags (e.g. #Work, #Workout, #Family) when logging moods to see trigger analytics
+            here!
           </p>
         )}
       </div>

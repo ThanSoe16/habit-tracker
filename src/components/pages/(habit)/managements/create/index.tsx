@@ -6,7 +6,7 @@ import HabitForm from '../_components/form/habit-form';
 import { HabitData, habitSchema } from '@/features/habits/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { COLORS, EMOJIS } from '@/features/habits/data';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitActions } from '@/features/habits/services/actions';
 import { useRouter } from 'next/navigation';
 import {
   useUnsavedChanges,
@@ -19,7 +19,7 @@ import { calculateHabitEndDate } from '@/utils/habit-end-condition';
 const CreateHabitPage = () => {
   const router = useRouter();
   const submission = useSubmissionScope();
-  const addHabit = useHabitStore((state) => state.addHabit);
+  const { addHabit } = useHabitActions();
   const startDate = getLocalDateString();
 
   const form = useForm<HabitData>({

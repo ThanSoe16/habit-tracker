@@ -1,20 +1,30 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
 
 import { useState } from 'react';
 import { WorkoutSessionTimes } from '../_components/workout-session-times';
 import { Calendar, Trophy, Check, Trash2, Dumbbell, ChevronRight } from 'lucide-react';
-import { useGymStore, WorkoutLog } from '@/store/use-gym-store';
+import type { WorkoutLog } from '@/features/gym/store/model';
+import {
+  useWorkoutHistory,
+  useWorkoutSummary,
+  useDeleteWorkout,
+} from '@/features/gym/services/queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
+import { toast } from 'sonner';
 
 export function GymHistory() {
-  const { history, deleteWorkoutLog } = useGymStore();
+  const query = useWorkoutHistory();
+  const summary = useWorkoutSummary();
+  const deletion = useDeleteWorkout();
+  const deleteWorkoutLog = (date: string) =>
+    deletion.mutate(date, {
+      onError: () => toast.error('Could not delete the workout. Please retry.'),
+    });
   const [selectedLog, setSelectedLog] = useState<WorkoutLog | null>(null);
-
-  const logEntries = Object.values(history).sort((a, b) => (a.date < b.date ? 1 : -1));
-
-  const totalWorkouts = logEntries.filter((l) => l.completed).length;
-  const totalSetsDone = logEntries.reduce((acc, log) => {
-    return acc + log.exercises.reduce((exAcc, ex) => exAcc + ex.completedSets, 0);
-  }, 0);
+  const logEntries = query.data?.pages.flatMap((page) => page.rows) ?? [];
+  const totalWorkouts = summary.data?.workouts ?? 0;
+  const totalSetsDone = summary.data?.sets ?? 0;
 
   return (
     <div className="space-y-4">
@@ -172,6 +182,8 @@ export function GymHistory() {
           </div>
         </div>
       )}
+      <InfiniteListEnd query={query} />
+      <QueryFeedback query={summary} label="workout totals" />
     </div>
   );
 }

@@ -63,5 +63,7 @@ export interface BudgetStoreState {
   importBudgetData: (data: Partial<BudgetStoreState>) => void;
 
   // Supabase Cloud Sync
-  fetchFromSupabase: () => Promise<void>;
+  fetchFromSupabase: (
+    groups?: import('../services/budget-read-service').BudgetReadGroup[],
+  ) => Promise<void>;
 }

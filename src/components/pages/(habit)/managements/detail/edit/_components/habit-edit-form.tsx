@@ -4,7 +4,8 @@ import { useSubmissionScope } from '@/features/base/hooks/use-submission-scope';
 import { useForm } from 'react-hook-form';
 import { HabitData, habitSchema } from '@/features/habits/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useHabitStore, Habit } from '@/store/use-habit-store';
+import type { Habit } from '@/features/habits/types';
+import { useHabitActions } from '@/features/habits/services/actions';
 import { useRouter } from 'next/navigation';
 import {
   useUnsavedChanges,
@@ -16,7 +17,7 @@ import HabitForm from '../../../_components/form/habit-form';
 const HabitEditForm = ({ habit }: { habit: Habit }) => {
   const router = useRouter();
   const submission = useSubmissionScope();
-  const updateHabit = useHabitStore((state) => state.updateHabit);
+  const { updateHabit } = useHabitActions();
   const form = useForm<HabitData>({
     resolver: zodResolver(habitSchema),
     defaultValues: habitFormValues(habit),

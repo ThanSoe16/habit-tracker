@@ -1,4 +1,5 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
 
 import React from 'react';
 import {
@@ -11,7 +12,7 @@ import {
   isSameMonth,
   isToday,
 } from 'date-fns';
-import { useMoodStore } from '@/store/use-mood-store';
+import { useMoodRange } from '@/features/mood/services/queries';
 import { cn } from '@/utils/cn';
 import { Plus, Smile } from 'lucide-react';
 import { isBefore, startOfDay } from 'date-fns';
@@ -24,14 +25,17 @@ interface MoodCalendarProps {
 const WEEKDAYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
 
 export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
-  const { history } = useMoodStore();
-
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   // Start from Monday (ISO)
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  const query = useMoodRange(
+    format(calendarStart, 'yyyy-MM-dd'),
+    format(calendarEnd, 'yyyy-MM-dd'),
+  );
 
+  const { history } = query;
   const days = eachDayOfInterval({
     start: calendarStart,
     end: calendarEnd,
@@ -91,7 +95,9 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
                   <span
                     className={cn(
                       'text-xs font-extrabold tabular-nums tracking-tight',
-                      isToday(day) ? 'text-blue-600 dark:text-blue-400 font-black' : 'text-gray-900 dark:text-white',
+                      isToday(day)
+                        ? 'text-blue-600 dark:text-blue-400 font-black'
+                        : 'text-gray-900 dark:text-white',
                     )}
                   >
                     {format(day, 'd')}
@@ -107,6 +113,7 @@ export function MoodCalendar({ currentDate, onDayClick }: MoodCalendarProps) {
           );
         })}
       </div>
+      <QueryFeedback query={query} label="mood calendar" />
     </div>
   );
 }

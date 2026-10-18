@@ -3,23 +3,15 @@
 import { useEffect, useState } from 'react';
 import { format, startOfDay, addDays } from 'date-fns';
 import { Smile } from 'lucide-react';
-import { useShallow } from 'zustand/react/shallow';
 import { FloatingActionButton } from '@/components/shared/floating-action-button';
 import { MoodEntryDrawer } from '@/components/pages/(mood)/_components/mood-entry-drawer';
-import { useMoodStore } from '@/store/use-mood-store';
+import { useMoodRange } from '@/features/mood/services/queries';
 
 export function HomeMoodCheckIn() {
   const [today, setToday] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [entryDate, setEntryDate] = useState<Date | null>(null);
-  const { hasMood, isLoaded, isLoading, error, fetchFromSupabase } = useMoodStore(
-    useShallow((state) => ({
-      hasMood: Boolean(state.history[today]),
-      isLoaded: state.isLoaded,
-      isLoading: state.isLoading,
-      error: state.error,
-      fetchFromSupabase: state.fetchFromSupabase,
-    })),
-  );
+  const { history, isLoaded, isLoading, error, fetchFromSupabase } = useMoodRange(today, today);
+  const hasMood = Boolean(history[today]);
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;

@@ -1,4 +1,6 @@
 'use client';
+import { useBudgetList } from '@/features/budget/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useState } from 'react';
 import { Plus, Trash2, Pencil, Calendar } from 'lucide-react';
@@ -93,14 +95,20 @@ export default function IncomePage() {
     setIsDrawerOpen(false);
   };
 
-  const incomeEntries = getIncomeEntries(budgetEntries, filterCurrency);
+  const query = useBudgetList('income', { currency: filterCurrency, excludeFamily: 'true' });
+  const incomeEntries = getIncomeEntries(
+    budgetEntries.filter((entry) => query.ids.has(entry.id)),
+    filterCurrency,
+  );
 
   return (
     <div className="space-y-5">
       {/* 1. HERO BALANCE CARD (MATCHING MAIN DASHBOARD HEADER STYLE WITHOUT 4 NAV BUTTONS) */}
       <div className="bg-white dark:bg-black text-slate-950 dark:text-white rounded-[32px] p-6 shadow-xl border border-gray-200/80 dark:border-zinc-800 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">Current Balance</span>
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">
+            Current Balance
+          </span>
           <button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
@@ -130,7 +138,11 @@ export default function IncomePage() {
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-zinc-900 text-slate-950 dark:text-white border border-gray-200 dark:border-zinc-800 rounded-2xl z-[100]">
                 {Object.values(CURRENCIES).map((c) => (
-                  <SelectItem key={c.code} value={c.code} className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                  <SelectItem
+                    key={c.code}
+                    value={c.code}
+                    className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                  >
                     <span className="text-base mr-1">{c.flag}</span> {c.code}
                   </SelectItem>
                 ))}
@@ -242,7 +254,20 @@ export default function IncomePage() {
         isDrawerOpen={isDrawerOpen}
         setIsDrawerOpen={setIsDrawerOpen}
         handleFormSubmit={handleFormSubmit}
-        fields={{ title, setTitle, amount, setAmount, currency, setCurrency, category, setCategory, date, setDate, note, setNote }}
+        fields={{
+          title,
+          setTitle,
+          amount,
+          setAmount,
+          currency,
+          setCurrency,
+          category,
+          setCategory,
+          date,
+          setDate,
+          note,
+          setNote,
+        }}
       />
 
       {/* DELETE CONFIRMATION DIALOG */}
@@ -274,6 +299,7 @@ export default function IncomePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

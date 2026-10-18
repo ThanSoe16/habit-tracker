@@ -1,15 +1,16 @@
 'use client';
 import { Flex } from '@radix-ui/themes';
 import HabitEditForm from './_components/habit-edit-form';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitDetail } from '@/features/habits/services/list-queries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 const EditHabit = ({ id }: { id: string }) => {
-  const { habits, isLoaded, loadError, fetchFromSupabase } = useHabitStore();
+  const { data: habit, isPending, isError, refetch: fetchFromSupabase } = useHabitDetail(id);
+  const isLoaded = !isPending;
+  const loadError = isError ? 'Could not load the habit.' : null;
   if (!id.trim()) return <p>This habit is unavailable.</p>;
   if (!isLoaded) return <Skeleton className="h-32 w-full" aria-label="Loading habit" />;
-  const habit = habits.find((item) => item.id === id);
   return (
     <Flex direction="column" gap="4">
       {loadError && (

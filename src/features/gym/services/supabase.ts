@@ -1,9 +1,69 @@
+import { z } from 'zod';
+import { listPage, pageRange } from '@/lib/supabase/pagination';
 import { durableMediaTree, resolveMediaTree } from '@/lib/supabase/private-media';
 import { readCompleteList, DataRequestError } from '@/lib/supabase/request';
 import { accountService } from '@/lib/supabase/account-client';
 import type { Exercise, PlanDay, WorkoutLog } from '@/features/gym/store/model';
 
 export const gymService = {
+  async workoutPage(page: number, signal: AbortSignal) {
+    const { supabase } = await accountService.getClient();
+    const result = listPage(
+      await supabase
+        .from('workout_logs')
+        .select('date_key,workout_data', { count: 'exact' })
+        .order('date_key', { ascending: false })
+        .range(...pageRange(page))
+        .abortSignal(signal),
+      page,
+    );
+    const rows: WorkoutLog[] = result.rows.map((row) => row.workout_data);
+    return { ...result, rows: await resolveMediaTree(supabase, rows) };
+  },
+  async workoutSummary(signal: AbortSignal) {
+    const { supabase } = await accountService.getClient();
+    const { data } = await readCompleteList(
+      supabase
+        .from('workout_logs')
+        .select('date_key,completed:workout_data->completed,exercises:workout_data->exercises', {
+          count: 'exact',
+        })
+        .order('date_key')
+        .abortSignal(signal),
+    );
+    const rows = z
+      .array(
+        z.object({
+          completed: z.boolean().nullish(),
+          exercises: z
+            .array(z.object({ completedSets: z.number().optional().default(0) }))
+            .nullish(),
+        }),
+      )
+      .parse(data);
+    return {
+      workouts: rows.filter((row) => row.completed).length,
+      sets: rows.reduce(
+        (sum, row) =>
+          sum +
+          (row.exercises ?? []).reduce((total, exercise) => total + exercise.completedSets, 0),
+        0,
+      ),
+    };
+  },
+  async workout(date: string, signal: AbortSignal): Promise<WorkoutLog | null> {
+    z.string().date().parse(date);
+    const { supabase } = await accountService.getClient();
+    const result = await supabase
+      .from('workout_logs')
+      .select('workout_data')
+      .eq('date_key', date)
+      .abortSignal(signal)
+      .maybeSingle();
+    if (result.error) throw new DataRequestError('Could not load this workout.', result.error);
+    return result.data ? resolveMediaTree(supabase, result.data.workout_data) : null;
+  },
+
   async fetchGymPlans(): Promise<PlanDay[]> {
     const { supabase } = await accountService.getClient();
     const { data } = await readCompleteList(
@@ -126,7 +186,7 @@ export const gymService = {
   async deleteWorkoutLog(dateKey: string): Promise<void> {
     const { supabase } = await accountService.getClient();
     const { error } = await supabase.from('workout_logs').delete().eq('date_key', dateKey);
-    if (error) console.warn('Error deleting workout log from Supabase:', error.message);
+    if (error) throw new DataRequestError('Could not delete the workout.', error);
   },
 
   async fetchGymSettings(): Promise<Record<string, any> | null> {

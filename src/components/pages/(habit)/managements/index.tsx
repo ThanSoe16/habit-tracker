@@ -1,5 +1,7 @@
 'use client';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitList } from '@/features/habits/services/list-queries';
+import { useHabitActions } from '@/features/habits/services/actions';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { MyHabitCard } from './_components/my-habit-card';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -21,7 +23,9 @@ interface MyHabitsPageProps {
 
 export default function MyHabitsPage({ defaultTab = 'habit' }: MyHabitsPageProps) {
   const router = useRouter();
-  const { habits, reorderHabits } = useHabitStore();
+  const query = useHabitList(defaultTab);
+  const { habits } = query;
+  const { reorderHabits } = useHabitActions();
 
   const filteredHabits = habits.filter((h) => {
     const type = h.type || 'habit';
@@ -103,6 +107,8 @@ export default function MyHabitsPage({ defaultTab = 'habit' }: MyHabitsPageProps
           </div>
         )}
       </div>
+
+      <InfiniteListEnd query={query} />
 
       {/* Floating Add Button */}
       <div className="fixed bottom-24 right-6 z-40">

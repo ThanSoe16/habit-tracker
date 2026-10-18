@@ -1,4 +1,9 @@
 'use client';
+import { QueryFeedback } from '@/components/shared/infinite-list/query-feedback';
+import { toast } from 'sonner';
+import { useBudgetList, useSalaryCount } from '@/features/budget/services/list-queries';
+import { assertBudgetReadyForTransfer } from '@/store/use-budget-store';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useState } from 'react';
 import {
@@ -56,6 +61,25 @@ export default function SalaryPage() {
     deleteMonthlySalary,
     processMonthlySalaryPayout,
   } = useBudgetStore();
+
+  const query = useBudgetList('salary');
+  const salaryCount = useSalaryCount();
+  const displayedSalaries = monthlySalaries.filter((salary) => query.ids.has(salary.id));
+  const [paying, setPaying] = useState(false);
+  const payout = async () => {
+    if (paying) return;
+    setPaying(true);
+    try {
+      assertBudgetReadyForTransfer();
+      await useBudgetStore.getState().fetchFromSupabase(['wallets', 'salary']);
+      assertBudgetReadyForTransfer();
+      processMonthlySalaryPayout();
+    } catch {
+      toast.error('Could not load all salaries. Please retry.');
+    } finally {
+      setPaying(false);
+    }
+  };
 
   // Salary Form State
   const [salTitle, setSalTitle] = useState('');
@@ -124,9 +148,7 @@ export default function SalaryPage() {
           <p className="text-[10px] font-extrabold uppercase tracking-wider text-purple-200">
             Automated Payouts
           </p>
-          <h2 className="text-base font-black tracking-tight mt-0.5">
-            Every 1st Day of Month
-          </h2>
+          <h2 className="text-base font-black tracking-tight mt-0.5">Every 1st Day of Month</h2>
           <p className="text-xs text-purple-100/90 font-medium mt-1">
             Active salary entries automatically credit your Current Budget table.
           </p>
@@ -134,7 +156,8 @@ export default function SalaryPage() {
 
         <button
           type="button"
-          onClick={processMonthlySalaryPayout}
+          onClick={() => void payout()}
+          disabled={paying}
           className="px-3.5 py-2 rounded-2xl bg-white text-purple-700 text-xs font-black shrink-0 hover:bg-purple-50 shadow-md transition-transform active:scale-95 flex items-center gap-1.5"
         >
           <Sparkles className="w-4 h-4 text-purple-600" /> Payout Now
@@ -145,7 +168,8 @@ export default function SalaryPage() {
       <div className="bg-purple-50/70 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 p-3.5 rounded-2xl text-xs text-purple-900 dark:text-purple-200 font-medium flex items-start gap-2.5">
         <HelpCircle className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
         <span>
-          Editing or disabling a salary template will <strong>not affect</strong> funds already credited to your Current Budget.
+          Editing or disabling a salary template will <strong>not affect</strong> funds already
+          credited to your Current Budget.
         </span>
       </div>
 
@@ -157,7 +181,7 @@ export default function SalaryPage() {
           </h2>
           <div className="flex items-center gap-2">
             <span className="text-xs font-extrabold text-purple-600 dark:text-purple-400">
-              {monthlySalaries.filter((s) => s.isEnabled).length} Active
+              {salaryCount.data ?? 0} Active
             </span>
             <button
               type="button"
@@ -169,9 +193,9 @@ export default function SalaryPage() {
           </div>
         </div>
 
-        {monthlySalaries.length > 0 ? (
+        {displayedSalaries.length > 0 ? (
           <div className="space-y-2.5">
-            {monthlySalaries.map((sal) => (
+            {displayedSalaries.map((sal) => (
               <div
                 key={sal.id}
                 className={cn(
@@ -269,9 +293,7 @@ export default function SalaryPage() {
             <div className="w-14 h-14 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mx-auto">
               💼
             </div>
-            <p className="text-xs text-gray-400 font-bold">
-              No salary templates configured yet.
-            </p>
+            <p className="text-xs text-gray-400 font-bold">No salary templates configured yet.</p>
             <button
               type="button"
               onClick={openAddSalary}
@@ -360,7 +382,11 @@ export default function SalaryPage() {
                 </SelectTrigger>
                 <SelectContent className="z-[95]">
                   {BUDGET_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.name} value={cat.name} className="text-sm font-semibold py-2.5">
+                    <SelectItem
+                      key={cat.name}
+                      value={cat.name}
+                      className="text-sm font-semibold py-2.5"
+                    >
                       <span className="text-base mr-1">{cat.icon}</span> {cat.name}
                     </SelectItem>
                   ))}
@@ -385,7 +411,8 @@ export default function SalaryPage() {
               type="submit"
               className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold rounded-2xl shadow-lg shadow-purple-500/25 transition-all text-xs flex items-center justify-center gap-2 mt-2"
             >
-              <Check className="w-4 h-4" /> {editingSalary ? 'Update Salary' : 'Save Salary Template'}
+              <Check className="w-4 h-4" />{' '}
+              {editingSalary ? 'Update Salary' : 'Save Salary Template'}
             </button>
           </form>
         </DrawerContent>
@@ -436,7 +463,8 @@ export default function SalaryPage() {
               Disable Salary Template?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Future 1st of month payouts for &quot;{disableTargetSalary?.title}&quot; will be paused. Your current budget balance remains unaffected.
+              Future 1st of month payouts for &quot;{disableTargetSalary?.title}&quot; will be
+              paused. Your current budget balance remains unaffected.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -486,7 +514,10 @@ export default function SalaryPage() {
             <AlertDialogAction
               onClick={() => {
                 if (disableTargetSalary) {
-                  toggleMonthlySalary(disableTargetSalary.id, disableReasonInput.trim() || 'Disabled');
+                  toggleMonthlySalary(
+                    disableTargetSalary.id,
+                    disableReasonInput.trim() || 'Disabled',
+                  );
                 }
                 setDisableTargetSalary(null);
               }}
@@ -497,6 +528,8 @@ export default function SalaryPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <InfiniteListEnd query={query} />
+      <QueryFeedback query={salaryCount} label="salary count" />
     </div>
   );
 }

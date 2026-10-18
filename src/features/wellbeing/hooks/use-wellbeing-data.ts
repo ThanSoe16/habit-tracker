@@ -1,6 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
+import { useQueryIdentity } from '@/components/providers/query-provider';
 import { digitalWellbeingService, type WellbeingDashboardRows } from '../services/supabase';
 import type {
   AppCategory,
@@ -64,27 +67,32 @@ function aggregateAppUsage(rows: DigitalWellbeingAppUsageRow[]) {
 }
 
 export function useWellbeingData(days = 30) {
-  const [rows, setRows] = useState<WellbeingDashboardRows>(emptyRows);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const userId = useQueryIdentity();
+  const client = useQueryClient();
+  const pathname = usePathname();
+  const sectionMap: Record<string, (keyof WellbeingDashboardRows)[]> = {
+    '/digital-wellbeing': ['dailyUsage', 'appUsage', 'insights', 'settings'],
+    '/digital-wellbeing/app-usage': ['dailyUsage', 'appUsage'],
+    '/digital-wellbeing/app-limits': ['appLimits', 'appUsage'],
+    '/digital-wellbeing/focus': ['appUsage', 'appLimits'],
+    '/digital-wellbeing/challenges': ['challenges', 'userChallenges'],
+    '/digital-wellbeing/insights': ['dailyUsage', 'appUsage', 'insights'],
+    '/digital-wellbeing/bedtime': ['bedtime'],
+    '/digital-wellbeing/settings': ['settings', 'bedtime'],
+  };
+  const sections = sectionMap[pathname];
+  const query = useQuery({
+    queryKey: ['wellbeing-dashboard', userId, pathname, days],
+    enabled: Boolean(userId),
+    queryFn: ({ signal }) => digitalWellbeingService.fetchDashboard(days, sections, signal),
+  });
+  const rows = query.data ?? emptyRows;
+  const hasLoaded = query.data !== undefined;
+  const isLoading = query.isPending;
+  const error = query.isError ? 'Unable to load wellbeing data. Please retry.' : null;
   const refresh = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      setRows(await digitalWellbeingService.fetchDashboard());
-      setHasLoaded(true);
-      setError(null);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Unable to load wellbeing data.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    await client.invalidateQueries({ queryKey: ['wellbeing-dashboard', userId] });
+  }, [client, userId]);
   useEffect(() => {
     const handleChange = () => {
       void refresh();

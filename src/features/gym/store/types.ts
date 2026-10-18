@@ -18,7 +18,9 @@ export interface GymStore {
   isLoaded: boolean;
 
   // Actions
-  fetchFromSupabase: () => Promise<void>;
+  fetchFromSupabase: (
+    scope?: 'session' | 'history' | 'metric-history' | 'settings' | 'plans' | 'profile',
+  ) => Promise<void>;
   updateGymSettings: (updates: Partial<GymSettings>) => void;
   setWeightGoal: (updates: Partial<GymSettings>) => void;
   setHydrationGoal: (goalMl: number) => void;

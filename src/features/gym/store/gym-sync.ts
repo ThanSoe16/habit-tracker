@@ -42,7 +42,11 @@ export function saveWorkoutLog(dateStr: string, log: WorkoutLog) {
   const cleanup = () => {
     if (workoutLogSaveQueues.get(dateStr) === nextSave) workoutLogSaveQueues.delete(dateStr);
   };
-  void nextSave.then(cleanup, cleanup);
+  void nextSave.then(() => {
+    cleanup();
+    if (isIdentityRevisionCurrent(revision) && typeof window !== 'undefined')
+      window.dispatchEvent(new CustomEvent('server-data-change', { detail: 'gym' }));
+  }, cleanup);
   return nextSave;
 }
 

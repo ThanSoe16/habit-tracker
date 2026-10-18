@@ -1,4 +1,6 @@
 'use client';
+import { useBudgetActivity } from '@/features/budget/services/list-queries';
+import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -78,11 +80,16 @@ export default function BudgetMainPage() {
 
   // Edit / Delete State
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
-  const [deleteTargetExpense, setDeleteTargetExpense] = useState<{ id: string; name: string } | null>(null);
+  const [deleteTargetExpense, setDeleteTargetExpense] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Form State: Add/Edit Expense
   const [expenseTitle, setExpenseTitle] = useState('');
-  const [expenseCategory, setExpenseCategory] = useState<string>(BUDGET_CATEGORIES[0]?.name || 'Food & Groceries');
+  const [expenseCategory, setExpenseCategory] = useState<string>(
+    BUDGET_CATEGORIES[0]?.name || 'Food & Groceries',
+  );
   const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseCurrency, setExpenseCurrency] = useState<CurrencyCode>('USDT');
   const [expenseDate, setExpenseDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -101,7 +108,7 @@ export default function BudgetMainPage() {
   } = useBudgetStore();
 
   const currentBalance = walletBalances[selectedCurrency] || 0;
-  const expenses = budgetEntries.filter((e) => e.type === 'expense');
+  const query = useBudgetActivity();
 
   // Reset Add Expense Form
   const resetExpenseForm = () => {
@@ -146,7 +153,9 @@ export default function BudgetMainPage() {
 
     setIsAddExpenseOpen(false);
     resetExpenseForm();
-    toast.success(editingExpenseId ? 'Expense updated successfully' : 'Expense recorded successfully');
+    toast.success(
+      editingExpenseId ? 'Expense updated successfully' : 'Expense recorded successfully',
+    );
   };
 
   // Submit Direct Balance Addition
@@ -163,10 +172,10 @@ export default function BudgetMainPage() {
   };
 
   // Sort transactions descending by date
-  const sortedTransactions = [...budgetEntries].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
-  const recentTransactions = sortedTransactions.slice(0, 10);
+  const sortedTransactions = budgetEntries
+    .filter((entry) => query.ids.has(entry.id))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const recentTransactions = sortedTransactions.slice(0, query.visibleCount);
 
   // Helper to render icon for expense item
   const getExpenseIcon = (catName: string, title: string) => {
@@ -178,7 +187,11 @@ export default function BudgetMainPage() {
         </div>
       );
     }
-    if (lowerTitle.includes('netflix') || lowerTitle.includes('movie') || lowerTitle.includes('tv')) {
+    if (
+      lowerTitle.includes('netflix') ||
+      lowerTitle.includes('movie') ||
+      lowerTitle.includes('tv')
+    ) {
       return (
         <div className="w-11 h-11 rounded-full bg-red-600 text-white flex items-center justify-center font-black text-lg shrink-0">
           <Tv className="w-5.5 h-5.5" />
@@ -206,14 +219,22 @@ export default function BudgetMainPage() {
         </div>
       );
     }
-    if (lowerTitle.includes('taxi') || lowerTitle.includes('car') || lowerTitle.includes('transport')) {
+    if (
+      lowerTitle.includes('taxi') ||
+      lowerTitle.includes('car') ||
+      lowerTitle.includes('transport')
+    ) {
       return (
         <div className="w-11 h-11 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0">
           <Car className="w-5.5 h-5.5" />
         </div>
       );
     }
-    if (lowerTitle.includes('bill') || lowerTitle.includes('electric') || lowerTitle.includes('power')) {
+    if (
+      lowerTitle.includes('bill') ||
+      lowerTitle.includes('electric') ||
+      lowerTitle.includes('power')
+    ) {
       return (
         <div className="w-11 h-11 rounded-full bg-yellow-500 text-white flex items-center justify-center shrink-0">
           <Zap className="w-5.5 h-5.5" />
@@ -232,7 +253,9 @@ export default function BudgetMainPage() {
       {/* 1. HERO BALANCE CARD (WHITE IN LIGHT MODE, BLACK IN DARK MODE) */}
       <div className="bg-white dark:bg-black text-slate-950 dark:text-white rounded-[32px] p-6 shadow-xl border border-gray-200/80 dark:border-zinc-800 space-y-6">
         <div className="text-center space-y-2">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">Current Balance</p>
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide">
+            Current Balance
+          </p>
           <CurrentBudgetBalance currency={selectedCurrency} spendable={currentBalance} />
 
           {/* Currency Dropdown Selector Pill */}
@@ -246,7 +269,11 @@ export default function BudgetMainPage() {
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-zinc-900 text-slate-950 dark:text-white border border-gray-200 dark:border-zinc-800 rounded-2xl z-[100]">
                 {Object.values(CURRENCIES).map((c) => (
-                  <SelectItem key={c.code} value={c.code} className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                  <SelectItem
+                    key={c.code}
+                    value={c.code}
+                    className="text-sm font-semibold py-2.5 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                  >
                     <span className="text-base mr-1">{c.flag}</span> {c.code}
                   </SelectItem>
                 ))}
@@ -363,11 +390,12 @@ export default function BudgetMainPage() {
                         exp.type === 'income'
                           ? 'text-emerald-600 dark:text-emerald-400'
                           : exp.type === 'exchange'
-                          ? 'text-indigo-600 dark:text-indigo-400'
-                          : 'text-red-500 dark:text-red-400',
+                            ? 'text-indigo-600 dark:text-indigo-400'
+                            : 'text-red-500 dark:text-red-400',
                       )}
                     >
-                      {exp.type === 'income' ? '+' : '-'}{formatCurrency(exp.amount, exp.currency)}
+                      {exp.type === 'income' ? '+' : '-'}
+                      {formatCurrency(exp.amount, exp.currency)}
                     </span>
                   </div>
                 </div>
@@ -376,7 +404,10 @@ export default function BudgetMainPage() {
                 <div className="flex items-center justify-between border-t border-gray-200/60 dark:border-zinc-800/80 pt-2 text-xs text-gray-400">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 dark:text-gray-400">
                     <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    <span>{exp.date}{exp.note ? ` • ${exp.note}` : ''}</span>
+                    <span>
+                      {exp.date}
+                      {exp.note ? ` • ${exp.note}` : ''}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
@@ -392,7 +423,9 @@ export default function BudgetMainPage() {
 
                     <button
                       type="button"
-                      onClick={() => setDeleteTargetExpense({ id: exp.id, name: exp.title || exp.category })}
+                      onClick={() =>
+                        setDeleteTargetExpense({ id: exp.id, name: exp.title || exp.category })
+                      }
                       className="px-2.5 py-1 rounded-xl bg-white dark:bg-zinc-800 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 text-[11px] font-extrabold flex items-center gap-1 border border-gray-200/60 dark:border-zinc-700 transition-colors shadow-2xs"
                       title="Delete Expense"
                     >
@@ -531,7 +564,8 @@ export default function BudgetMainPage() {
         <DrawerContent className="z-[80] max-w-lg mx-auto bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-t-[36px] p-6 space-y-4 max-h-[85vh] h-auto overflow-y-auto shrink-0">
           <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-zinc-800">
             <DrawerTitle className="text-base font-black flex items-center gap-2">
-              <Coins className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Top-up Wallet Balance
+              <Coins className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Top-up Wallet
+              Balance
             </DrawerTitle>
             <button
               type="button"
@@ -570,7 +604,11 @@ export default function BudgetMainPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(CURRENCIES).map((c) => (
-                      <SelectItem key={c.code} value={c.code} className="text-sm font-semibold py-2.5">
+                      <SelectItem
+                        key={c.code}
+                        value={c.code}
+                        className="text-sm font-semibold py-2.5"
+                      >
                         <span className="text-base mr-1">{c.flag}</span> {c.code}
                       </SelectItem>
                     ))}
@@ -600,7 +638,8 @@ export default function BudgetMainPage() {
               Delete Transaction?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete this transaction (&ldquo;{deleteTargetExpense?.name}&rdquo;)?
+              Are you sure you want to delete this transaction (&ldquo;{deleteTargetExpense?.name}
+              &rdquo;)?
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -623,6 +662,7 @@ export default function BudgetMainPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <InfiniteListEnd query={query} />
     </div>
   );
 }

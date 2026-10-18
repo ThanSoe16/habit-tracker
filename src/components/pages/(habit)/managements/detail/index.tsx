@@ -3,7 +3,8 @@
 import React from 'react';
 import { ConfirmationDialog } from '@/components/shared/dialog/confirmation-dialog';
 import { useRouter } from 'next/navigation';
-import { useHabitStore } from '@/store/use-habit-store';
+import { useHabitDetail } from '@/features/habits/services/list-queries';
+import { useHabitActions } from '@/features/habits/services/actions';
 import { ChevronLeft, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 // Assuming we have a Calendar component or we'll build a simplified one for stats
@@ -25,8 +26,8 @@ export default function HabitDetail({ id }: { id: string }) {
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
-  const { habits, removeHabit } = useHabitStore();
-  const habit = habits.find((h) => h.id === id);
+  const { data: habit } = useHabitDetail(id);
+  const { removeHabit } = useHabitActions();
 
   if (!habit) {
     return (
