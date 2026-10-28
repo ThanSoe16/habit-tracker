@@ -10,6 +10,7 @@ import { cn } from '@/utils/cn';
 import { GoalsAppSidebar } from './goals-sidebar';
 import { isNativeApp } from '@/lib/native/runtime';
 import { NativeSyncControl } from './native-sync-control';
+import { SettingsPageHeader } from '@/components/shared/settings/settings-page-header';
 
 function getHeader(pathname: string) {
   if (pathname.startsWith('/goals/manage')) {
@@ -41,6 +42,7 @@ export function GoalsShell({
   const header = getHeader(pathname);
   const showCreateAction = !pathname.startsWith('/goals/create');
   const isHome = pathname === '/goals';
+  const isSettings = pathname.startsWith('/goals/settings');
   const hasPageHeader =
     pathname.startsWith('/goals/manage') || pathname.startsWith('/goals/create');
 
@@ -49,46 +51,61 @@ export function GoalsShell({
       <div className="flex min-h-screen w-full bg-background text-foreground">
         {sidebar ?? <GoalsAppSidebar />}
         <main className="w-full flex-1 overflow-x-hidden">
-          <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col gap-3 px-4 pb-32 pt-4">
-            {!hasPageHeader && (
-              <header className="flex items-center justify-between px-1 py-1">
-                <SidebarTrigger
-                  className={cn(
-                    'flex size-10 items-center justify-center rounded-full text-foreground',
-                    !isHome && 'border border-border bg-card shadow-xs',
-                  )}
-                />
-                <div className="min-w-0 text-center">
-                  <h1
+          <div
+            className={cn(
+              'mx-auto flex min-h-screen w-full flex-col px-4 pb-32',
+              isSettings ? 'max-w-2xl gap-6 pt-6' : 'max-w-lg gap-3 pt-4',
+            )}
+          >
+            {isSettings ? (
+              <SettingsPageHeader
+                title="Goal settings"
+                description="Personalize your Goals home and manage completed goals."
+                navigation={
+                  <SidebarTrigger className="size-10 rounded-xl border border-border bg-card shadow-xs" />
+                }
+              />
+            ) : (
+              !hasPageHeader && (
+                <header className="flex items-center justify-between px-1 py-1">
+                  <SidebarTrigger
                     className={cn(
-                      'text-lg text-foreground',
-                      isHome ? 'font-semibold' : 'font-black tracking-tight',
+                      'flex size-10 items-center justify-center rounded-full text-foreground',
+                      !isHome && 'border border-border bg-card shadow-xs',
                     )}
-                  >
-                    {header.title}
-                  </h1>
-                  {header.description && (
-                    <p className="max-w-56 truncate text-xs font-medium text-muted-foreground">
-                      {header.description}
-                    </p>
+                  />
+                  <div className="min-w-0 text-center">
+                    <h1
+                      className={cn(
+                        'text-lg text-foreground',
+                        isHome ? 'font-semibold' : 'font-black tracking-tight',
+                      )}
+                    >
+                      {header.title}
+                    </h1>
+                    {header.description && (
+                      <p className="max-w-56 truncate text-xs font-medium text-muted-foreground">
+                        {header.description}
+                      </p>
+                    )}
+                  </div>
+                  {showCreateAction ? (
+                    <Button
+                      type="button"
+                      onClick={() => router.push('/goals/create')}
+                      title="Create goal"
+                      aria-label="Create goal"
+                      variant={isHome ? 'ghost' : 'default'}
+                      size="icon-lg"
+                      className="size-10 rounded-full"
+                    >
+                      <Plus className="size-5" strokeWidth={2.5} />
+                    </Button>
+                  ) : (
+                    <div className="size-10" aria-hidden="true" />
                   )}
-                </div>
-                {showCreateAction ? (
-                  <Button
-                    type="button"
-                    onClick={() => router.push('/goals/create')}
-                    title="Create goal"
-                    aria-label="Create goal"
-                    variant={isHome ? 'ghost' : 'default'}
-                    size="icon-lg"
-                    className="size-10 rounded-full"
-                  >
-                    <Plus className="size-5" strokeWidth={2.5} />
-                  </Button>
-                ) : (
-                  <div className="size-10" aria-hidden="true" />
-                )}
-              </header>
+                </header>
+              )
             )}
 
             {isNativeApp && <NativeSyncControl />}

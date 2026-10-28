@@ -1,10 +1,16 @@
 'use client';
 
 import { useId, type ReactNode } from 'react';
-import Link from 'next/link';
-import { ArrowRight, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Cloud, CloudOff, LoaderCircle, RefreshCw, UserRound } from 'lucide-react';
+import { Flex } from '@radix-ui/themes';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  SettingsSectionHeader,
+  type SettingsSectionHeaderProps,
+} from '@/components/shared/settings/settings-section-header';
+import { SettingsAction } from '@/components/shared/settings/settings-action';
+import { cn } from '@/utils/cn';
 import {
   Field,
   FieldContent,
@@ -21,20 +27,19 @@ export function SettingsSection({
   title,
   description,
   children,
-}: {
-  title: string;
-  description?: string;
+  icon,
+  footer,
+}: SettingsSectionHeaderProps & {
   children: ReactNode;
+  footer?: ReactNode;
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
+    <Card className="rounded-2xl">
+      <SettingsSectionHeader title={title} description={description} icon={icon} />
       <CardContent>
         <FieldGroup>{children}</FieldGroup>
       </CardContent>
+      {footer && <CardFooter>{footer}</CardFooter>}
     </Card>
   );
 }
@@ -54,8 +59,12 @@ export function SettingsSwitch({
 }) {
   const id = useId();
   return (
-    <Field orientation="horizontal" data-disabled={disabled || undefined}>
-      <FieldContent>
+    <Field
+      orientation="horizontal"
+      data-disabled={disabled || undefined}
+      className="gap-4 rounded-xl border border-border bg-muted/20 p-3"
+    >
+      <FieldContent className="min-w-0">
         <FieldLabel htmlFor={id}>{label}</FieldLabel>
         {description && <FieldDescription id={`${id}-description`}>{description}</FieldDescription>}
       </FieldContent>
@@ -65,6 +74,7 @@ export function SettingsSwitch({
         onCheckedChange={onCheckedChange}
         disabled={disabled}
         aria-describedby={description ? `${id}-description` : undefined}
+        className="mt-1 shrink-0"
       />
     </Field>
   );
@@ -87,16 +97,18 @@ export function SettingsChoice<T extends string>({
   return (
     <Field>
       <FieldLabel id={id}>{label}</FieldLabel>
-      {description && <FieldDescription>{description}</FieldDescription>}
+      {description && <FieldDescription id={`${id}-description`}>{description}</FieldDescription>}
       <ToggleGroup
         type="single"
         variant="primary"
         value={value}
         onValueChange={(next) => {
-          if (next) onChange(next as T);
+          const option = options.find((option) => option.value === next);
+          if (option) onChange(option.value);
         }}
         aria-labelledby={id}
-        className="flex-wrap"
+        aria-describedby={description ? `${id}-description` : undefined}
+        className="max-w-full flex-wrap"
         size="lg"
       >
         {options.map((option) => (
@@ -111,28 +123,49 @@ export function SettingsChoice<T extends string>({
 
 export function SettingsSaveStatus({ scope = 'profile' }: { scope?: SettingsScope }) {
   const sync = useSettingsSync((state) => state[scope]);
+  const Icon =
+    sync.status === 'error'
+      ? CloudOff
+      : sync.status === 'saving'
+        ? LoaderCircle
+        : sync.status === 'saved'
+          ? CheckCircle2
+          : Cloud;
   return (
-    <div
-      className="flex min-h-9 items-center justify-between gap-3 text-sm text-muted-foreground"
+    <Flex
+      align="center"
+      justify="between"
+      gap="3"
+      className="rounded-xl border border-border bg-muted/20 px-3 py-2.5 text-xs text-muted-foreground"
       role="status"
       aria-live="polite"
     >
-      <span>
-        {sync.status === 'error'
-          ? `Changes could not sync. ${sync.error ?? ''}`
-          : sync.status === 'saving'
-            ? 'Saving changes…'
-            : sync.status === 'saved'
-              ? 'All changes saved.'
-              : 'Preferences save automatically.'}
-      </span>
+      <Flex align="center" gap="2">
+        <Icon
+          aria-hidden="true"
+          className={cn(
+            'size-4 shrink-0',
+            sync.status === 'saving' && 'animate-spin motion-reduce:animate-none',
+            sync.status === 'error' && 'text-destructive',
+          )}
+        />
+        <span>
+          {sync.status === 'error'
+            ? `Changes could not sync. ${sync.error ?? ''}`
+            : sync.status === 'saving'
+              ? 'Saving changes…'
+              : sync.status === 'saved'
+                ? 'All changes saved.'
+                : 'Preferences save automatically.'}
+        </span>
+      </Flex>
       {sync.status === 'error' && (
         <Button variant="outline" size="sm" onClick={sync.retry}>
           <RefreshCw data-icon="inline-start" />
           Retry
         </Button>
       )}
-    </div>
+    </Flex>
   );
 }
 
@@ -140,24 +173,24 @@ export function AppSettingsLink() {
   return (
     <SettingsSection
       title="Account & app"
+      icon={UserRound}
       description="Profile, appearance, sound, and notification preferences apply across the app."
     >
-      <Button variant="outline" asChild>
-        <Link href="/account">
-          Open account settings
-          <ArrowRight data-icon="inline-end" />
-        </Link>
-      </Button>
+      <SettingsAction
+        href="/account"
+        label="Open account settings"
+        description="Manage your profile and app preferences"
+      />
     </SettingsSection>
   );
 }
 
 export function SettingsLoading() {
   return (
-    <div className="flex flex-col gap-4" role="status" aria-label="Loading settings">
-      <Skeleton className="h-40 w-full" />
-      <Skeleton className="h-64 w-full" />
+    <Flex direction="column" gap="5" role="status" aria-label="Loading settings">
+      <Skeleton className="h-40 w-full rounded-2xl" />
+      <Skeleton className="h-64 w-full rounded-2xl" />
       <span className="sr-only">Loading settings</span>
-    </div>
+    </Flex>
   );
 }

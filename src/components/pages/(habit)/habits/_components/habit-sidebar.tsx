@@ -222,7 +222,7 @@ export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
                         onClick={item.action}
                         isActive={item.isActive}
                         className={cn(
-                          'w-full flex items-center justify-between px-3 py-5 rounded font-bold text-xs transition-all duration-150',
+                          'w-full flex items-center justify-between px-3 py-5 rounded-md font-bold text-xs transition-all duration-150',
                           item.isActive
                             ? 'data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary data-active:hover:text-primary-foreground font-extrabold shadow-2xs'
                             : 'text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800/60',

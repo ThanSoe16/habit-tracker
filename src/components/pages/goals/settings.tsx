@@ -1,11 +1,18 @@
 'use client';
 
-import { Trash2 } from 'lucide-react';
+import { History, House, Trash2 } from 'lucide-react';
+import { SettingsContent } from '@/components/shared/settings/settings-content';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/shared/dialog/confirmation-dialog';
-import { SettingsSection, SettingsSwitch } from '@/components/settings/settings-controls';
+import {
+  AppSettingsLink,
+  SettingsSaveStatus,
+  SettingsSection,
+  SettingsSwitch,
+} from '@/components/settings/settings-controls';
 import { useGoalsStore } from '@/features/goals/store/use-goals-store';
+import { isNativeApp } from '@/lib/native/runtime';
 
 export default function GoalsSettingsPage() {
   const [clearOpen, setClearOpen] = useState(false);
@@ -16,8 +23,13 @@ export default function GoalsSettingsPage() {
   const completedCount = goals.filter((goal) => goal.status === 'completed').length;
 
   return (
-    <div className="flex flex-col gap-4">
-      <SettingsSection title="Home">
+    <SettingsContent>
+      <SettingsSaveStatus scope="goals" />
+      <SettingsSection
+        title="Home"
+        icon={House}
+        description="Personalize what appears on your Goals home page."
+      >
         <SettingsSwitch
           label="Show latest completed goal"
           description="Display the most recent completion note on the Goals home page."
@@ -28,6 +40,7 @@ export default function GoalsSettingsPage() {
 
       <SettingsSection
         title="History"
+        icon={History}
         description={`${completedCount} completed goals are stored on this device.`}
       >
         <Button
@@ -41,6 +54,8 @@ export default function GoalsSettingsPage() {
         </Button>
       </SettingsSection>
 
+      {!isNativeApp && <AppSettingsLink />}
+
       <ConfirmationDialog
         open={clearOpen}
         onClose={() => setClearOpen(false)}
@@ -52,6 +67,6 @@ export default function GoalsSettingsPage() {
           setClearOpen(false);
         }}
       />
-    </div>
+    </SettingsContent>
   );
 }

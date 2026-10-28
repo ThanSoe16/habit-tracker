@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { Camera, Library, RefreshCw } from 'lucide-react';
+import { SettingsContent } from '@/components/shared/settings/settings-content';
 import { Button } from '@/components/ui/button';
 import { FieldDescription } from '@/components/ui/field';
 import { AppSettingsLink, SettingsSection } from '@/components/settings/settings-controls';
@@ -19,9 +20,10 @@ export default function StoreGeneralsSettingsPage() {
   };
   const size = mediaEntries.reduce((total, entry) => total + entry.fileSize, 0);
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 pb-8">
+    <SettingsContent>
       <SettingsSection
         title="Media library"
+        icon={Library}
         description="Photos, videos, and voice recordings in your library."
       >
         <p className="text-sm">
@@ -40,6 +42,7 @@ export default function StoreGeneralsSettingsPage() {
       </SettingsSection>
       <SettingsSection
         title="Capture & permissions"
+        icon={Camera}
         description="Recording capabilities depend on your browser and device."
       >
         <FieldDescription>
@@ -52,6 +55,6 @@ export default function StoreGeneralsSettingsPage() {
         </FieldDescription>
       </SettingsSection>
       <AppSettingsLink />
-    </div>
+    </SettingsContent>
   );
 }

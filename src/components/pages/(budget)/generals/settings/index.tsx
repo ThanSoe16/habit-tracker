@@ -1,7 +1,8 @@
 'use client';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import { Download, Upload } from 'lucide-react';
+import { Coins, Download, HardDriveDownload, Trash2, Upload, Wallet } from 'lucide-react';
+import { SettingsContent } from '@/components/shared/settings/settings-content';
 import { useBudgetStore, CURRENCIES, type CurrencyCode } from '@/store/use-budget-store';
 import {
   budgetBackupSchema,
@@ -141,10 +142,11 @@ export default function BudgetSettingsPage() {
     }
   };
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 pb-8">
+    <SettingsContent>
       <SettingsSaveStatus scope="budget" />
       <SettingsSection
         title="Currency"
+        icon={Coins}
         description="Choose the default display currency. This does not exchange your funds."
       >
         <SettingsChoice
@@ -156,12 +158,14 @@ export default function BudgetSettingsPage() {
       </SettingsSection>
       <SettingsSection
         title="Adjust wallet balances"
+        icon={Wallet}
         description="Replace current balances directly. These adjustments do not create transactions."
       >
         <WalletForm key={formKey} />
       </SettingsSection>
       <SettingsSection
         title="Backup & restore"
+        icon={HardDriveDownload}
         description="Back up balances, transactions, salary templates, family records, loans, gold holdings, and budget preferences."
       >
         <Button variant="outline" onClick={exportBackup}>
@@ -193,6 +197,7 @@ export default function BudgetSettingsPage() {
       </SettingsSection>
       <SettingsSection
         title="Delete budget data"
+        icon={Trash2}
         description="Delete transactions, salary templates, family records, loans, and gold holdings, and set wallet balances to zero. Other modules are unaffected."
       >
         <Button variant="destructive" onClick={() => setResetOpen(true)}>
@@ -271,6 +276,6 @@ export default function BudgetSettingsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </SettingsContent>
   );
 }

@@ -19,8 +19,8 @@ export default function DigitalWellbeingLayout({ children }: { children: ReactNo
           <main className="w-full flex-1 overflow-x-hidden">
             <div
               className={cn(
-                'mx-auto flex w-full flex-col gap-5 px-4 pb-28 pt-6',
-                isSettings ? 'max-w-2xl' : 'max-w-lg',
+                'mx-auto flex w-full flex-col px-4 pb-28 pt-6',
+                isSettings ? 'max-w-2xl gap-6' : 'max-w-lg gap-5',
               )}
             >
               <WellbeingPageHeader />

@@ -1,6 +1,6 @@
 'use client';
 
-import { SettingsSaveStatus } from '@/components/settings/settings-controls';
+import { SettingsSaveStatus, SettingsSwitch } from '@/components/settings/settings-controls';
 import { Monitor, Moon, Palette, Rows3, Sparkles, Sun } from 'lucide-react';
 import { AccentColor, InterfaceDensity, Theme, useUserStore } from '@/store/use-user-store';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 
 interface AppearanceDrawerModalProps {
   isOpen: boolean;
@@ -54,9 +53,9 @@ export function AppearanceDrawerModal({ isOpen, onOpenChange }: AppearanceDrawer
 
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent className="mx-auto max-w-lg">
+      <DrawerContent className="mx-auto max-h-[90dvh] max-w-lg">
         <DrawerHeader className="text-left">
-          <DrawerTitle className="flex items-center gap-2 font-black">
+          <DrawerTitle className="flex items-center gap-2">
             <Palette className="text-primary" />
             Appearance
           </DrawerTitle>
@@ -67,8 +66,8 @@ export function AppearanceDrawerModal({ isOpen, onOpenChange }: AppearanceDrawer
         </DrawerHeader>
 
         <div className="overflow-y-auto px-4 pb-2">
-          <SettingsSaveStatus />
           <FieldGroup>
+            <SettingsSaveStatus />
             <Field>
               <FieldContent>
                 <FieldTitle>Color mode</FieldTitle>
@@ -152,19 +151,12 @@ export function AppearanceDrawerModal({ isOpen, onOpenChange }: AppearanceDrawer
               </Select>
             </Field>
 
-            <Field orientation="horizontal" className="rounded-2xl border bg-muted/40 p-4">
-              <FieldContent>
-                <FieldTitle>Reduce motion</FieldTitle>
-                <FieldDescription>
-                  Minimizes transitions, animated effects and smooth scrolling.
-                </FieldDescription>
-              </FieldContent>
-              <Switch
-                checked={appearanceSettings.reduceMotion}
-                onCheckedChange={(checked) => updateAppearanceSettings({ reduceMotion: checked })}
-                aria-label="Reduce motion"
-              />
-            </Field>
+            <SettingsSwitch
+              label="Reduce motion"
+              description="Minimizes transitions, animated effects and smooth scrolling."
+              checked={appearanceSettings.reduceMotion}
+              onCheckedChange={(checked) => updateAppearanceSettings({ reduceMotion: checked })}
+            />
 
             <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-4 text-card-foreground">
               <div className="flex flex-col gap-0.5">

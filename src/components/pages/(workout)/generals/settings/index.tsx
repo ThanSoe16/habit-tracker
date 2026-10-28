@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Dumbbell, Timer } from 'lucide-react';
+import { SettingsContent } from '@/components/shared/settings/settings-content';
+import { SettingsAction } from '@/components/shared/settings/settings-action';
 import { useGymStore } from '@/store/use-gym-store';
 import {
   AppSettingsLink,
@@ -17,12 +19,13 @@ export default function GymSettingsPage() {
   const [timerOpen, setTimerOpen] = useState(false);
   const seconds = settings.restTimerSeconds ?? 180;
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 pb-8">
+    <SettingsContent>
       <SettingsSaveStatus scope="workout" />
       {isLoaded ? (
         <>
           <SettingsSection
             title="Workout defaults"
+            icon={Dumbbell}
             description="Set your preferred units and defaults for training."
           >
             <SettingsChoice
@@ -42,9 +45,12 @@ export default function GymSettingsPage() {
               onChange={(value) => update({ defaultTargetSets: Number(value) })}
               options={[3, 4, 5].map((value) => ({ value: String(value), label: `${value} sets` }))}
             />
-            <Button variant="outline" onClick={() => setTimerOpen(true)}>
-              Rest timer · {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
-            </Button>
+            <SettingsAction
+              label="Rest timer"
+              description={`${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')} between sets`}
+              icon={Timer}
+              onClick={() => setTimerOpen(true)}
+            />
             <SettingsSwitch
               label="Category badges"
               description="Show muscle-group labels on workout exercises."
@@ -65,6 +71,6 @@ export default function GymSettingsPage() {
         <SettingsLoading />
       )}
       <AppSettingsLink />
-    </div>
+    </SettingsContent>
   );
 }

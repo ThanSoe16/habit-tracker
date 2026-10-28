@@ -110,26 +110,21 @@ export function BottomNav() {
             <Link
               key={item.label}
               href={item.href}
-              title={item.label}
               aria-label={item.label}
               aria-current={isActive ? 'page' : undefined}
               className="flex flex-col items-center justify-center transition-all duration-300 relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
             >
-              <div
-                className={cn(
-                  'size-10 rounded-xl flex items-center justify-center transition-colors duration-200 motion-reduce:transition-none',
-                  isActive ? '' : 'hover:bg-accent/60',
-                )}
-              >
+              <div className="size-10 rounded-xl flex items-center justify-center">
                 <BottomNavIcon
                   src={item.icon}
+                  isActive={isActive}
                   reduceMotion={reduceAppMotion || reduceSystemMotion}
                 />
               </div>
               <span
                 aria-hidden="true"
                 className={cn(
-                  'absolute -bottom-[1px] h-0.5 w-[70%] rounded-full bg-primary transition-opacity duration-200 motion-reduce:transition-none',
+                  'absolute -bottom-[1px] h-[3px] w-[70%] rounded-full bg-primary transition-opacity duration-200 motion-reduce:transition-none',
                   isActive ? 'opacity-100' : 'opacity-0',
                 )}
               />

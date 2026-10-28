@@ -1,6 +1,7 @@
 'use client';
 import { useUnsavedChanges } from '@/features/settings/use-unsaved-changes';
 import { useState } from 'react';
+import { UserRound } from 'lucide-react';
 import { useUserStore } from '@/store/use-user-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ export function ProfileCard() {
   return (
     <SettingsSection
       title="Profile"
+      icon={UserRound}
       description="Your name and avatar are shared across every module."
     >
       <fieldset disabled={!isLoaded} className="flex min-w-0 flex-col gap-4">

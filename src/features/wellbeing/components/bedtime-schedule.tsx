@@ -1,15 +1,9 @@
 'use client';
 
+import { Grid } from '@radix-ui/themes';
+import { SettingsSwitch } from '@/components/settings/settings-controls';
 import { Input } from '@/components/ui/input';
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldTitle,
-} from '@/components/ui/field';
-import { Switch } from '@/components/ui/switch';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { DigitalWellbeingBedtimeSettingsRow } from '../types/database';
 
@@ -70,7 +64,7 @@ export function BedtimeSchedule({
 
   return (
     <FieldGroup>
-      <div className="grid grid-cols-2 gap-3">
+      <Grid columns="2" gap="3">
         <Field>
           <FieldLabel htmlFor="bedtime">Bedtime</FieldLabel>
           <Input
@@ -89,7 +83,7 @@ export function BedtimeSchedule({
             onChange={(event) => update('wakeTime', event.target.value)}
           />
         </Field>
-      </div>
+      </Grid>
       <Field>
         <FieldLabel>Active days</FieldLabel>
         <ToggleGroup
@@ -137,18 +131,14 @@ export function BedtimeSchedule({
           description: 'Not available in the web app',
         },
       ].map((item) => (
-        <Field key={item.title} orientation="horizontal" className="rounded-xl border p-3">
-          <FieldContent>
-            <FieldTitle>{item.title}</FieldTitle>
-            <FieldDescription>{item.description}</FieldDescription>
-          </FieldContent>
-          <Switch
-            disabled
-            checked={value[item.key]}
-            onCheckedChange={(checked) => update(item.key, checked)}
-            aria-label={item.title}
-          />
-        </Field>
+        <SettingsSwitch
+          key={item.key}
+          label={item.title}
+          description={item.description}
+          disabled
+          checked={value[item.key]}
+          onCheckedChange={(checked) => update(item.key, checked)}
+        />
       ))}
     </FieldGroup>
   );
