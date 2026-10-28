@@ -1,0 +1,13 @@
+fileType: 'momentic/test/v2'
+id: 'double-mutual-remember-guesses-often'
+description: 'Media gallery'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/store/gallery'
+  - waitForUrl: '/store/gallery'
+  - checkPageContains: 'Take Photo'
+  - checkPageContains: 'Record Video'
+  - checkPageContains: 'Gallery'
+  - assert: 'The capture/gallery page shows camera/video controls and stored photos/videos or its empty state. Do not start recording, capture a photo, or open a file picker. A loading skeleton, query error, or application error does not satisfy this check.'

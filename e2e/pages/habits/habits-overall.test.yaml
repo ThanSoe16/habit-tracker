@@ -1,0 +1,11 @@
+fileType: 'momentic/test/v2'
+id: 'little-junior-ate-switches-strictly'
+description: 'Habits overall'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/habits/overall'
+  - waitForUrl: '/habits/overall'
+  - checkPageContains: 'Today'
+  - assert: 'The overall view shows habit calendar grids and statistics or the No habits created yet empty state. It is not the daily filter view. A loading skeleton, query error, or application error does not satisfy this check.'

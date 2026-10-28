@@ -1,0 +1,15 @@
+fileType: 'momentic/test/v2'
+id: 'fortysix-indoor-lovely-begins-humbly'
+description: 'Media settings'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/store-generals/settings'
+  - waitForUrl: '/store-generals/settings'
+  - checkPageContains: 'Media library'
+  - checkPageContains: 'Capture & permissions'
+  - assert: 'The library count, refresh status, refresh or retry control, and browser permissions explanation are visible. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Click Refresh library, or Retry refresh if shown, and wait for it to finish. Do not request camera or microphone access.'
+      postcondition: 'The refresh control is usable again and library statistics are visible without a sync error.'

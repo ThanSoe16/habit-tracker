@@ -1,0 +1,19 @@
+fileType: 'momentic/test/v2'
+id: 'double-oscar-mongoose-agrees-mostly'
+description: 'Workout settings'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/workout-generals/settings'
+  - waitForUrl: '/workout-generals/settings'
+  - checkPageContains: 'Workout defaults'
+  - checkPageContains: 'Weight unit'
+  - checkPageContains: 'Default sets'
+  - checkPageContains: 'Category badges'
+  - assert: 'Workout settings are loaded and the Rest timer control is available. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Rest timer button'
+  - assert: 'The rest timer settings editor is open with duration controls.'
+  - act:
+      goal: 'Close the open rest timer dialog using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The rest timer dialog is closed and the underlying page is usable.'

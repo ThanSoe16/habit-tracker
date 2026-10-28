@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'stable-eighty-suddenly-heals-barely'
+description: 'Habits history'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/habits/history'
+  - waitForUrl: '/habits/history'
+  - checkPageContains: 'History'
+  - assert: 'The history view shows completed habit entries grouped by date, or No history yet. Go to today is available. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Go to today button'
+  - waitForUrl: '/habits/today'
+  - checkPageContains: 'Today'

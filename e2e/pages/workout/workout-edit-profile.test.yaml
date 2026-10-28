@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'fiftyeight-gazelle-focuses-weirdly'
+description: 'Workout edit profile'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/managements/edit-personal-info'
+  - waitForUrl: '/managements/edit-personal-info'
+  - checkPageContains: 'Basic Profile Details'
+  - checkPageContains: 'Height Measurement'
+  - checkPageContains: 'Weight & Goal Settings'
+  - checkPageContains: 'Edit Water Goal Intake'
+  - assert: 'The edit form shows the existing profile with gender, date of birth, height, weight, hydration, and activity controls. Do not save profile changes. A loading skeleton, query error, or application error does not satisfy this check.'

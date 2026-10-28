@@ -1,0 +1,18 @@
+fileType: 'momentic/test/v2'
+id: 'regular-spicy-star-glows-artfully'
+description: 'Workout hydration'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/workout/hydration-progress'
+  - waitForUrl: '/workout/hydration-progress'
+  - checkPageContains: 'Set Hydration Goal'
+  - checkPageContains: 'Suggested daily goal'
+  - checkPageContains: "Today's Hydration"
+  - assert: 'The daily hydration total, goal, and add-water controls are visible. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Change Intake button'
+  - assert: 'A water-intake goal editor is open with an editable intake amount.'
+  - act:
+      goal: 'Close the open hydration goal dialog using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The hydration goal dialog is closed and the underlying page is usable.'

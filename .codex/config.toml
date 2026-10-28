@@ -1,0 +1,17 @@
+[mcp_servers.momentic]
+command = "npx"
+args = [ "-y", "momentic", "mcp", "--config", "momentic.config.yaml" ]
+startup_timeout_sec = 30
+
+[mcp_servers.momentic.tools.momentic_test_create]
+approval_mode = "approve"
+
+[mcp_servers.momentic.tools.momentic_module_recommend]
+approval_mode = "approve"
+
+[mcp_servers.momentic.tools.momentic_module_create]
+approval_mode = "approve"
+
+[mcp_servers.momentic.tools.momentic_module_get]
+approval_mode = "approve"
+

@@ -1,0 +1,11 @@
+fileType: 'momentic/test/v2'
+id: 'mu-ethical-accident-sets-sternly'
+description: 'Habit missing detail'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/managements/e2e-missing-habit'
+  - waitForUrl: '/managements/e2e-missing-habit'
+  - checkPageContains: 'Habit not found'
+  - assert: 'The missing habit has an explicit not-found state and no editable habit details. A loading skeleton, query error, or application error does not satisfy this check.'

@@ -1,0 +1,10 @@
+fileType: 'momentic/test/v2'
+id: 'idaho-eight-member-shapes-quickly'
+description: 'Redirect wellbeing'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/wellbeing'
+  - waitForUrl: '/digital-wellbeing'
+  - assert: 'The legacy wellbeing route redirects to /digital-wellbeing and its main content loads without a login form. A loading skeleton, query error, or application error does not satisfy this check.'

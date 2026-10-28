@@ -1,0 +1,18 @@
+fileType: 'momentic/test/v2'
+id: 'perky-virginia-sorbet-moves-publicly'
+description: 'Wellbeing insights'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/digital-wellbeing/insights'
+  - waitForUrl: '/digital-wellbeing/insights'
+  - checkPageContains: 'Weekly'
+  - checkPageContains: 'Monthly'
+  - checkPageContains: 'Average Screen'
+  - checkPageContains: 'Focus Time'
+  - checkPageContains: 'Meaningful Insights'
+  - assert: 'Weekly wellbeing metrics and insights or the no-insights state are loaded. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Monthly insights range button'
+  - assert: 'Monthly is selected and the metrics and insights or empty state are displayed.'
+  - click: 'Weekly insights range button'

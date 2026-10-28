@@ -1,0 +1,17 @@
+fileType: 'momentic/test/v2'
+id: 'nippy-clever-anchor-faces-gently'
+description: 'Budget exchange'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget/exchange'
+  - waitForUrl: '/budget/exchange'
+  - checkPageContains: 'Instant Currency Converter'
+  - checkPageContains: 'Convert Currency'
+  - assert: 'The exchange history shows conversion records or No Exchange History. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Convert Currency button'
+  - assert: 'The currency conversion form has source and destination currencies, amount, and conversion-rate controls.'
+  - act:
+      goal: 'Close the open currency converter drawer using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The currency converter drawer is closed and the underlying page is usable.'

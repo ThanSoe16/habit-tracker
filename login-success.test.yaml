@@ -1,0 +1,27 @@
+fileType: momentic/test/v2
+id: great-kind-iron-tune-entirely
+description: Sign in with a dedicated test account, verify today's habits, and
+  retain the session after reload
+defaultEnv: local
+before:
+  - javascript:
+      code: |
+        if (!env.E2E_LOGIN_EMAIL || !env.E2E_LOGIN_PASSWORD) {
+          throw new Error('Set E2E_LOGIN_EMAIL and E2E_LOGIN_PASSWORD in .env.local before running login-success.');
+        }
+steps:
+  - checkPageContains: Your personal tracker
+  - type:
+      text: '{{ env.E2E_LOGIN_EMAIL }}'
+      into: Email address input
+  - type:
+      text: '{{ env.E2E_LOGIN_PASSWORD }}'
+      into: Password input
+  - click: Sign in button
+  - waitForUrl: /habits/today
+  - checkPageContains: Today
+  - assert: The authenticated habit tracker is visible with navigation and today's habits content, which may be an empty state. The login form is no longer visible.
+  - refresh
+  - waitForUrl: /habits/today
+  - checkPageContains: Today
+  - assert: The authenticated habit tracker is still visible after reloading, and the login form is absent.

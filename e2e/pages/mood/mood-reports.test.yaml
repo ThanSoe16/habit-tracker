@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'opulent-chi-diagram-balances-noisily'
+description: 'Mood reports'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/mood-generals/reports'
+  - waitForUrl: '/mood-generals/reports'
+  - checkPageContains: 'Emotional Well-Being'
+  - checkPageContains: 'Total Mood Logs'
+  - checkPageContains: 'Mood Distribution Breakdown'
+  - checkPageContains: 'Frequent Mood Triggers & Tags'
+  - assert: 'Mood counts, percentages, and distribution labels are rendered, including zero counts when no data exists. A loading skeleton, query error, or application error does not satisfy this check.'

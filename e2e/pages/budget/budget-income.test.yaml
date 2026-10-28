@@ -1,0 +1,17 @@
+fileType: 'momentic/test/v2'
+id: 'crescent-zulu-action-throws-princely'
+description: 'Budget income'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget/income'
+  - waitForUrl: '/budget/income'
+  - checkPageContains: 'Current Balance'
+  - checkPageContains: 'Log Income'
+  - assert: 'Income records or the no-income empty state are rendered with currency filters. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Log Income button'
+  - assert: 'An income-entry form is open with description or title, amount, currency, category, and date controls.'
+  - act:
+      goal: 'Close the open income drawer using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The income drawer is closed and the underlying page is usable.'

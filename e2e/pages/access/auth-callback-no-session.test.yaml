@@ -1,0 +1,9 @@
+fileType: 'momentic/test/v2'
+id: 'unique-ninetyone-pig-devise-totally'
+description: 'Auth callback no session'
+defaultEnv: 'local'
+steps:
+  - navigate: '/auth/callback'
+  - waitForUrl: '/login'
+  - checkPageContains: 'Your personal tracker'
+  - assert: 'A callback without a session returns to the login form. A loading skeleton, query error, or application error does not satisfy this check.'

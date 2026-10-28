@@ -1,0 +1,19 @@
+fileType: 'momentic/test/v2'
+id: 'serious-eightyeight-path-bloats-fast'
+description: 'Budget salary'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget/salary'
+  - waitForUrl: '/budget/salary'
+  - checkPageContains: 'Automated Payouts'
+  - checkPageContains: 'Every 1st Day of Month'
+  - checkPageContains: 'Configured Salaries'
+  - assert: 'Salary templates or the no-template state are loaded. Do not trigger Payout Now. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Add Salary button'
+  - checkPageContains: 'Salary Title'
+  - checkPageContains: 'Amount'
+  - act:
+      goal: 'Close the open salary drawer using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The salary drawer is closed and the underlying page is usable.'

@@ -1,0 +1,13 @@
+fileType: 'momentic/test/v2'
+id: 'elite-compact-quarter-brushes-yearly'
+description: 'Workout today'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/workout/today'
+  - waitForUrl: '/workout/today'
+  - assert: 'The daily workout page displays a date/day selector and the workout exercise plan or a rest-day state. It is not a loading or login screen. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Select a different day in the workout calendar, inspect its plan, and return to today. Do not complete sets, log a workout, or edit the plan.'
+      postcondition: 'The workout page is back on today with its exercise plan or rest-day content.'

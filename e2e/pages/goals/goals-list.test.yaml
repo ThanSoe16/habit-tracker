@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'daring-plush-sheet-follows-sweetly'
+description: 'Goals list'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/goals/manage'
+  - waitForUrl: '/goals/manage'
+  - checkPageContains: 'Goal List'
+  - assert: 'The active goals section shows goal records or No active goals, and Create goal is available. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Create goal button'
+  - waitForUrl: '/goals/create'
+  - checkPageContains: 'Create Goal'

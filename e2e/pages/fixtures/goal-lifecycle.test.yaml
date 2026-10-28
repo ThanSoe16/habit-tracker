@@ -1,0 +1,64 @@
+fileType: momentic/test/v2
+id: vast-silent-level-sleeps-easily
+description: Create, inspect, edit, complete, reopen, cancel deletion, and
+  delete only this run's temporary goal.
+defaultEnv: local
+before:
+  - module: ../../modules/authenticated-session.module.yaml
+  - javascript:
+      code: |
+        if (!env.E2E_RUN_ID || env.E2E_RUN_ID === 'manual') {
+          throw new Error('Run fixture tests through pnpm test:e2e --feature fixtures so cleanup is guaranteed.');
+        }
+        setVariable('TEST_GOAL', 'E2E ' + env.E2E_RUN_ID + ' goal');
+        setVariable('EDITED_GOAL', 'E2E ' + env.E2E_RUN_ID + ' goal edited');
+steps:
+  - navigate: /goals/create
+  - checkPageContains: Create Goal
+  - type:
+      text: '{{ env.TEST_GOAL }}'
+      into: Goal name input
+  - type:
+      text: Temporary browser test goal. Safe to remove after this run.
+      into: Why it matters input
+  - type:
+      text: Verify the first step
+      into: Steps and sub-ideas input
+  - click: Create Goal submit button
+  - waitForUrl: /goals/manage
+  - checkPageContains: '{{ env.TEST_GOAL }}'
+  - click: 'The goal card named {{ env.TEST_GOAL }}'
+  - assert: 'The goal details drawer shows {{ env.TEST_GOAL }}, its reason, and the Verify the first step idea.'
+  - click: Edit button in the goal details drawer
+  - type:
+      text: '{{ env.EDITED_GOAL }}'
+      into: Goal name input in the edit form
+      clear: inputs
+  - click: Save button in the goal edit form
+  - checkPageContains: '{{ env.EDITED_GOAL }}'
+  - click: Complete button in the goal details drawer
+  - assert: The Save completion button is disabled until a completion note is entered.
+  - type:
+      text: Browser lifecycle verification complete.
+      into: Completion note input with placeholder I did it, and I want to remember...
+  - click: Save completion button
+  - click: Close goal details button
+  - navigate: /goals/history
+  - checkPageContains: '{{ env.EDITED_GOAL }}'
+  - checkPageContains: Browser lifecycle verification complete.
+  - refresh
+  - checkPageContains: '{{ env.EDITED_GOAL }}'
+  - click: 'Reopen button on the {{ env.EDITED_GOAL }} goal card'
+  - navigate: /goals/manage
+  - checkPageContains: '{{ env.EDITED_GOAL }}'
+  - click: 'The goal card named {{ env.EDITED_GOAL }}'
+  - click: Delete button in the goal details drawer
+  - checkPageContains: Delete goal?
+  - click: Cancel button in the Delete goal? confirmation
+  - checkPageContains: '{{ env.EDITED_GOAL }}'
+  - click: Delete button in the goal details drawer
+  - click: Delete goal confirmation button
+  - checkPageDoesNotContain: '{{ env.EDITED_GOAL }}'
+  - refresh
+  - checkPageContains: Goal List
+  - checkPageDoesNotContain: '{{ env.EDITED_GOAL }}'

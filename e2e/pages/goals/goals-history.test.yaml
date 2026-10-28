@@ -1,0 +1,11 @@
+fileType: 'momentic/test/v2'
+id: 'hazy-silver-heat-boosts-loudly'
+description: 'Goals history'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/goals/history'
+  - waitForUrl: '/goals/history'
+  - checkPageContains: 'completed goals'
+  - assert: 'Completed goal records are shown or No history yet is displayed with Completed goals will appear here. A loading skeleton, query error, or application error does not satisfy this check.'

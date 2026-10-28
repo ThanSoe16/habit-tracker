@@ -1,0 +1,12 @@
+fileType: 'momentic/test/v2'
+id: 'ten-lofty-there-drift-slightly'
+description: 'Goals home'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/goals'
+  - waitForUrl: '/goals'
+  - assert: 'The goals home shows wish cards with progress or No wishes yet. Navigation for goals is present. A loading skeleton, query error, or application error does not satisfy this check.'
+  - refresh
+  - assert: 'The goals home remains visible after reload, showing wish cards or No wishes yet, without a login form.'

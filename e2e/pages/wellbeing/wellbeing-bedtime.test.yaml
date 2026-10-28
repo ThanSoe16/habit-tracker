@@ -1,0 +1,12 @@
+fileType: 'momentic/test/v2'
+id: 'global-sf-farther-prevents-anywhere'
+description: 'Wellbeing bedtime'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/digital-wellbeing/bedtime'
+  - waitForUrl: '/digital-wellbeing/bedtime'
+  - checkPageContains: 'Bedtime Schedule'
+  - checkPageContains: 'Save schedule'
+  - assert: 'The bedtime form includes bedtime and wake times, active days, and unsupported device-control notices. Do not save a schedule. A loading skeleton, query error, or application error does not satisfy this check.'

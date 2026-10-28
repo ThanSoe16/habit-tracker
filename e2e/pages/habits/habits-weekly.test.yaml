@@ -1,0 +1,13 @@
+fileType: 'momentic/test/v2'
+id: 'round-double-failed-glows-anywhere'
+description: 'Habits weekly'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/habits/weekly'
+  - waitForUrl: '/habits/weekly'
+  - checkPageContains: 'Today'
+  - assert: 'The weekly view shows habit cards with seven day columns or the No habits created yet empty state. Daily All/Pending/Completed filter buttons are absent. A loading skeleton, query error, or application error does not satisfy this check.'
+  - refresh
+  - checkPageContains: 'Today'

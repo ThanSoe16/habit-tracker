@@ -1,0 +1,18 @@
+fileType: 'momentic/test/v2'
+id: 'juliet-savvy-screen-awakens-ahead'
+description: 'Budget settings'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget-generals/settings'
+  - waitForUrl: '/budget-generals/settings'
+  - checkPageContains: 'Currency'
+  - checkPageContains: 'Display currency'
+  - checkPageContains: 'Adjust wallet balances'
+  - checkPageContains: 'Backup & restore'
+  - assert: 'Currency preferences, wallet balance inputs, backup controls, and Reset budget data are visible. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Reset budget data button'
+  - checkPageContains: 'Reset all budget data?'
+  - click: 'Cancel button in the reset confirmation dialog'
+  - assert: 'The reset confirmation is closed. Wallet balance inputs remain visible and no reset was confirmed.'

@@ -1,0 +1,16 @@
+fileType: 'momentic/test/v2'
+id: 'young-faraway-shelf-wraps-brightly'
+description: 'Budget reports'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget-generals/reports'
+  - waitForUrl: '/budget-generals/reports'
+  - checkPageContains: 'Module Category'
+  - checkPageContains: 'Financial Summary'
+  - checkPageContains: 'Category Spending Breakdown'
+  - assert: 'Financial summary figures and the detailed history or a no-history state are loaded. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Change the report module filter to Income, then Expenses, then All Modules. Do not export or alter transactions.'
+      postcondition: 'All Modules is selected and the report summary and history or empty state are visible.'

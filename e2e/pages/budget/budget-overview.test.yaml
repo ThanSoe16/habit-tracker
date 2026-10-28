@@ -1,0 +1,16 @@
+fileType: 'momentic/test/v2'
+id: 'iowa-artful-having-sleeps-plainly'
+description: 'Budget overview'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget'
+  - waitForUrl: '/budget'
+  - checkPageContains: 'Current Balance'
+  - checkPageContains: 'Family budget'
+  - checkPageContains: 'Recent Transaction'
+  - assert: 'The wallet summary, currency selector, and shortcuts for Income, Expenses, and Loan & Borrow are visible. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Income shortcut in the wallet overview'
+  - waitForUrl: '/budget/income'
+  - checkPageContains: 'Log Income'

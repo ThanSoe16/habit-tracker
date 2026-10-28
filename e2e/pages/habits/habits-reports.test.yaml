@@ -1,0 +1,16 @@
+fileType: 'momentic/test/v2'
+id: 'cool-tall-swamp-reveals-wrong'
+description: 'Habits reports'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/generals/reports'
+  - waitForUrl: '/generals/reports'
+  - checkPageContains: 'Reports & Insights'
+  - checkPageContains: 'Habits Completed'
+  - checkPageContains: 'Completion Rate Trend'
+  - assert: 'Summary statistics and completion charts have rendered. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Switch the report range to monthly, then yearly, then weekly using the range buttons. Do not change any habit data.'
+      postcondition: 'The weekly summary and completion chart are displayed after switching ranges.'

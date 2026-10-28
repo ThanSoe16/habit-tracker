@@ -1,0 +1,9 @@
+fileType: momentic/module/v2
+description: Load the browser session produced by test:e2e:auth and verify it is
+  authenticated.
+id: little-fiftyfour-walrus-seeks-coolly
+steps:
+  - authLoad: ../.auth/session.json
+  - navigate: /habits/today
+  - waitForUrl: /habits/today
+  - checkPageContains: Today

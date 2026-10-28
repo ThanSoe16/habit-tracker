@@ -1,0 +1,10 @@
+fileType: 'momentic/test/v2'
+id: 'scarlet-casual-born-emerges-squarely'
+description: 'Wellbeing challenges'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/digital-wellbeing/challenges'
+  - waitForUrl: '/digital-wellbeing/challenges'
+  - assert: 'The challenges page shows available challenge cards with descriptions and enrollment controls, or No challenges are available. Do not join or cancel a challenge. A loading skeleton, query error, or application error does not satisfy this check.'

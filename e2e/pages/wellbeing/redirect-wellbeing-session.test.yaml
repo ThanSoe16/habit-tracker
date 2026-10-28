@@ -1,0 +1,10 @@
+fileType: 'momentic/test/v2'
+id: 'elite-ten-area-depends-badly'
+description: 'Redirect wellbeing session'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/wellbeing/session'
+  - waitForUrl: '/digital-wellbeing/focus'
+  - assert: 'The legacy wellbeing route redirects to /digital-wellbeing/focus and its main content loads without a login form. A loading skeleton, query error, or application error does not satisfy this check.'

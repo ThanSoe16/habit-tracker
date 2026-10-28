@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'thirtysix-mild-carbon-jumps-highly'
+description: 'Mood settings'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/mood-generals/settings'
+  - waitForUrl: '/mood-generals/settings'
+  - checkPageContains: 'Check-in reminders'
+  - checkPageContains: 'Mood tracking'
+  - checkPageContains: 'Journaling notes'
+  - checkPageContains: 'Mood streak'
+  - assert: 'Reminder and tracking preferences are loaded without a failed-save message. Do not change notification or tracking preferences. A loading skeleton, query error, or application error does not satisfy this check.'

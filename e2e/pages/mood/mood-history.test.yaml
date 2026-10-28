@@ -1,0 +1,11 @@
+fileType: 'momentic/test/v2'
+id: 'timely-legal-street-starts-upstairs'
+description: 'Mood history'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/mood/history'
+  - waitForUrl: '/mood/history'
+  - checkPageContains: 'Logged Mood Entries'
+  - assert: 'Mood entries show their labels and dates, or the No mood history yet state is displayed. A loading skeleton, query error, or application error does not satisfy this check.'

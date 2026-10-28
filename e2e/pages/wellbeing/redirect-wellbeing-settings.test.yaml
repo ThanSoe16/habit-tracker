@@ -1,0 +1,10 @@
+fileType: 'momentic/test/v2'
+id: 'mellow-winter-animal-proves-again'
+description: 'Redirect wellbeing settings'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/wellbeing/settings'
+  - waitForUrl: '/digital-wellbeing/settings'
+  - assert: 'The legacy wellbeing route redirects to /digital-wellbeing/settings and its main content loads without a login form. A loading skeleton, query error, or application error does not satisfy this check.'

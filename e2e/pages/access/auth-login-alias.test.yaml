@@ -1,0 +1,12 @@
+fileType: 'momentic/test/v2'
+id: 'early-sparkly-fiddle-proves-secondly'
+description: 'Auth login alias'
+defaultEnv: 'local'
+steps:
+  - navigate: '/auth/login'
+  - waitForUrl: '/auth/login'
+  - checkPageContains: 'Your personal tracker'
+  - checkPageContains: 'Email address'
+  - checkPageContains: 'Password'
+  - checkPageContains: 'Sign in'
+  - assert: 'The signed-out login alias shows the same email/password login form. A loading skeleton, query error, or application error does not satisfy this check.'

@@ -1,0 +1,13 @@
+fileType: 'momentic/test/v2'
+id: 'silky-clean-supply-courses-closely'
+description: 'Media reports'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/store-generals/report'
+  - waitForUrl: '/store-generals/report'
+  - checkPageContains: 'Total Storage Used'
+  - checkPageContains: 'Media Breakdown'
+  - checkPageContains: 'Storage Insights'
+  - assert: 'Storage totals and Voice Memos, Photos, Videos breakdowns render, including zero usage for an empty library. A loading skeleton, query error, or application error does not satisfy this check.'

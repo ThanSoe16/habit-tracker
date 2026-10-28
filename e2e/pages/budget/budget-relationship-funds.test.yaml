@@ -1,0 +1,12 @@
+fileType: 'momentic/test/v2'
+id: 'rough-fiftytwo-into-notices-behind'
+description: 'Budget relationship funds'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget/relationship-funds'
+  - waitForUrl: '/budget/relationship-funds'
+  - checkPageContains: 'Fund Activity'
+  - checkPageContains: 'Export Statement'
+  - assert: 'The relationship fund summary and filters show transactions or No fund records found. Do not export private records or record money. A loading skeleton, query error, or application error does not satisfy this check.'

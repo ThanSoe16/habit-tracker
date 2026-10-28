@@ -1,0 +1,19 @@
+fileType: 'momentic/test/v2'
+id: 'california-rho-other-migrates-early'
+description: 'Budget expenses'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget/expenses'
+  - waitForUrl: '/budget/expenses'
+  - checkPageContains: 'Current Balance'
+  - checkPageContains: 'Log Expense'
+  - checkPageContains: 'Expense Log'
+  - assert: 'Expense records or a no-activity state are rendered with currency filters. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Log Expense button'
+  - checkPageContains: 'Expense Description'
+  - checkPageContains: 'Save Expense'
+  - act:
+      goal: 'Close the open expense drawer using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The expense drawer is closed and the underlying page is usable.'

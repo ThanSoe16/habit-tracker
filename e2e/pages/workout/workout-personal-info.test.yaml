@@ -1,0 +1,18 @@
+fileType: 'momentic/test/v2'
+id: 'hushed-legal-service-sounds-however'
+description: 'Workout personal info'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/workout/personal-info'
+  - waitForUrl: '/workout/personal-info'
+  - checkPageContains: 'Personal Info & Goals'
+  - checkPageContains: 'Log Weight'
+  - checkPageContains: 'History'
+  - assert: 'Weight, hydration, and body metrics are loaded. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Log Weight button'
+  - checkPageContains: "Log Today's Weight"
+  - checkPageContains: 'Save Log'
+  - click: 'Cancel button in the weight log form'
+  - assert: 'The quick weight-log form is closed and the personal-info dashboard remains visible.'

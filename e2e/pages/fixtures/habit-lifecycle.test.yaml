@@ -1,0 +1,51 @@
+fileType: momentic/test/v2
+id: whiskey-jaunty-take-tweak-upward
+description: Create, inspect, edit, reload, cancel deletion, and delete only
+  this run's temporary habit.
+defaultEnv: local
+before:
+  - module: ../../modules/authenticated-session.module.yaml
+  - javascript:
+      code: |
+        if (!env.E2E_RUN_ID || env.E2E_RUN_ID === 'manual') {
+          throw new Error('Run fixture tests through pnpm test:e2e --feature fixtures so cleanup is guaranteed.');
+        }
+        setVariable('TEST_HABIT', 'E2E ' + env.E2E_RUN_ID + ' habit');
+        setVariable('EDITED_HABIT', 'E2E ' + env.E2E_RUN_ID + ' habit edited');
+steps:
+  - navigate: /managements/regular
+  - checkPageContains: Regular Habits
+  - click: Create habit button
+  - waitForUrl: /managements/create
+  - type:
+      text: '{{ env.TEST_HABIT }}'
+      into: Habit Name input
+  - click: Create Habit submit button
+  - waitForUrl: /managements/regular
+  - checkPageContains: '{{ env.TEST_HABIT }}'
+  - click: 'The habit card named {{ env.TEST_HABIT }}'
+  - checkPageContains: Calendar Stats
+  - checkPageContains: Current streak
+  - checkPageContains: Completion rate
+  - click: Edit habit button
+  - waitForUrl: /edit
+  - assert: 'The Habit Name input is populated with {{ env.TEST_HABIT }} and its existing schedule is loaded.'
+  - type:
+      text: '{{ env.EDITED_HABIT }}'
+      into: Habit Name input
+      clear: inputs
+  - click: Save Habit button
+  - checkPageContains: '{{ env.EDITED_HABIT }}'
+  - refresh
+  - checkPageContains: '{{ env.EDITED_HABIT }}'
+  - click: Delete habit button
+  - checkPageContains: Delete habit?
+  - click: Cancel button in the delete habit confirmation
+  - checkPageContains: '{{ env.EDITED_HABIT }}'
+  - click: Delete habit button
+  - click: Delete confirmation button in the Delete habit? dialog
+  - waitForUrl: /managements/regular
+  - checkPageDoesNotContain: '{{ env.EDITED_HABIT }}'
+  - refresh
+  - checkPageContains: Regular Habits
+  - checkPageDoesNotContain: '{{ env.EDITED_HABIT }}'

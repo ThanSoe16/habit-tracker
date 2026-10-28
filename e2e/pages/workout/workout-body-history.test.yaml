@@ -1,0 +1,17 @@
+fileType: 'momentic/test/v2'
+id: 'delta-dense-surprise-frees-now'
+description: 'Workout body history'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/workout/personal-info-history'
+  - waitForUrl: '/workout/personal-info-history'
+  - checkPageContains: 'Body metrics'
+  - checkPageContains: 'Start Weight'
+  - checkPageContains: 'End Weight'
+  - checkPageContains: 'Net Change'
+  - assert: 'The monthly body metrics list or no-logs state is visible with month navigation. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Previous Month button'
+  - assert: 'The month heading changed to the preceding month and records or a no-logs state are shown.'
+  - click: 'Next Month button'

@@ -1,0 +1,13 @@
+fileType: 'momentic/test/v2'
+id: 'posh-broad-lychee-extends-quaintly'
+description: 'Workout reports'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/workout-generals/reports'
+  - waitForUrl: '/workout-generals/reports'
+  - checkPageContains: 'Workout Performance'
+  - checkPageContains: 'Muscle Group Volume Breakdown'
+  - checkPageContains: 'Weekly Split Distribution'
+  - assert: 'Workout counts, sets, and muscle-group statistics have rendered, including zero-data values when appropriate. A loading skeleton, query error, or application error does not satisfy this check.'

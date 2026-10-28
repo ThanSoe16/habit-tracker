@@ -1,0 +1,23 @@
+fileType: 'momentic/test/v2'
+id: 'lovely-distant-savanna-mend-boldly'
+description: 'Account settings'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/account'
+  - waitForUrl: '/account'
+  - checkPageContains: 'Account & Settings'
+  - checkPageContains: 'Appearance'
+  - checkPageContains: 'Sound & vibration'
+  - checkPageContains: 'Module settings'
+  - checkPageContains: 'About'
+  - assert: 'The account profile and preferences are loaded. Module settings links include Habits, Workouts, Mood, Budget, Media, and Goals. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Open the Appearance settings drawer, inspect theme and accent options, then close it without selecting or saving changes.'
+      postcondition: 'The appearance drawer is closed and Account & Settings remains visible.'
+  - click: 'Alarm ringtone button'
+  - assert: 'The ringtone chooser is visible with ringtone choices.'
+  - act:
+      goal: 'Close the open ringtone drawer using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The ringtone drawer is closed and the underlying page is usable.'

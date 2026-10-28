@@ -1,0 +1,18 @@
+fileType: 'momentic/test/v2'
+id: 'sixtyeight-dry-lost-fetches-slightly'
+description: 'Budget loans'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget/loans'
+  - waitForUrl: '/budget/loans'
+  - checkPageContains: 'I Lent Money'
+  - checkPageContains: 'I Borrowed Money'
+  - assert: 'Loan type, settlement status, and currency filters are displayed with loan records or No loan records. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'I Lent Money button'
+  - checkPageContains: 'Record Money Lent (I Lent)'
+  - checkPageContains: 'Save Record & Update Wallet'
+  - act:
+      goal: 'Close the open loan drawer using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The loan drawer is closed and the underlying page is usable.'

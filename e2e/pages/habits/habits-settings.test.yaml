@@ -1,0 +1,12 @@
+fileType: 'momentic/test/v2'
+id: 'iowa-daring-social-moves-upward'
+description: 'Habits settings'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/generals/settings'
+  - waitForUrl: '/generals/settings'
+  - checkPageContains: 'Habit settings'
+  - checkPageContains: 'Habit view'
+  - assert: 'Habit view preferences are loaded as interactive controls, with an app settings link. No unsaved or failed-save alert is shown. A loading skeleton, query error, or application error does not satisfy this check.'

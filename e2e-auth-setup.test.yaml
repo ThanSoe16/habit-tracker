@@ -1,0 +1,22 @@
+fileType: momentic/test/v2
+id: rugged-upsilon-silly-etch-squarely
+description: Sign in once and save a gitignored browser session for page tests.
+defaultEnv: local
+before:
+  - javascript:
+      code: |
+        if (!env.E2E_LOGIN_EMAIL || !env.E2E_LOGIN_PASSWORD) {
+          throw new Error('Set E2E_LOGIN_EMAIL and E2E_LOGIN_PASSWORD in .env.local.');
+        }
+steps:
+  - checkPageContains: Your personal tracker
+  - type:
+      text: '{{ env.E2E_LOGIN_EMAIL }}'
+      into: Email address input
+  - type:
+      text: '{{ env.E2E_LOGIN_PASSWORD }}'
+      into: Password input
+  - click: Sign in button
+  - waitForUrl: /habits/today
+  - checkPageContains: Today
+  - authSave: ./e2e/.auth/session.json

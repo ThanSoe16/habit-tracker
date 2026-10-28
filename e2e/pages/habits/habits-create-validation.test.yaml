@@ -1,0 +1,15 @@
+fileType: 'momentic/test/v2'
+id: 'cobalt-fortyone-guava-enjoys-merrily'
+description: 'Habits create validation'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/managements/create'
+  - waitForUrl: '/managements/create'
+  - checkPageContains: 'Create Habit'
+  - checkPageContains: 'Cancel'
+  - assert: 'The create form includes a name field and habit configuration controls. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Create Habit submit button'
+  - checkPageContains: 'Name is required'
+  - assert: 'The create form remains open and the name field has a validation error. No habit was created.'

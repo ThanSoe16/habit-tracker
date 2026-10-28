@@ -1,0 +1,13 @@
+fileType: 'momentic/test/v2'
+id: 'opulent-curious-pot-forms-harshly'
+description: 'Mood calendar alias'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/mood'
+  - waitForUrl: '/mood'
+  - assert: 'The mood calendar displays a month heading, weekday labels, and selectable dates. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Use the calendar month navigation to go back one month, then forward one month. Do not select or save a mood.'
+      postcondition: 'The original month calendar is displayed again with weekday labels and day cells.'

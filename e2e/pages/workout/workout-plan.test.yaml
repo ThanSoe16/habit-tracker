@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'thirtynine-follow-performs-usually'
+description: 'Workout plan'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/managements/plan'
+  - waitForUrl: '/managements/plan'
+  - checkPageContains: '7-Day Weekly Split'
+  - assert: 'The seven-day plan has day selectors and a workout list or Rest & Recovery Day. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Select another day in the weekly split and inspect it. Do not load a preset, toggle rest days, add exercises, save titles, or reset the split.'
+      postcondition: 'The selected day and its exercise list or rest-day state are visible.'

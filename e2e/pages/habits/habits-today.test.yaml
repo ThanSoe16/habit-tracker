@@ -1,0 +1,18 @@
+fileType: 'momentic/test/v2'
+id: 'ninetyfive-true-basic-skips-solemnly'
+description: 'Habits today'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/habits/today'
+  - waitForUrl: '/habits/today'
+  - checkPageContains: 'Today'
+  - checkPageContains: 'Pending'
+  - checkPageContains: 'Completed'
+  - assert: 'The daily calendar and All, Pending, Completed filters are visible. The habit list shows records or a legitimate empty state. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Pending filter in the daily habit list'
+  - assert: 'The Pending filter is selected and the list contains pending habits or an empty state, without completed habit cards.'
+  - click: 'Completed filter in the daily habit list'
+  - assert: 'The Completed filter is selected and the list contains completed habits or an empty state, without pending habit cards.'
+  - click: 'All filter in the daily habit list'

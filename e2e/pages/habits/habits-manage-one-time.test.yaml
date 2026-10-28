@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'fair-eleven-review-bloats-normally'
+description: 'Habits manage one time'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/managements/one-time'
+  - waitForUrl: '/managements/one-time'
+  - checkPageContains: 'One-Time Tasks'
+  - assert: 'The management list shows the appropriate habit/task records or its empty state, with a Create habit button. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Create habit button'
+  - waitForUrl: '/managements/create'
+  - checkPageContains: 'Create Habit'

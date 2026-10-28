@@ -1,0 +1,12 @@
+fileType: 'momentic/test/v2'
+id: 'short-romeo-dream-clears-tamely'
+description: 'Goals settings'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/goals/settings'
+  - waitForUrl: '/goals/settings'
+  - checkPageContains: 'Show latest completed goal'
+  - checkPageContains: 'Clear completed goals'
+  - assert: 'The completed-goal preference is loaded. Clear completed goals is disabled when the completed count is zero; otherwise it is available. Do not clear history. A loading skeleton, query error, or application error does not satisfy this check.'

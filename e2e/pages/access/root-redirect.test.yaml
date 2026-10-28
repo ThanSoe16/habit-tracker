@@ -1,0 +1,10 @@
+fileType: 'momentic/test/v2'
+id: 'seventyfour-gold-shelf-comes-rapidly'
+description: 'Root redirect'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/'
+  - waitForUrl: '/habits/'
+  - assert: 'The signed-in root route redirects to a habits view and displays the habit tracker without a login form. A loading skeleton, query error, or application error does not satisfy this check.'

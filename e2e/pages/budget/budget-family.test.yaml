@@ -1,0 +1,13 @@
+fileType: 'momentic/test/v2'
+id: 'broad-iowa-radius-reads-softly'
+description: 'Budget family'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/budget/family'
+  - waitForUrl: '/budget/family'
+  - assert: 'The family budget page shows family-member totals, filters, and transfer records or a clear empty state. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Inspect the family-member filter and select a different available member, then return to All if available. Do not add, edit, or delete transfers.'
+      postcondition: 'The family transfer list is visible with its selected filter and records or an empty state.'

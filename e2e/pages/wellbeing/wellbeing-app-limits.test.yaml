@@ -1,0 +1,17 @@
+fileType: 'momentic/test/v2'
+id: 'cozy-graceful-cup-splays-soon'
+description: 'Wellbeing app limits'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/digital-wellbeing/app-limits'
+  - waitForUrl: '/digital-wellbeing/app-limits'
+  - checkPageContains: 'App Limits'
+  - checkPageContains: 'Add another app'
+  - assert: 'Existing app limits or No app limits yet is shown. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Add another app button'
+  - assert: 'The add-app-limit dialog is open with app selection or manual app identity and time-limit fields.'
+  - act:
+      goal: 'Close the open app limit dialog using its close button or Escape. Do not save, submit, delete, or change any existing record.'
+      postcondition: 'The app limit dialog is closed and the underlying page is usable.'

@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "momentic": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "momentic",
+        "mcp",
+        "--config",
+        "momentic.config.yaml"
+      ]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+fileType: momentic/test/v2
+id: trusty-new-valley-advances-anyhow
+description: Verify the login page and client-side credential validation without signing in
+defaultEnv: local
+steps:
+  - checkPageContains: Your personal tracker
+  - assert: The login form has an empty Email address input, an empty masked Password input, and an enabled Sign in button.
+  - click: Sign in button
+  - checkPageContains: Enter a valid email address.
+  - checkPageContains: Use at least 6 characters.
+  - type:
+      text: login-test@example.com
+      into: Email address input
+  - type:
+      text: short
+      into: Password input
+  - click: Sign in button
+  - checkPageContains: Use at least 6 characters.
+  - checkPageDoesNotContain: Enter a valid email address.
+  - assert: The Email address input still contains login-test@example.com, the Password input is masked and nonempty, and the Sign in button is enabled.
+  - waitForUrl: /login

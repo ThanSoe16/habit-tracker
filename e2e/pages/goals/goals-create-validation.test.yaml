@@ -1,0 +1,17 @@
+fileType: 'momentic/test/v2'
+id: 'formal-murky-none-skip-casually'
+description: 'Goals create validation'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/goals/create'
+  - waitForUrl: '/goals/create'
+  - checkPageContains: 'Create Goal'
+  - checkPageContains: 'Goal name'
+  - checkPageContains: 'Target & savings'
+  - checkPageContains: 'Places & ideas'
+  - assert: 'The goal form has a name, why it matters, optional target date and amount, currency, places, and steps fields. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Create Goal submit button'
+  - checkPageContains: 'Give this goal a name.'
+  - assert: 'The goal form stays open with a name error and an enabled Cancel button.'

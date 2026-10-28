@@ -1,0 +1,11 @@
+fileType: 'momentic/test/v2'
+id: 'twilight-ninetyfour-bit-fades-well'
+description: 'Media voice'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/store/voice'
+  - waitForUrl: '/store/voice'
+  - checkPageContains: 'Saved Voice Memos'
+  - assert: 'The voice recorder shows a recording control and saved voice memos or its empty state. A microphone-permission notice is acceptable when capture has not started. Do not record or save audio. A loading skeleton, query error, or application error does not satisfy this check.'

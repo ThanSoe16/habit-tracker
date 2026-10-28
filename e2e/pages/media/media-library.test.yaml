@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'dusky-peaceful-harp-begins-stoutly'
+description: 'Media library'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/store'
+  - waitForUrl: '/store'
+  - checkPageContains: 'Recent Media'
+  - assert: 'Voice, Photo, and Video shortcut cards show file counts. Recent media cards or No media stored yet are shown.'
+  - click: 'Photo shortcut card'
+  - waitForUrl: '/store/gallery'
+  - checkPageContains: 'Gallery'

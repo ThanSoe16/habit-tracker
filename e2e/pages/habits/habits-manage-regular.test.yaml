@@ -1,0 +1,14 @@
+fileType: 'momentic/test/v2'
+id: 'cool-loyal-from-relaxes-upriver'
+description: 'Habits manage regular'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/managements/regular'
+  - waitForUrl: '/managements/regular'
+  - checkPageContains: 'Regular Habits'
+  - assert: 'The management list shows the appropriate habit/task records or its empty state, with a Create habit button. A loading skeleton, query error, or application error does not satisfy this check.'
+  - click: 'Create habit button'
+  - waitForUrl: '/managements/create'
+  - checkPageContains: 'Create Habit'

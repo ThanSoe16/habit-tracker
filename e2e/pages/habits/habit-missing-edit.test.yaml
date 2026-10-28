@@ -1,0 +1,10 @@
+fileType: 'momentic/test/v2'
+id: 'brown-montana-win-refuses-now'
+description: 'Habit missing edit'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/managements/e2e-missing-habit/edit'
+  - waitForUrl: '/managements/e2e-missing-habit/edit'
+  - assert: 'The edit page reports that the habit is unavailable or not found. It does not show an editable form for a different habit. A loading skeleton, query error, or application error does not satisfy this check.'

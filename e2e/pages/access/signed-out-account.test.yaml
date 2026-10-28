@@ -1,0 +1,9 @@
+fileType: 'momentic/test/v2'
+id: 'native-hard-orange-freezes-manually'
+description: 'Signed out account'
+defaultEnv: 'local'
+steps:
+  - navigate: '/account'
+  - waitForUrl: '/login?next='
+  - checkPageContains: 'Your personal tracker'
+  - assert: 'The protected route redirects to login with a next parameter preserving the requested destination. Protected content is not visible. A loading skeleton, query error, or application error does not satisfy this check.'

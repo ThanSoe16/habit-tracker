@@ -1,0 +1,17 @@
+fileType: 'momentic/test/v2'
+id: 'main-mild-native-brushes-squarely'
+description: 'Wellbeing focus'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/digital-wellbeing/focus'
+  - waitForUrl: '/digital-wellbeing/focus'
+  - checkPageContains: 'Start Focus Session'
+  - checkPageContains: 'Duration'
+  - checkPageContains: 'Distracting apps'
+  - checkPageContains: 'Focus History'
+  - assert: 'Focus duration and distracting-app selection are available, with prior sessions or No focus sessions recorded yet. A loading skeleton, query error, or application error does not satisfy this check.'
+  - act:
+      goal: 'Choose the 45-minute focus duration preset. Do not start a focus session or change app selections.'
+      postcondition: 'The focus duration is set to 45 minutes and no session has been started.'

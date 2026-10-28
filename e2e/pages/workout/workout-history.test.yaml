@@ -1,0 +1,12 @@
+fileType: 'momentic/test/v2'
+id: 'upland-radiant-solve-proves-cleanly'
+description: 'Workout history'
+defaultEnv: 'local'
+before:
+  - module: '../../modules/authenticated-session.module.yaml'
+steps:
+  - navigate: '/workout/history'
+  - waitForUrl: '/workout/history'
+  - checkPageContains: 'Completed Workouts'
+  - checkPageContains: 'Total Sets Done'
+  - assert: 'The history shows logged workout records or No workout history logged yet. A loading skeleton, query error, or application error does not satisfy this check.'
