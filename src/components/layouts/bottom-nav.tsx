@@ -3,53 +3,68 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/utils/cn';
-import Image from 'next/image';
-import { Dumbbell, Flag, Wallet } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
+import { useUserStore } from '@/store/use-user-store';
+import { BottomNavIcon } from './bottom-nav-icon';
 
 interface NavItem {
   label: string;
   href: string;
-  icon?: string;
-  activeIcon?: string;
-  useLucide?: boolean;
-  lucideIcon?: 'dumbbell' | 'wallet' | 'goals';
+  icon: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
   {
     label: 'Home',
-    icon: '/side-bar/home-inactive.png',
-    activeIcon: '/side-bar/home-active.png',
+    icon: '/icons/home-icon.mp4',
     href: '/habits/today',
   },
   {
     label: 'Workout',
-    useLucide: true,
-    lucideIcon: 'dumbbell',
+    icon: '/icons/gym-icon.mp4',
     href: '/workout/today',
   },
   {
     label: 'Mood Stat',
-    icon: '/side-bar/mood-inactive.png',
-    activeIcon: '/side-bar/mood-active.png',
+    icon: '/icons/mood-icon.mp4',
     href: '/mood/today',
   },
   {
     label: 'Budget',
-    useLucide: true,
-    lucideIcon: 'wallet',
+    icon: '/icons/saving-icon.mp4',
     href: '/budget',
   },
   {
     label: 'Goals',
-    useLucide: true,
-    lucideIcon: 'goals',
+    icon: '/icons/goal-icon.mp4',
     href: '/goals',
   },
 ];
 
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+function subscribeToReducedMotion(onChange: () => void) {
+  const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+  mediaQuery.addEventListener('change', onChange);
+  return () => mediaQuery.removeEventListener('change', onChange);
+}
+
+function getReducedMotionSnapshot() {
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function getServerReducedMotionSnapshot() {
+  return true;
+}
+
 export function BottomNav() {
   const pathname = usePathname();
+  const reduceAppMotion = useUserStore((state) => state.appearanceSettings.reduceMotion);
+  const reduceSystemMotion = useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getServerReducedMotionSnapshot,
+  );
   const isWorkoutManagementRoute =
     pathname === '/managements/plan' || pathname === '/managements/edit-personal-info';
   const isHabitManagementRoute = pathname.startsWith('/managements') && !isWorkoutManagementRoute;
@@ -91,9 +106,6 @@ export function BottomNav() {
             isActive = pathname.startsWith(item.href);
           }
 
-          const LucideIcon =
-            item.lucideIcon === 'wallet' ? Wallet : item.lucideIcon === 'goals' ? Flag : Dumbbell;
-
           return (
             <Link
               key={item.label}
@@ -101,38 +113,26 @@ export function BottomNav() {
               title={item.label}
               aria-label={item.label}
               aria-current={isActive ? 'page' : undefined}
-              className="flex flex-col items-center justify-center transition-all duration-300 relative"
+              className="flex flex-col items-center justify-center transition-all duration-300 relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
             >
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300',
-                  isActive
-                    ? 'bg-primary text-white shadow-md shadow-primary/35 scale-105'
-                    : 'text-gray-400 dark:text-zinc-300 hover:text-gray-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-800/80',
+                  'size-10 rounded-xl flex items-center justify-center transition-colors duration-200 motion-reduce:transition-none',
+                  isActive ? '' : 'hover:bg-accent/60',
                 )}
               >
-                {item.useLucide ? (
-                  <LucideIcon
-                    className={cn(
-                      'w-5 h-5 transition-transform duration-300',
-                      isActive ? 'text-white' : 'text-gray-400 dark:text-zinc-300',
-                    )}
-                  />
-                ) : (
-                  <Image
-                    src={isActive ? item.activeIcon! : item.icon!}
-                    alt={item.label}
-                    width={22}
-                    height={22}
-                    className={cn(
-                      'w-5 h-5 transition-all duration-300',
-                      isActive
-                        ? 'brightness-0 invert'
-                        : 'dark:brightness-0 dark:invert dark:opacity-75',
-                    )}
-                  />
-                )}
+                <BottomNavIcon
+                  src={item.icon}
+                  reduceMotion={reduceAppMotion || reduceSystemMotion}
+                />
               </div>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'absolute -bottom-[1px] h-0.5 w-[70%] rounded-full bg-primary transition-opacity duration-200 motion-reduce:transition-none',
+                  isActive ? 'opacity-100' : 'opacity-0',
+                )}
+              />
             </Link>
           );
         })}
