@@ -48,6 +48,7 @@ export interface BudgetStoreState {
   // Actions for Gold Holdings
   buyGold: (holding: Omit<GoldHolding, 'id' | 'status'>) => void;
   sellGold: (id: string, sellPrice: number, soldDate: string) => void;
+  updateGoldHolding: (id: string, values: import('../types/gold-form').GoldFormValues) => void;
   deleteGoldHolding: (id: string) => void;
 
   // Currency Exchange

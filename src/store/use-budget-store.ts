@@ -11,6 +11,7 @@ import {
   type BudgetSnapshot,
 } from '@/features/budget/store/budget-sync';
 import type { BudgetStoreState } from '@/features/budget/store/types';
+import { goldFormSchema } from '@/features/budget/types/gold-form';
 import type {
   BudgetEntry,
   CurrencyCode,
@@ -521,6 +522,43 @@ export const useBudgetStore = create<BudgetStoreState>()(
             },
             goldHoldings: (state.goldHoldings || []).map((holding) =>
               holding.id === id ? soldHolding : holding,
+            ),
+          };
+        }),
+
+      updateGoldHolding: (id, input) =>
+        set((state) => {
+          const target = state.goldHoldings.find((holding) => holding.id === id);
+          if (!target) throw new Error('This gold record is no longer available.');
+          const values = goldFormSchema.parse(input);
+          if (values.status !== target.status) {
+            throw new Error('This gold record changed. Close the form and try again.');
+          }
+          const updated: GoldHolding = {
+            ...target,
+            ...values,
+            note: values.note || undefined,
+            sellPrice: target.status === 'sold' ? values.sellPrice : undefined,
+            soldDate: target.status === 'sold' ? values.soldDate : undefined,
+          };
+          const walletBalances = { ...state.walletBalances };
+          const previousCredit = target.status === 'sold' ? target.sellPrice || 0 : 0;
+          const nextCredit = updated.status === 'sold' ? updated.sellPrice || 0 : 0;
+          walletBalances[target.currency] += target.buyPrice - previousCredit;
+          walletBalances[updated.currency] += nextCredit - updated.buyPrice;
+          for (const currency of new Set([target.currency, updated.currency])) {
+            const balance = walletBalances[currency];
+            if (
+              !Number.isFinite(balance) ||
+              (balance < 0 && balance < state.walletBalances[currency])
+            ) {
+              throw new Error(`Not enough ${currency} in your current budget for this change.`);
+            }
+          }
+          return {
+            walletBalances,
+            goldHoldings: state.goldHoldings.map((holding) =>
+              holding.id === id ? updated : holding,
             ),
           };
         }),

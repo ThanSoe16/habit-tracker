@@ -4,26 +4,17 @@ import { useBudgetList, useGoldSummary } from '@/features/budget/services/list-q
 import { InfiniteListEnd } from '@/components/shared/infinite-list';
 
 import React, { useMemo, useState } from 'react';
-import { Calendar, Gem, Plus, Scale, TrendingDown, TrendingUp, Trash2, X } from 'lucide-react';
+import { Gem, Plus, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  CURRENCIES,
-  CurrencyCode,
-  formatCurrency,
-  GoldHolding,
-  useBudgetStore,
-} from '@/store/use-budget-store';
+import { formatCurrency, GoldHolding, useBudgetStore } from '@/store/use-budget-store';
+import { GoldRecordCard } from './_components/gold-record-card';
+import { GoldRecordDrawer } from './_components/gold-record-drawer';
+import { formatGoldWeight } from '@/features/budget/utils/gold-weight';
+import { useQueryIdentity } from '@/components/providers/query-provider';
 import { cn } from '@/utils/cn';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { MoneyInput } from '@/components/ui/money-input';
 import { DatePicker } from '@/components/ui/date-picker';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,34 +30,21 @@ type HoldingFilter = 'all' | 'holding' | 'sold';
 
 const today = () => new Date().toISOString().split('T')[0];
 
-function formatGoldWeight(holding: Pick<GoldHolding, 'kyat' | 'pae' | 'yway'>) {
-  const parts: string[] = [];
-  if (holding.kyat) parts.push(`${holding.kyat} ကျပ်သား`);
-  if (holding.pae) parts.push(`${holding.pae} ပဲ`);
-  if (holding.yway) parts.push(`${holding.yway} ရွေး`);
-  return parts.join(' ') || '0 ရွေး';
+export default function GoldPage() {
+  const userId = useQueryIdentity();
+  return <GoldPageContent key={userId} />;
 }
 
-export default function GoldPage() {
-  const {
-    goldHoldings = [],
-    walletBalances,
-    buyGold,
-    sellGold,
-    deleteGoldHolding,
-  } = useBudgetStore();
+function GoldPageContent() {
+  const goldHoldings = useBudgetStore((state) => state.goldHoldings);
+  const sellGold = useBudgetStore((state) => state.sellGold);
+  const deleteGoldHolding = useBudgetStore((state) => state.deleteGoldHolding);
   const [filter, setFilter] = useState<HoldingFilter>('all');
   const [buyDrawerOpen, setBuyDrawerOpen] = useState(false);
+  const [editingHolding, setEditingHolding] = useState<GoldHolding | null>(null);
   const [sellingHolding, setSellingHolding] = useState<GoldHolding | null>(null);
   const [deletingHolding, setDeletingHolding] = useState<GoldHolding | null>(null);
 
-  const [kyat, setKyat] = useState('1');
-  const [pae, setPae] = useState('0');
-  const [yway, setYway] = useState('0');
-  const [buyPrice, setBuyPrice] = useState('');
-  const [currency, setCurrency] = useState<CurrencyCode>('MMK');
-  const [purchaseDate, setPurchaseDate] = useState(today());
-  const [note, setNote] = useState('');
   const [sellPrice, setSellPrice] = useState('');
   const [soldDate, setSoldDate] = useState(today());
 
@@ -90,50 +68,6 @@ export default function GoldPage() {
   const realizedProfit = (summary.data ?? [])
     .filter((holding) => holding.status === 'sold' && holding.currency === 'MMK')
     .reduce((sum, holding) => sum + (holding.sellPrice || 0) - holding.buyPrice, 0);
-
-  const resetBuyForm = () => {
-    setKyat('1');
-    setPae('0');
-    setYway('0');
-    setBuyPrice('');
-    setCurrency('MMK');
-    setPurchaseDate(today());
-    setNote('');
-  };
-
-  const handleBuy = (event: React.FormEvent) => {
-    event.preventDefault();
-    const weight = {
-      kyat: Number(kyat) || 0,
-      pae: Number(pae) || 0,
-      yway: Number(yway) || 0,
-    };
-    const price = Number(buyPrice.replace(/,/g, ''));
-
-    if (weight.kyat * 128 + weight.pae * 8 + weight.yway <= 0) {
-      toast.error('Enter a gold weight greater than zero.');
-      return;
-    }
-    if (!price || price <= 0) {
-      toast.error('Enter the total purchase price.');
-      return;
-    }
-    if ((walletBalances[currency] || 0) < price) {
-      toast.error(`Not enough ${currency} in your current budget.`);
-      return;
-    }
-
-    buyGold({
-      ...weight,
-      buyPrice: price,
-      currency,
-      purchaseDate,
-      note: note.trim() || undefined,
-    });
-    toast.success('Gold purchase saved.');
-    resetBuyForm();
-    setBuyDrawerOpen(false);
-  };
 
   const handleSell = (event: React.FormEvent) => {
     event.preventDefault();
@@ -226,217 +160,32 @@ export default function GoldPage() {
             </p>
           </div>
         ) : (
-          filteredHoldings.map((holding) => {
-            const profit = (holding.sellPrice || 0) - holding.buyPrice;
-            return (
-              <article
-                key={holding.id}
-                className="space-y-3 rounded-3xl border border-gray-100 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
-                      <Scale className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="truncate text-sm font-black text-gray-900 dark:text-white">
-                        {formatGoldWeight(holding)}
-                      </h3>
-                      <span
-                        className={cn(
-                          'mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-black uppercase',
-                          holding.status === 'holding'
-                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
-                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400',
-                        )}
-                      >
-                        {holding.status}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-[10px] font-bold text-gray-400">Bought for</p>
-                    <p className="text-sm font-black text-gray-900 dark:text-white">
-                      {formatCurrency(holding.buyPrice, holding.currency)}
-                    </p>
-                  </div>
-                </div>
-
-                {holding.status === 'sold' && (
-                  <div className="grid grid-cols-2 gap-2 rounded-2xl bg-gray-50 p-3 dark:bg-zinc-800/70">
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400">Sold for</p>
-                      <p className="text-xs font-black text-gray-800 dark:text-white">
-                        {formatCurrency(holding.sellPrice || 0, holding.currency)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-gray-400">Profit / Loss</p>
-                      <p
-                        className={cn(
-                          'flex items-center justify-end gap-1 text-xs font-black',
-                          profit >= 0 ? 'text-emerald-600' : 'text-red-500',
-                        )}
-                      >
-                        {profit >= 0 ? (
-                          <TrendingUp className="h-3 w-3" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3" />
-                        )}
-                        {profit > 0 ? '+' : ''}
-                        {formatCurrency(profit, holding.currency)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between border-t border-gray-100 pt-3 dark:border-zinc-800">
-                  <div className="min-w-0 text-[10px] font-bold text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> {holding.purchaseDate}
-                    </span>
-                    {holding.note && <p className="mt-1 max-w-52 truncate">{holding.note}</p>}
-                  </div>
-                  <div className="flex gap-1.5">
-                    {holding.status === 'holding' && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSellingHolding(holding);
-                          setSellPrice('');
-                          setSoldDate(today());
-                        }}
-                        className="rounded-xl bg-emerald-600 px-3 py-1.5 text-[11px] font-black text-white"
-                      >
-                        Sell
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setDeletingHolding(holding)}
-                      className="flex h-7 w-8 items-center justify-center rounded-xl border border-gray-200 text-gray-400 hover:text-red-500 dark:border-zinc-700"
-                      aria-label="Delete gold record"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </article>
-            );
-          })
+          filteredHoldings.map((holding) => (
+            <GoldRecordCard
+              key={holding.id}
+              holding={holding}
+              onEdit={setEditingHolding}
+              onSell={(record) => {
+                setSellingHolding(record);
+                setSellPrice('');
+                setSoldDate(today());
+              }}
+              onDelete={setDeletingHolding}
+            />
+          ))
         )}
       </section>
 
-      <Drawer open={buyDrawerOpen} onOpenChange={setBuyDrawerOpen}>
-        <DrawerContent className="z-[80] mx-auto max-h-[90vh] max-w-lg overflow-y-auto rounded-t-[36px] bg-white p-6 text-gray-900 dark:bg-zinc-900 dark:text-white">
-          <div className="mb-5 flex items-center justify-between border-b border-gray-100 pb-3 dark:border-zinc-800">
-            <DrawerTitle className="flex items-center gap-2 text-base font-black">
-              <Gem className="h-5 w-5 text-amber-500" /> Record Gold Purchase
-            </DrawerTitle>
-            <button
-              type="button"
-              onClick={() => setBuyDrawerOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <form onSubmit={handleBuy} className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                Gold weight
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  ['ကျပ်သား', kyat, setKyat, undefined],
-                  ['ပဲ', pae, setPae, 15],
-                  ['ရွေး', yway, setYway, 7],
-                ].map(([label, value, setter, max]) => (
-                  <label
-                    key={label as string}
-                    className="text-center text-[10px] font-bold text-gray-400"
-                  >
-                    <input
-                      type="number"
-                      min="0"
-                      max={max as number | undefined}
-                      step="1"
-                      value={value as string}
-                      onChange={(event) =>
-                        (setter as React.Dispatch<React.SetStateAction<string>>)(event.target.value)
-                      }
-                      className="mb-1.5 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 text-center text-sm font-black outline-none focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
-                    />
-                    {label as string}
-                  </label>
-                ))}
-              </div>
-              <p className="mt-2 text-[10px] font-semibold text-gray-400">
-                1 ကျပ်သား = 16 ပဲ = 128 ရွေး
-              </p>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                Total purchase price
-              </label>
-              <MoneyInput
-                value={buyPrice}
-                setValue={setBuyPrice}
-                postfix={currency}
-                placeholder="Enter total price"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                  Currency
-                </label>
-                <Select
-                  value={currency}
-                  onValueChange={(value) => setCurrency(value as CurrencyCode)}
-                >
-                  <SelectTrigger className="h-12 rounded-2xl border-gray-200 bg-gray-50 text-xs font-black dark:border-zinc-700 dark:bg-zinc-800">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="z-[150]">
-                    {Object.values(CURRENCIES).map((item) => (
-                      <SelectItem key={item.code} value={item.code}>
-                        {item.flag} {item.code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                  Purchase date
-                </label>
-                <DatePicker value={purchaseDate} onChange={setPurchaseDate} />
-              </div>
-            </div>
-            <div className="rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
-              Available: {formatCurrency(walletBalances[currency] || 0, currency)}
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                Note (optional)
-              </label>
-              <textarea
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                placeholder="Shop, purity, item details..."
-                className="min-h-20 w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 p-3 text-xs font-bold outline-none focus:border-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full rounded-2xl bg-amber-500 py-3.5 text-sm font-black text-white shadow-lg shadow-amber-500/20"
-            >
-              Save Purchase
-            </button>
-          </form>
-        </DrawerContent>
-      </Drawer>
+      {(buyDrawerOpen || editingHolding) && (
+        <GoldRecordDrawer
+          key={editingHolding?.id ?? 'new'}
+          holding={editingHolding ?? undefined}
+          onClose={() => {
+            setBuyDrawerOpen(false);
+            setEditingHolding(null);
+          }}
+        />
+      )}
 
       <Drawer open={!!sellingHolding} onOpenChange={(open) => !open && setSellingHolding(null)}>
         <DrawerContent className="z-[80] mx-auto max-w-lg rounded-t-[36px] bg-white p-6 text-gray-900 dark:bg-zinc-900 dark:text-white">
