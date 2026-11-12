@@ -114,7 +114,7 @@ export function HabitCard({
       {/* Card Body Container */}
       <div
         className={cn(
-          'relative flex-1 flex items-center justify-between overflow-hidden shadow-xs hover:shadow-md transition-all border border-black/5',
+          'relative flex-1 flex items-center justify-between overflow-hidden shadow-xs hover:shadow-md transition-transform border border-black/5',
           isCompact ? 'rounded-xl p-2.5' : 'rounded-2xl p-3.5',
         )}
         style={{
@@ -125,11 +125,13 @@ export function HabitCard({
         {!isCompleted && pct > 0 && (
           <div
             className={cn(
-              'absolute left-0 top-0 bottom-0 transition-all duration-300',
+              'absolute left-0 top-0 bottom-0 transition-transform duration-300',
               isCompact ? 'rounded-xl' : 'rounded-2xl',
             )}
             style={{
-              width: `${pct}%`,
+              width: '100%',
+              transform: `scaleX(${pct / 100})`,
+              transformOrigin: 'left',
               backgroundColor: habitColor,
             }}
           />
@@ -163,9 +165,7 @@ export function HabitCard({
             </h3>
             {(habit.type !== 'task' || !isCompact) && (
               <div className="flex min-w-0 items-center gap-1.5">
-                {habit.type !== 'task' && (
-                  <HabitDirectionBadge habitKind={habit.habitKind} />
-                )}
+                {habit.type !== 'task' && <HabitDirectionBadge habitKind={habit.habitKind} />}
                 {!isCompact && (
                   <p
                     className={cn(
@@ -214,7 +214,7 @@ export function HabitCard({
                 onQuickSubtract?.(e);
               }}
               className={cn(
-                'rounded-full bg-white/90 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xs',
+                'rounded-full bg-white/90 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-xs',
                 isCompact ? 'w-7 h-7' : 'w-9 h-9',
               )}
               title="Subtract count"
@@ -231,7 +231,7 @@ export function HabitCard({
                 onQuickAdd?.(e);
               }}
               className={cn(
-                'rounded-full bg-white text-blue-600 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md',
+                'rounded-full bg-white text-blue-600 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-md',
                 isCompact ? 'w-7 h-7' : 'w-9 h-9',
               )}
               title="Add progress"
@@ -248,7 +248,7 @@ export function HabitCard({
               onQuickComplete?.(e);
             }}
             className={cn(
-              'rounded-full flex items-center justify-center transition-all shadow-md hover:scale-105 active:scale-95',
+              'rounded-full flex items-center justify-center transition-transform shadow-md hover:scale-105 active:scale-95',
               isCompact ? 'w-7 h-7' : 'w-9 h-9',
               isCompleted
                 ? 'bg-white text-emerald-600'

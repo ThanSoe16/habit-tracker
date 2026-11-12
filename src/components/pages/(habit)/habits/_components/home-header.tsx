@@ -1,15 +1,11 @@
 'use client';
 
-import { Menu, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface HomeHeaderProps {
-  greeting: string;
-  name: string;
-  avatarEmoji: string;
   formattedDate: string;
-  onOpenSidebar?: () => void;
 }
 
 export function HomeHeader({ formattedDate }: HomeHeaderProps) {

@@ -38,7 +38,10 @@ interface HabitSidebarProps {
 }
 
 export function HabitAppSidebar({ onSelectViewMode }: HabitSidebarProps) {
-  const { name, avatarEmoji, theme, setTheme } = useUserStore();
+  const name = useUserStore((state) => state.name);
+  const avatarEmoji = useUserStore((state) => state.avatarEmoji);
+  const theme = useUserStore((state) => state.theme);
+  const setTheme = useUserStore((state) => state.setTheme);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

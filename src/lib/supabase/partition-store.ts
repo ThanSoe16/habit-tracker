@@ -1,11 +1,12 @@
 import type { StoreApi } from 'zustand';
 import type { PersistStorage } from 'zustand/middleware';
 
-type ScopedStore<T> = StoreApi<T> & {
+export type ScopedStore<T> = StoreApi<T> & {
   persist: {
     getOptions: () => { storage?: PersistStorage<T> };
     setOptions: (options: { name?: string; storage?: PersistStorage<T> }) => void;
     rehydrate: () => void | Promise<void>;
+    hasHydrated: () => boolean;
   };
 };
 
@@ -20,6 +21,9 @@ export function partitionStore<T>(store: ScopedStore<T>, name: string, hydrate: 
     },
   });
   store.setState(store.getInitialState(), true);
+  // Zustand versions hydrations. An empty read cancels a prior account's async
+  // read even when the next feature will not hydrate until its route is visited.
+  void store.persist.rehydrate();
   store.persist.setOptions({ storage, name });
   if (hydrate) return store.persist.rehydrate();
 }

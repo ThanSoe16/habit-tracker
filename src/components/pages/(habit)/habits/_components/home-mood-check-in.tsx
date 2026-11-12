@@ -1,11 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { format, startOfDay, addDays } from 'date-fns';
 import { Smile } from 'lucide-react';
 import { FloatingActionButton } from '@/components/shared/floating-action-button';
-import { MoodEntryDrawer } from '@/components/pages/(mood)/_components/mood-entry-drawer';
+import { LoadingStatus } from '@/components/shared/loading-status';
 import { useMoodRange } from '@/features/mood/services/queries';
+
+const MoodEntryDrawer = dynamic(
+  () =>
+    import('@/components/pages/(mood)/_components/mood-entry-drawer').then(
+      (module) => module.MoodEntryDrawer,
+    ),
+  { loading: () => <LoadingStatus label="Opening mood…" className="py-4" /> },
+);
 
 export function HomeMoodCheckIn() {
   const [today, setToday] = useState(() => format(new Date(), 'yyyy-MM-dd'));

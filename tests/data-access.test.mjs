@@ -231,6 +231,44 @@ test('habit kind filtering includes legacy build habits and excludes other kinds
   );
 });
 
+test('today projection supplies card and dialog data without fetching full histories', async (t) => {
+  const date = '2026-11-12';
+  const calls = mockRequests(t, () => ({
+    data: [
+      {
+        id: 'meditation',
+        name: 'Meditation',
+        color: 'primary',
+        frequency: 'daily',
+        repeat_days: [0, 1, 2, 3, 4, 5, 6],
+        unit_type: 'duration',
+        goal_value: 5,
+        timer_mode: 'down',
+        streak: 3,
+        day0: { completed: false, timeTaken: '02:00', notes: 'Keep this note' },
+      },
+    ],
+    count: 1,
+    error: null,
+  }));
+  const rows = await habitsService.summary([date], false, new AbortController().signal);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].columns, /day0:history->2026-11-12/);
+  assert.ok(
+    !calls[0].columns
+      .split(',')
+      .map((value) => value.trim())
+      .includes('history'),
+  );
+  assert.equal(rows[0].unitType, 'duration');
+  assert.equal(rows[0].timerMode, 'down');
+  assert.equal(rows[0].goalValue, 5);
+  assert.equal(rows[0].streak, 3);
+  assert.deepEqual(rows[0].history, {
+    [date]: { completed: false, timeTaken: '02:00', notes: 'Keep this note' },
+  });
+});
+
 test('complete reads follow server caps and reject incomplete or changing counts', async () => {
   const { readCompleteList } = await import('../src/lib/supabase/request.ts');
   const all = Array.from({ length: 7 }, (_, id) => ({ id }));

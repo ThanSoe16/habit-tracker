@@ -1,5 +1,11 @@
 export type LegacySyncTarget = 'user' | 'gym' | 'budget' | 'goals';
 
+export function routeStoreTargets(pathname: string): import('./route-stores').RouteStoreTarget[] {
+  if (pathname.startsWith('/digital-wellbeing')) return ['wellbeing', 'focus'];
+  if (pathname.startsWith('/store')) return ['media'];
+  return routeSyncTargets(pathname).filter((target) => target !== 'user');
+}
+
 /** Only dependencies of the visible route; shared profile settings are always needed. */
 export function routeSyncTargets(pathname: string): LegacySyncTarget[] {
   const targets: LegacySyncTarget[] = ['user'];

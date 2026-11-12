@@ -1,20 +1,12 @@
 'use client';
 import { ReactQueryProvider } from './query-provider';
 
-import { useFocusSessionStore } from '@/features/wellbeing/store/use-focus-session-store';
-import { partitionStore } from '@/lib/supabase/partition-store';
+import { routeStores } from '@/features/sync/route-stores';
 import { useSettingsSync } from '@/features/settings/sync-status';
 import { partitionIdentityStores, setIdentityScope } from '@/lib/supabase/identity-scope';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { useHabitStore } from '@/store/use-habit-store';
 import { useUserStore } from '@/store/use-user-store';
-import { useMoodStore } from '@/store/use-mood-store';
-import { useGymStore } from '@/store/use-gym-store';
-import { useBudgetStore } from '@/store/use-budget-store';
-import { useMediaStore } from '@/store/use-media-store';
-import { useDigitalWellbeingStore } from '@/store/use-digital-wellbeing-store';
-import { useGoalsStore } from '@/features/goals/store/use-goals-store';
 
 type SyncTarget =
   | 'habits'
@@ -136,9 +128,9 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
     }
 
     function partitionAccounts(userId: string | null) {
-      const hydrations: Array<void | Promise<void>> = [];
       setReadyUserId(null);
       setIdentityScope(userId);
+      routeStores.selectAccount(userId);
       if ('serviceWorker' in navigator) {
         void navigator.serviceWorker.ready
           .then((registration) => {
@@ -148,50 +140,18 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
           .catch(() => undefined);
       }
       partitionIdentityStores(() => {
-        useHabitStore.setState(useHabitStore.getInitialState(), true);
         useUserStore.setState(useUserStore.getInitialState(), true);
-        useMoodStore.setState(useMoodStore.getInitialState(), true);
-        useGymStore.setState(useGymStore.getInitialState(), true);
         useSettingsSync.setState(useSettingsSync.getInitialState(), true);
-        hydrations.push(
-          partitionStore(useGoalsStore, `goals:${userId ?? 'signed-out'}`, Boolean(userId)),
-        );
-        hydrations.push(
-          partitionStore(useBudgetStore, `budget:${userId ?? 'signed-out'}`, Boolean(userId)),
-        );
-        hydrations.push(
-          partitionStore(useMediaStore, `media:${userId ?? 'signed-out'}`, Boolean(userId)),
-        );
       });
-      // Preserve old/unassigned storage. Never import another account's pending data.
-      hydrations.push(
-        partitionStore(
-          useDigitalWellbeingStore,
-          `digital-wellbeing:${userId ?? 'signed-out'}`,
-          Boolean(userId),
-        ),
-      );
-      hydrations.push(
-        partitionStore(
-          useFocusSessionStore,
-          `focus-session:${userId ?? 'signed-out'}`,
-          Boolean(userId),
-        ),
-      );
-      return Promise.all(hydrations);
     }
 
     function syncForUser(userId: string) {
       if (syncedUserId === userId) return;
       clearUserSync();
-      const hydration = partitionAccounts(userId);
+      partitionAccounts(userId);
       syncedUserId = userId;
       startRealtimeSync(userId);
-      void hydration
-        .then(() => {
-          if (!cancelled && syncedUserId === userId) setReadyUserId(userId);
-        })
-        .catch((error) => console.warn('Unable to open account data:', error));
+      if (!cancelled) setReadyUserId(userId);
     }
 
     function clearUserSync() {
@@ -225,7 +185,7 @@ export function SupabaseSyncProvider({ children }: { children: React.ReactNode }
       if (user) {
         syncForUser(user.id);
       } else {
-        void partitionAccounts(null);
+        partitionAccounts(null);
         clearUserSync();
       }
     });

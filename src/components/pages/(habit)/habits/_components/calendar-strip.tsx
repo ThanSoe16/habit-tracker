@@ -1,6 +1,6 @@
 'use client';
 
-import React, { RefObject } from 'react';
+import React, { memo, useMemo, RefObject } from 'react';
 import { useHabitSummary } from '@/features/habits/services/list-queries';
 import { isHabitRequiredOnDate } from '@/utils/date-utils';
 import { parseTimeTakenToSeconds } from '@/utils/time-utils';
@@ -19,160 +19,173 @@ interface CalendarStripProps {
   onSelectDate: (date: Date) => void;
 }
 
-export function CalendarStrip({ weekDays, onSelectDate, scrollContainerRef }: CalendarStripProps) {
-  const { habits } = useHabitSummary(weekDays.map((day) => day.date.toLocaleDateString('en-CA')));
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  return (
-    <div className="relative py-2 px-1">
-      <div
-        ref={scrollContainerRef}
-        className="relative flex items-center overflow-x-auto pb-1 no-scrollbar z-10 w-full"
-      >
-        {weekDays.map((d, i) => {
-          const dateOnly = new Date(d.date);
-          dateOnly.setHours(0, 0, 0, 0);
-          const isPastOrToday = dateOnly <= today;
-          const dateStr = d.date.toLocaleDateString('en-CA');
-
-          // Calculate habit completion ratio for this date
-          const requiredHabits = habits.filter((h) => isHabitRequiredOnDate(h, d.date));
+export const CalendarStrip = memo(
+  function CalendarStrip({ weekDays, onSelectDate, scrollContainerRef }: CalendarStripProps) {
+    const { habits } = useHabitSummary(weekDays.map((day) => day.date.toLocaleDateString('en-CA')));
+    const progressByDate = useMemo(() => {
+      return new Map(
+        weekDays.map((day) => {
+          const dateStr = day.date.toLocaleDateString('en-CA');
+          const requiredHabits = habits.filter((habit) => isHabitRequiredOnDate(habit, day.date));
           const totalCount = requiredHabits.length;
+          const completedCount = requiredHabits.filter((habit) => {
+            const entry = habit.history[dateStr];
+            if (typeof entry === 'boolean') return entry;
+            if (!entry) return false;
+            if (entry.completed) return true;
+            if (habit.unitType === 'count')
+              return parseHabitCount(entry.count) >= (habit.goalValue || 1);
+            if (habit.unitType === 'time' || habit.unitType === 'duration')
+              return (
+                parseTimeTakenToSeconds(entry.timeTaken) >=
+                (habit.goalValue || 1) * (habit.timeUnit === 'hr' ? 3600 : 60)
+              );
+            return false;
+          }).length;
+          return [
+            dateStr,
+            { totalCount, progressRatio: totalCount ? completedCount / totalCount : 0 },
+          ];
+        }),
+      );
+    }, [habits, weekDays]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-          let completedCount = 0;
-          requiredHabits.forEach((h) => {
-            const entry = h.history[dateStr];
-            if (entry) {
-              if (typeof entry === 'boolean') {
-                if (entry) completedCount++;
-              } else if (typeof entry === 'object') {
-                if (entry.completed) completedCount++;
-                else if (
-                  h.unitType === 'count' &&
-                  parseHabitCount(entry.count) >= (h.goalValue || 1)
-                ) {
-                  completedCount++;
-                } else if (
-                  (h.unitType === 'time' || h.unitType === 'duration') &&
-                  parseTimeTakenToSeconds(entry.timeTaken) >=
-                    (h.goalValue || 1) * (h.timeUnit === 'hr' ? 3600 : 60)
-                ) {
-                  completedCount++;
-                }
-              }
-            }
-          });
+    return (
+      <div className="relative py-2 px-1">
+        <div
+          ref={scrollContainerRef}
+          className="relative flex items-center overflow-x-auto pb-1 no-scrollbar z-10 w-full"
+        >
+          {weekDays.map((d, i) => {
+            const dateOnly = new Date(d.date);
+            dateOnly.setHours(0, 0, 0, 0);
+            const isPastOrToday = dateOnly <= today;
+            const dateStr = d.date.toLocaleDateString('en-CA');
 
-          const progressRatio = totalCount > 0 ? completedCount / totalCount : 0;
-          const isFullyCompleted = progressRatio >= 1 && totalCount > 0;
-          const isPartiallyCompleted = progressRatio > 0 && progressRatio < 1;
+            const { totalCount, progressRatio } = progressByDate.get(dateStr)!;
+            const isFullyCompleted = progressRatio >= 1 && totalCount > 0;
+            const isPartiallyCompleted = progressRatio > 0 && progressRatio < 1;
 
-          return (
-            <div
-              key={i}
-              className="flex-1 min-w-[calc(100%/7)] w-[calc(100%/7)] shrink-0 flex flex-col items-center justify-center px-0.5 py-1"
-            >
-              <button
-                id={d.id}
-                type="button"
-                onClick={() => onSelectDate(d.date)}
-                className={`flex flex-col items-center justify-center w-full py-1.5 px-1 rounded-2xl transition-all duration-200 ${
-                  d.isSelected
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'hover:bg-gray-100 dark:hover:bg-zinc-800'
-                }`}
+            return (
+              <div
+                key={i}
+                className="flex-1 min-w-[calc(100%/7)] w-[calc(100%/7)] shrink-0 flex flex-col items-center justify-center px-0.5 py-1"
               >
-                <span
-                  className={`text-[11px] font-extrabold tracking-tight mb-1 ${
-                    d.isSelected ? 'text-white/95' : 'text-gray-400 dark:text-gray-500'
+                <button
+                  id={d.id}
+                  type="button"
+                  onClick={() => onSelectDate(d.date)}
+                  className={`flex flex-col items-center justify-center w-full py-1.5 px-1 rounded-2xl transition-transform duration-200 ${
+                    d.isSelected
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'hover:bg-gray-100 dark:hover:bg-zinc-800'
                   }`}
                 >
-                  {d.weekday}
-                </span>
+                  <span
+                    className={`text-[11px] font-extrabold tracking-tight mb-1 ${
+                      d.isSelected ? 'text-white/95' : 'text-gray-400 dark:text-gray-500'
+                    }`}
+                  >
+                    {d.weekday}
+                  </span>
 
-                <div className="relative w-9 h-9 flex items-center justify-center">
-                  {d.isSelected ? (
-                    isPartiallyCompleted ? (
-                      <>
-                        <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
-                          <circle
-                            cx="18"
-                            cy="18"
-                            r="14"
-                            className="stroke-white/30"
-                            strokeWidth="3.5"
-                            fill="transparent"
-                          />
-                          <circle
-                            cx="18"
-                            cy="18"
-                            r="14"
-                            className="stroke-white transition-all duration-300"
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                            fill="transparent"
-                            strokeDasharray="88"
-                            strokeDashoffset={88 - 88 * progressRatio}
-                          />
-                        </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-xs font-black text-white">
+                  <div className="relative w-9 h-9 flex items-center justify-center">
+                    {d.isSelected ? (
+                      isPartiallyCompleted ? (
+                        <>
+                          <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r="14"
+                              className="stroke-white/30"
+                              strokeWidth="3.5"
+                              fill="transparent"
+                            />
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r="14"
+                              className="stroke-white"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                              fill="transparent"
+                              strokeDasharray="88"
+                              strokeDashoffset={88 - 88 * progressRatio}
+                            />
+                          </svg>
+                          <span className="absolute inset-0 flex items-center justify-center text-xs font-black text-white">
+                            {d.day}
+                          </span>
+                        </>
+                      ) : (
+                        <div className="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-xs font-black text-white">
                           {d.day}
-                        </span>
-                      </>
-                    ) : (
-                      <div className="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-xs font-black text-white">
-                        {d.day}
-                      </div>
-                    )
-                  ) : isPastOrToday ? (
-                    isFullyCompleted ? (
-                      <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground font-black text-xs flex items-center justify-center shadow-2xs">
-                        {d.day}
-                      </div>
-                    ) : isPartiallyCompleted ? (
-                      <>
-                        <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
-                          <circle
-                            cx="18"
-                            cy="18"
-                            r="14"
-                            className="stroke-blue-100 dark:stroke-zinc-800"
-                            strokeWidth="3.5"
-                            fill="transparent"
-                          />
-                          <circle
-                            cx="18"
-                            cy="18"
-                            r="14"
-                            className="stroke-indigo-600 transition-all duration-300"
-                            strokeWidth="3.5"
-                            strokeLinecap="round"
-                            fill="transparent"
-                            strokeDasharray="88"
-                            strokeDashoffset={88 - 88 * progressRatio}
-                          />
-                        </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-800 dark:text-gray-200">
+                        </div>
+                      )
+                    ) : isPastOrToday ? (
+                      isFullyCompleted ? (
+                        <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground font-black text-xs flex items-center justify-center shadow-2xs">
                           {d.day}
-                        </span>
-                      </>
+                        </div>
+                      ) : isPartiallyCompleted ? (
+                        <>
+                          <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r="14"
+                              className="stroke-blue-100 dark:stroke-zinc-800"
+                              strokeWidth="3.5"
+                              fill="transparent"
+                            />
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r="14"
+                              className="stroke-indigo-600"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                              fill="transparent"
+                              strokeDasharray="88"
+                              strokeDashoffset={88 - 88 * progressRatio}
+                            />
+                          </svg>
+                          <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-800 dark:text-gray-200">
+                            {d.day}
+                          </span>
+                        </>
+                      ) : (
+                        <div className="w-9 h-9 rounded-full border-2 border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-600 dark:text-gray-300 font-bold text-xs flex items-center justify-center">
+                          {d.day}
+                        </div>
+                      )
                     ) : (
-                      <div className="w-9 h-9 rounded-full border-2 border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-600 dark:text-gray-300 font-bold text-xs flex items-center justify-center">
+                      <div className="w-9 h-9 text-gray-400 dark:text-gray-500 text-xs font-semibold flex items-center justify-center">
                         {d.day}
                       </div>
-                    )
-                  ) : (
-                    <div className="w-9 h-9 text-gray-400 dark:text-gray-500 text-xs font-semibold flex items-center justify-center">
-                      {d.day}
-                    </div>
-                  )}
-                </div>
-              </button>
-            </div>
-          );
-        })}
+                    )}
+                  </div>
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  },
+  (previous, next) =>
+    previous.onSelectDate === next.onSelectDate &&
+    previous.scrollContainerRef === next.scrollContainerRef &&
+    previous.weekDays.length === next.weekDays.length &&
+    previous.weekDays.every((day, index) => {
+      const nextDay = next.weekDays[index];
+      return (
+        day.id === nextDay.id &&
+        day.isSelected === nextDay.isSelected &&
+        day.isToday === nextDay.isToday
+      );
+    }),
+);

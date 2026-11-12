@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 import { useUserStore } from '@/store/use-user-store';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { theme, appearanceSettings } = useUserStore();
+  const theme = useUserStore((state) => state.theme);
+  const appearanceSettings = useUserStore((state) => state.appearanceSettings);
 
   useEffect(() => {
     const root = document.documentElement;

@@ -112,7 +112,7 @@ export function BottomNav() {
               href={item.href}
               aria-label={item.label}
               aria-current={isActive ? 'page' : undefined}
-              className="flex flex-col items-center justify-center transition-all duration-300 relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
+              className="flex flex-col items-center justify-center transition-transform duration-300 relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
             >
               <div className="size-10 rounded-xl flex items-center justify-center">
                 <BottomNavIcon

@@ -4,16 +4,14 @@ import { useUserStore } from '@/store/use-user-store';
 import { playAlarmSound } from '@/hooks/use-reminders';
 
 export function useDailyReminder() {
-  const {
-    remindersEnabled,
-    dailyReminderTime,
-    moodSettings,
-    name,
-    ringtone,
-    customRingtoneUrl,
-    vibrationEnabled,
-    isLoaded,
-  } = useUserStore();
+  const remindersEnabled = useUserStore((state) => state.remindersEnabled);
+  const dailyReminderTime = useUserStore((state) => state.dailyReminderTime);
+  const moodSettings = useUserStore((state) => state.moodSettings);
+  const name = useUserStore((state) => state.name);
+  const ringtone = useUserStore((state) => state.ringtone);
+  const customRingtoneUrl = useUserStore((state) => state.customRingtoneUrl);
+  const vibrationEnabled = useUserStore((state) => state.vibrationEnabled);
+  const isLoaded = useUserStore((state) => state.isLoaded);
   const requestPermission = useCallback(async () => {
     if (typeof Notification === 'undefined') return false;
     return (

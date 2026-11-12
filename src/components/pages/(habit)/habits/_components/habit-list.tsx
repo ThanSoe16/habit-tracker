@@ -1,18 +1,32 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { Habit } from '@/features/habits/types';
 import { useTodayHabits } from '@/features/habits/services/list-queries';
 import { useHabitActions } from '@/features/habits/services/actions';
 import { InfiniteListEnd } from '@/components/shared/infinite-list';
 import { useUserStore } from '@/store/use-user-store';
 import { HabitCard } from './habit-card';
-import { HabitCompletionDrawer } from './habit-completion-drawer';
-import { HabitCompleteSheet } from './habit-complete-sheet';
-import { HabitTimerModal } from './habit-timer-modal';
+import { HabitListSkeleton } from './habit-list-skeleton';
+import { LoadingStatus } from '@/components/shared/loading-status';
 import { parseTimeTakenToSeconds, formatTimeTakenDisplay } from '@/utils/time-utils';
 import { parseHabitCount } from '@/features/habits/utils/progress';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+
+const dialogLoading = () => <LoadingStatus label="Opening habit…" className="py-4" />;
+const HabitCompletionDrawer = dynamic(
+  () => import('./habit-completion-drawer').then((module) => module.HabitCompletionDrawer),
+  { loading: dialogLoading },
+);
+const HabitCompleteSheet = dynamic(
+  () => import('./habit-complete-sheet').then((module) => module.HabitCompleteSheet),
+  { loading: dialogLoading },
+);
+const HabitTimerModal = dynamic(
+  () => import('./habit-timer-modal').then((module) => module.HabitTimerModal),
+  { loading: dialogLoading },
+);
 
 interface HabitListProps {
   selectedDate?: Date;
@@ -44,7 +58,7 @@ export function HabitList({ selectedDate = new Date(), filter = 'all' }: HabitLi
   if (query.isError && !habits.length) return <InfiniteListEnd query={query} />;
 
   if (!isLoaded) {
-    return <div className="p-8 text-center text-muted-foreground">Loading habits...</div>;
+    return <HabitListSkeleton />;
   }
 
   const dateString = selectedDate.toLocaleDateString('en-CA');

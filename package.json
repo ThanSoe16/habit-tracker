@@ -6,6 +6,8 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
+    "perf:bundle": "node scripts/measure-page-bundle.mjs",
+    "test:performance": "node --import ./tests/register-typescript.mjs --test tests/route-stores.test.mjs tests/pagination.test.mjs tests/account-isolation.test.mjs",
     "lint": "eslint",
     "test:login": "momentic run login-validation.test.yaml",
     "test:login:success": "momentic run login-success.test.yaml",

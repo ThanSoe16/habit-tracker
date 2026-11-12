@@ -26,7 +26,8 @@ export function useHabitReminders() {
     const timer = setInterval(() => setToday(getLocalDateString()), 15000);
     return () => clearInterval(timer);
   }, []);
-  const { remindersEnabled, setRemindersEnabled } = useUserStore();
+  const remindersEnabled = useUserStore((state) => state.remindersEnabled);
+  const setRemindersEnabled = useUserStore((state) => state.setRemindersEnabled);
   const notifiedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {

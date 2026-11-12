@@ -1,9 +1,14 @@
 'use client';
 import { filterHabits, type HabitListFilter } from '../utils/filter-habits';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { LIST_PAGE_SIZE } from '@/lib/supabase/pagination';
+import type { Habit } from '../types';
 import { useQueryIdentity } from '@/components/providers/query-provider';
 import { habitsService } from './supabase';
 import { habitKeys } from './query-keys';
+
+const EMPTY_HABITS: Habit[] = [];
 
 export function useHabitList(type?: 'habit' | 'task') {
   const userId = useQueryIdentity();
@@ -40,7 +45,7 @@ export function useHabitSummary(dates: string[], remindersOnly = false) {
   });
   return {
     ...query,
-    habits: query.data ?? [],
+    habits: query.data ?? EMPTY_HABITS,
     isLoaded: !query.isPending,
     loadError: query.isError ? 'Could not load habits.' : null,
   };
@@ -68,23 +73,26 @@ export function useHabitReport() {
 export function useTodayHabits(filters: HabitListFilter) {
   const userId = useQueryIdentity();
   const summary = useHabitSummary([filters.date]);
-  const ids = filterHabits(summary.habits, filters).map((habit) => habit.id);
-  const query = useInfiniteQuery({
-    queryKey: ['habits', userId, 'infinite', filters, ids],
-    enabled: Boolean(userId && summary.data),
-    initialPageParam: 1,
-    queryFn: ({ pageParam, signal }) => habitsService.listSelected(ids, pageParam, signal),
-    getNextPageParam: (page) => page.nextPage,
-  });
+  const { date, status, hideCompleted, sortBy } = filters;
+  const scope = JSON.stringify([userId, date, status, hideCompleted, sortBy]);
+  const [pagination, setPagination] = useState({ scope, limit: LIST_PAGE_SIZE });
+  const limit = pagination.scope === scope ? pagination.limit : LIST_PAGE_SIZE;
+  // The date projection already contains every field used by today's cards and
+  // dialogs. Mutations fetch the full record before saving its history.
+  const filtered = useMemo(
+    () => filterHabits(summary.habits, { date, status, hideCompleted, sortBy }),
+    [summary.habits, date, status, hideCompleted, sortBy],
+  );
   return {
-    ...query,
-    isError: query.isError || summary.isError,
-    isFetching: query.isFetching || summary.isFetching,
-    refetch: async () => {
-      await summary.refetch();
-      return query.refetch();
+    ...summary,
+    habits: filtered.slice(0, limit),
+    hasNextPage: filtered.length > limit,
+    isFetchingNextPage: false,
+    fetchNextPage: async () => {
+      setPagination((previous) => ({
+        scope,
+        limit: (previous.scope === scope ? previous.limit : LIST_PAGE_SIZE) + LIST_PAGE_SIZE,
+      }));
     },
-    habits: query.data?.pages.flatMap((page) => page.rows) ?? [],
-    isLoaded: !summary.isPending && !query.isPending,
   };
 }
